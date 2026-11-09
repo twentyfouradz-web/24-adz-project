@@ -1,0 +1,20 @@
+name = "24adz-api"
+main = "workers/index.js"
+compatibility_date = "2026-10-01"
+
+# Keep database_name and database_id paired with the existing Cloudflare D1 resource.
+# Do not change either value unless the D1 database is renamed in Cloudflare.
+[[d1_databases]]
+binding = "DB"
+database_name = "hey-mr-database"
+database_id = "7ddce70c-e849-44b7-855c-a40a3d0af286"
+migrations_dir = "migrations"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+# Keep bucket_name paired with the existing Cloudflare R2 bucket.
+[[r2_buckets]]
+binding = "IMAGES"
+bucket_name = "hey-mr-images"

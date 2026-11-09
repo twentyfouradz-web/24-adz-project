@@ -1,0 +1,24 @@
+24Adz.com Project Requirements
+===============================
+
+1. Admin + Client Ads Posting
+   - Admin can create and manage all ads.
+   - Authenticated, email-verified Clients can create advertisements.
+   - Clients can edit/delete only ads owned by their own account; ownership is enforced server-side.
+   - Mobile OTP / SMS verification is not required or implemented.
+
+2. Client Browsing and Search
+   - Public visitors can browse published advertisements.
+   - Visitors can search/filter advertisements and open listing details.
+   - Visitors who are not logged in cannot create or manage advertisements.
+
+3. Email Security
+   - Email verification is required before client login and posting.
+   - Email password reset is supported.
+   - Configure Resend secrets and a verified sender before production use.
+
+4. Existing Website
+   - Preserve homepage layout, styling, categories, districts, area data, Admin Panel, D1 and R2 integrations.
+   - Keep admin management routes protected.
+   - Keep client ownership checks on client edit/delete endpoints.
+   - Do not add MSG91, SMS OTP or Razorpay.
