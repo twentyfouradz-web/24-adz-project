@@ -677,9 +677,7 @@ body{-webkit-overflow-scrolling:touch}
 .district-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:20px}
 .district-list button{min-height:48px;padding:10px 8px;border:1px solid rgba(255,160,55,.28);border-radius:12px;background:linear-gradient(145deg,#15110d,#090909);color:#f5f0e9;font-size:13px;font-weight:700;cursor:pointer;transition:.2s}
 .district-list button:hover,.district-list button:focus-visible{border-color:var(--orange);background:#241609;color:#ffb04b;outline:none}
-.district-results-filters{box-sizing:border-box;width:100%;margin:0 0 22px;padding:17px;border:1px solid rgba(255,151,31,.32);border-radius:17px;background:linear-gradient(145deg,#17110c,#0c0c0c);height:2.5in;max-height:75vh;min-height:150px;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#a85b17 #130d08}
-.district-results-filters select.field{position:relative;z-index:6;pointer-events:auto;touch-action:manipulation;-webkit-appearance:menulist;appearance:auto}
-.district-filter-grid{position:relative;z-index:4}
+.district-results-filters{box-sizing:border-box;width:100%;margin:0 0 22px;padding:17px;border:1px solid rgba(255,151,31,.32);border-radius:17px;background:linear-gradient(145deg,#17110c,#0c0c0c);height:2.5in;max-height:75vh;min-height:150px;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#a85b17 #130d08;touch-action:pan-y}
 .district-results-filters[hidden]{display:none!important}
 .district-filter-drag-handle{position:sticky;top:-17px;z-index:5;display:flex;align-items:center;justify-content:center;gap:9px;margin:-17px -17px 13px;padding:9px 12px;background:linear-gradient(180deg,#241508,#17110c);border-bottom:1px solid rgba(255,151,31,.25);color:#ffb04b;font-size:10px;font-weight:800;letter-spacing:2px;cursor:ns-resize;touch-action:none;user-select:none}.district-filter-drag-handle:before{content:"";width:34px;height:4px;border-radius:9px;background:#b97832;display:block}.district-filter-drag-handle:after{content:"";width:34px;height:4px;border-radius:9px;background:#b97832;display:block}.district-results-filters.is-dragging{transition:none;outline:1px solid rgba(255,151,31,.5)}
 .district-filter-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
@@ -1577,7 +1575,7 @@ header .premium-24adz-logo .brand-dot{
     <label>Full Name *</label><input class="field" name="name" required autocomplete="name" placeholder="Your full name">
     <label>Email Address *</label><input class="field" name="email" type="email" required autocomplete="email" placeholder="name@example.com">
     <label>Mobile Number *</label><input class="field" id="registerPhone" name="mobile" type="tel" required inputmode="numeric" pattern="[6-9][0-9]{9}" maxlength="10" placeholder="10-digit mobile number">
-    <label>Password *</label><input class="field" name="password" type="password" minlength="8" required autocomplete="new-password" placeholder="Create password (8+ characters)">
+    <label>Password *</label><input class="field" name="password" type="password" minlength="10" pattern="(?=.*[A-Za-z])(?=.*[0-9]).{10,}" required autocomplete="new-password" placeholder="10+ characters, include a number">
     <button class="btn btn-primary" type="submit">Register</button>
     <p class="small-note">Your email is your login ID. Verify your email to activate your account. Mobile OTP is not required.</p>
   </form>
@@ -1750,13 +1748,7 @@ fillDistricts(document.getElementById("postDistrict"));
 fillAreas(document.getElementById("postDistrict"),document.getElementById("postArea"));
 renderDistrictList();
 fillDistrictFilterOptions();
-document.getElementById("districtFilterCategory").addEventListener("change",()=>{
-  updateDistrictFilterSubcategories();
-  document.getElementById("districtFilterSubcategory").value="";
-});
-document.getElementById("districtFilterSubcategory").addEventListener("change",()=>{
-  // Keep the selected subcategory ready for Apply Filters.
-});
+document.getElementById("districtFilterCategory").addEventListener("change",updateDistrictFilterSubcategories);
 document.getElementById("districtFilterDistrict").addEventListener("change",()=>{
   activeDistrictListing=document.getElementById("districtFilterDistrict").value;
   updateDistrictFilterAreas();
@@ -1941,14 +1933,11 @@ function openSearchResults(){
   const cat=document.getElementById("searchCategory").value;
   const dist=document.getElementById("searchDistrict").value;
   const area=document.getElementById("searchArea").value;
-  const keyword=document.getElementById("keyword").value.trim();
-  if(!cat && !dist && !area && !keyword){toast("Please enter a keyword or select a category.");return;}
-  // District and area are optional: a category-only search must include
-  // matching advertisements from every Tamil Nadu district.
-  document.getElementById("districtResultsFilters").hidden=true;
+  if(!cat){toast("Please select a category.");return;}
+  if(!dist){toast("Please select a district.");return;}
+  if(!area){toast("Please select an area.");return;}
   document.body.classList.add("search-results-mode");
-  const scope=area || dist || "All Districts";
-  document.getElementById("adsHeading").innerHTML='Search Results <span>· '+escapeHtml(scope)+'</span>';
+  document.getElementById("adsHeading").innerHTML='Search Results <span>· '+escapeHtml(area)+'</span>';
   searchAds();
   window.scrollTo({top:0,behavior:"smooth"});
 }
@@ -2075,23 +2064,18 @@ function closeSearchResults(){
   window.scrollTo({top:0,behavior:"smooth"});
 }
 function searchAds(){
-  const keyword=document.getElementById("keyword").value.trim().toLocaleLowerCase("en-IN");
+  const keyword=document.getElementById("keyword").value.trim().toLowerCase();
   const cat=document.getElementById("searchCategory").value;
   const dist=document.getElementById("searchDistrict").value;
   const area=document.getElementById("searchArea").value;
-  const normalize=value=>String(value||"").trim().replace(/\\s+/g," ").toLocaleLowerCase("en-IN");
-  let filtered=ads.filter(a=>{
-    const searchable=[a.title,a.description,a.contact,a.category,a.subcategory,a.district,a.area]
-      .map(value=>String(value||"")).join(" ").toLocaleLowerCase("en-IN");
-    return (!keyword||searchable.includes(keyword)) &&
-      (!cat||normalize(a.category)===normalize(cat)) &&
-      (!dist||normalize(a.district)===normalize(dist)) &&
-      (!area||normalize(a.area)===normalize(area));
-  });
+  let filtered=ads.filter(a=>
+    (!keyword||(String(a.title||"")+" "+String(a.description||"")+" "+String(a.contact||"")+" "+String(a.category||"")).toLowerCase().includes(keyword)) &&
+    (!cat||a.category===cat) && (!dist||String(a.district||"").trim()===dist) && (!area||String(a.area||"").trim()===area)
+  );
   const sort=document.getElementById("sortListings")?.value || "newest";
   if(sort==="price-low") filtered.sort((a,b)=>(Number(a.price)||0)-(Number(b.price)||0));
   if(sort==="price-high") filtered.sort((a,b)=>(Number(b.price)||0)-(Number(a.price)||0));
-  if(sort==="newest") filtered.sort((a,b)=>getAdStartTime(b)-getAdStartTime(a));
+  if(sort==="newest") filtered.sort((a,b)=>(Number(b.id)||0)-(Number(a.id)||0));
   renderAds(filtered,1);
 }
 let adsCurrentPage=1;
@@ -2521,7 +2505,20 @@ setInterval(()=>{
     return d;
   }
   function adz24ApplyCategoryData(rows){
-    ADZ24.categories=Array.isArray(rows)?rows:[];
+    // If the D1 categories table is empty, keep the homepage usable with its
+    // built-in category directory. Admin-managed D1 categories take priority
+    // whenever at least one active category exists.
+    const fallbackMap=Object.fromEntries(Object.entries(categories).map(([k,v])=>[k,[...v]]));
+    let sourceRows=Array.isArray(rows)?rows.filter(x=>x&&String(x.name||'').trim()):[];
+    if(!sourceRows.length){
+      sourceRows=[];let id=1;
+      Object.entries(fallbackMap).forEach(([name,children])=>{
+        const parentId=id++;
+        sourceRows.push({id:parentId,name,parent_id:null,icon:'◆',sort_order:parentId,active:1});
+        children.forEach(child=>sourceRows.push({id:id++,name:child,parent_id:parentId,icon:'◆',sort_order:id,active:1}));
+      });
+    }
+    ADZ24.categories=sourceRows;
     Object.keys(categories).forEach(k=>delete categories[k]);
     const isPersonalService=name=>/(person|massage|spa|wellness|beauty|reflexology|salon)/i.test(String(name||''));
     const roots=ADZ24.categories.filter(x=>!x.parent_id);
@@ -2578,11 +2575,13 @@ setInterval(()=>{
         });
       }
     }
+    const selectableRows=[...roots.filter(x=>!isPersonalService(x.name)),...serviceRows.filter(x=>!roots.some(r=>String(r.id)===String(x.id)))];
     ['searchCategory','districtFilterCategory','postCategory'].forEach(id=>{
       const sel=document.getElementById(id);if(!sel)return;
       const old=sel.value;sel.innerHTML='<option value="">Select Category</option>';
-      roots.filter(x=>!isPersonalService(x.name)).forEach(x=>{
-        const o=document.createElement('option');o.value=x.name;o.textContent=x.name;sel.appendChild(o);
+      selectableRows.forEach(x=>{
+        const name=String(x.name||'').trim();if(!name||[...sel.options].some(o=>o.value===name))return;
+        const o=document.createElement('option');o.value=name;o.textContent=name;sel.appendChild(o);
       });
       if(old&&[...sel.options].some(o=>o.value===old))sel.value=old;
     });
