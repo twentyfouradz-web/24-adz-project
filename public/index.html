@@ -677,7 +677,9 @@ body{-webkit-overflow-scrolling:touch}
 .district-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:20px}
 .district-list button{min-height:48px;padding:10px 8px;border:1px solid rgba(255,160,55,.28);border-radius:12px;background:linear-gradient(145deg,#15110d,#090909);color:#f5f0e9;font-size:13px;font-weight:700;cursor:pointer;transition:.2s}
 .district-list button:hover,.district-list button:focus-visible{border-color:var(--orange);background:#241609;color:#ffb04b;outline:none}
-.district-results-filters{box-sizing:border-box;width:100%;margin:0 0 22px;padding:17px;border:1px solid rgba(255,151,31,.32);border-radius:17px;background:linear-gradient(145deg,#17110c,#0c0c0c);height:2.5in;max-height:75vh;min-height:150px;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#a85b17 #130d08;touch-action:pan-y}
+.district-results-filters{box-sizing:border-box;width:100%;margin:0 0 22px;padding:17px;border:1px solid rgba(255,151,31,.32);border-radius:17px;background:linear-gradient(145deg,#17110c,#0c0c0c);height:2.5in;max-height:75vh;min-height:150px;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#a85b17 #130d08}
+.district-results-filters select.field{position:relative;z-index:6;pointer-events:auto;touch-action:manipulation;-webkit-appearance:menulist;appearance:auto}
+.district-filter-grid{position:relative;z-index:4}
 .district-results-filters[hidden]{display:none!important}
 .district-filter-drag-handle{position:sticky;top:-17px;z-index:5;display:flex;align-items:center;justify-content:center;gap:9px;margin:-17px -17px 13px;padding:9px 12px;background:linear-gradient(180deg,#241508,#17110c);border-bottom:1px solid rgba(255,151,31,.25);color:#ffb04b;font-size:10px;font-weight:800;letter-spacing:2px;cursor:ns-resize;touch-action:none;user-select:none}.district-filter-drag-handle:before{content:"";width:34px;height:4px;border-radius:9px;background:#b97832;display:block}.district-filter-drag-handle:after{content:"";width:34px;height:4px;border-radius:9px;background:#b97832;display:block}.district-results-filters.is-dragging{transition:none;outline:1px solid rgba(255,151,31,.5)}
 .district-filter-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
@@ -686,16 +688,12 @@ body{-webkit-overflow-scrolling:touch}
 .district-results-filters .btn{margin:4px 7px 0 0;min-height:45px}
 @media(max-width:600px){.district-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.district-list button{font-size:12px;min-height:46px}.district-filter-grid{grid-template-columns:1fr}.district-results-filters{padding:13px}.district-filter-drag-handle{top:-13px;margin:-13px -13px 11px;padding:8px 10px}}
 
-/* Registration OTP + password visibility controls; scoped to auth modals */
+/* Password visibility controls; scoped to auth modals */
 .auth-password-wrap{position:relative;display:flex;align-items:center;margin-bottom:13px}
 .auth-password-wrap .field{margin:0;padding-right:54px;width:100%}
 .password-eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:40px;height:38px;border:1px solid #55402c;border-radius:9px;background:#21170f;color:#ffb04b;font-size:18px;display:grid;place-items:center}
-.password-eye:focus-visible,.otp-action:focus-visible{outline:2px solid #ffb04b;outline-offset:2px}
-.otp-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;margin-bottom:10px}
-.otp-row .field{margin:0;min-width:0}
-.otp-action{min-height:48px;padding:10px 13px;border:1px solid #ff8a00;border-radius:10px;background:#21170f;color:#ffb04b;font-weight:800;white-space:nowrap}
-.otp-status{min-height:18px;margin:2px 0 12px;color:#ffbd68;font-size:12px;line-height:1.45}
-@media(max-width:420px){.otp-row{grid-template-columns:1fr}.otp-action{width:100%}}
+.password-eye:focus-visible{outline:2px solid #ffb04b;outline-offset:2px}
+
 
 /* Numbered 25-ad pagination */
 #adsSection .ads-pagination .page-number{
@@ -772,7 +770,7 @@ body{-webkit-overflow-scrolling:touch}
 
 
 /* =========================================================
-   HEY... MR — CINEMATIC PREMIUM BRAND THEME
+   24ADZ.COM — CINEMATIC PREMIUM BRAND THEME
    Visual-only layer. Existing HTML structure, IDs, handlers,
    forms, data, filtering and API logic are intentionally kept.
    ========================================================= */
@@ -820,7 +818,7 @@ header{background:rgba(5,4,3,.86);backdrop-filter:blur(22px) saturate(145%);bord
 .price-card.featured,.price-plan-details{border-color:#ff9e28;background:radial-gradient(ellipse at 100% 0%,rgba(255,116,0,.2),transparent 58%),linear-gradient(145deg,#2b190b,#0a0806)}
 .plan-name,.plan-note{color:#ffbd65}
 .district-quick-search{position:relative;overflow:hidden;border-radius:26px}
-.district-quick-search:before{content:"";position:absolute;inset:-45% -20%;pointer-events:none;background:conic-gradient(from 20deg,transparent 0 35%,rgba(255,105,0,.08) 43%,transparent 52% 100%);animation:heyRing 18s linear infinite}
+.district-quick-search:before{content:"";position:absolute;inset:-45% -20%;pointer-events:none;background:conic-gradient(from 20deg,transparent 0 35%,rgba(255,105,0,.08) 43%,transparent 52% 100%);animation:adzRing 18s linear infinite}
 .district-search-kicker{color:#ffb84d;text-shadow:0 0 16px rgba(255,130,0,.5)}
 .district-search-heading h2{color:#fff6e8}
 .district-search-heading h2 span{background:linear-gradient(100deg,#ffe4b2,#ff9c1a,#ef4318);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -839,7 +837,7 @@ header{background:rgba(5,4,3,.86);backdrop-filter:blur(22px) saturate(145%);bord
 .modal-top h2{color:#ffad3c}
 footer{border-color:rgba(255,145,35,.25);background:linear-gradient(180deg,transparent,rgba(255,104,0,.055));color:#a99b90}
 .toast{background:rgba(18,11,7,.97);border-color:#ff9c27;box-shadow:0 10px 35px #000b,0 0 20px rgba(255,110,0,.12)}
-@keyframes heyRing{to{transform:rotate(360deg)}}
+@keyframes adzRing{to{transform:rotate(360deg)}}
 @media(max-width:600px){
  .nav{padding:6px 12px;min-height:78px;gap:8px}
  .logo{width:min(190px,47vw);height:68px}
@@ -876,7 +874,7 @@ footer{border-color:rgba(255,145,35,.25);background:linear-gradient(180deg,trans
 @media(max-width:520px){.dashboard-summary{grid-template-columns:repeat(3,1fr)}.dashboard-stat{padding:10px 4px}.dashboard-stat strong{font-size:18px}}
 
 
-/* Screenshot-inspired directory layout for HEY MR.
+/* Screenshot-inspired directory layout for 24Adz.
    This layer changes presentation only; existing IDs, API hooks and handlers stay intact. */
 :root{--ref-blue:#075b9c;--ref-blue-deep:#064c82;--ref-paper:#f3f4f5;--ref-ink:#34383d}
 body{padding-bottom:78px;background:var(--ref-paper);color:var(--ref-ink)}
@@ -982,7 +980,7 @@ body.search-results-mode main{padding-top:12px}
 }
 
 
-/* HEY MR final black / orange / white palette.
+/* 24Adz final black / orange / white palette.
    Screenshot-inspired layout and all existing IDs, handlers and API logic are retained. */
 :root{--ref-blue:#ff9418;--ref-blue-deep:#d95a0b;--ref-paper:#080706;--ref-ink:#fff8ef}
 html,body{background:#080706!important;color:#fff8ef!important}
@@ -1033,7 +1031,7 @@ footer{background:#080706!important;color:#b9aaa0!important;border-top:1px solid
 
 
 /* =========================================================
-   HEY MR requested mobile refinements — scoped overrides only
+   24Adz requested mobile refinements — scoped overrides only
    Keep the existing homepage structure, theme and features.
    ========================================================= */
 @media (max-width: 600px) {
@@ -1123,7 +1121,7 @@ footer{background:#080706!important;color:#b9aaa0!important;border-top:1px solid
 
 
 /* =========================================================
-   HEY... MR — CENTER-STAGE SIGNATURE BRAND UPGRADE
+   24ADZ.COM — CENTER-STAGE SIGNATURE BRAND UPGRADE
    Visual-only CSS: preserves all existing HTML, IDs, buttons,
    forms, event handlers, data, and JavaScript functionality.
    ========================================================= */
@@ -1275,14 +1273,13 @@ footer{background:#080706!important;color:#b9aaa0!important;border-top:1px solid
 }
 
 </style>
-<style id="heyMrAdminOnlyPromoStyles">
+<style id="adz24PromoStyles">
 .cinematic-ad-promo{position:relative;isolation:isolate;overflow:hidden;width:min(900px,100%);min-height:230px;margin:26px auto 0;padding:28px 20px;box-sizing:border-box;border:1px solid rgba(255,166,52,.72);border-radius:22px;background:radial-gradient(ellipse at 15% 20%,rgba(255,130,0,.28),transparent 42%),linear-gradient(115deg,#090706 0%,#241006 48%,#080706 100%);box-shadow:0 18px 55px rgba(0,0,0,.58),0 0 35px rgba(255,102,0,.16);text-align:center}
 .promo-content{position:relative;z-index:2}.promo-kicker{display:block;color:#ffc16d;font-size:11px;font-weight:800;letter-spacing:3px}.promo-content h2{margin:9px 0 4px;color:#fff;font-size:clamp(30px,6vw,54px);font-weight:950;letter-spacing:2px;text-shadow:0 0 24px rgba(255,110,0,.35)}.promo-content h2 em{font-style:normal;color:#ff8b16}.promo-content p{margin:0;color:#f3dfca;font-size:14px}.promo-offer{display:flex;align-items:center;justify-content:center;gap:16px;margin:13px 0}.promo-offer span{padding:7px 13px;border:1px solid #ff9a26;border-radius:30px;color:#ffd29b;font-size:13px;font-weight:900;letter-spacing:2px}.promo-offer strong{color:#ff9b19;font-size:clamp(32px,6vw,44px);font-weight:950;text-shadow:0 0 20px rgba(255,116,0,.55)}.promo-cta{padding:12px 22px;border:0;border-radius:30px;background:linear-gradient(100deg,#ffae19,#ff4b12);color:#160900;font-weight:950;letter-spacing:1px;cursor:pointer;box-shadow:0 7px 24px rgba(255,82,0,.3)}.promo-cta span{margin-left:8px}.promo-orbit{position:absolute;z-index:1;width:190px;height:190px;border:1px solid rgba(255,159,44,.18);border-radius:50%;pointer-events:none}.promo-orbit-one{top:-115px;left:-45px;animation:promoOrbit 14s linear infinite}.promo-orbit-two{right:-65px;bottom:-135px;width:250px;height:250px;animation:promoOrbit 19s linear infinite reverse}.promo-light-sweep{position:absolute;z-index:1;top:-40%;left:-35%;width:22%;height:180%;transform:rotate(22deg);background:linear-gradient(90deg,transparent,rgba(255,214,150,.14),transparent);animation:promoSweep 5.5s ease-in-out infinite;pointer-events:none}@keyframes promoSweep{0%,15%{left:-35%}75%,100%{left:125%}}@keyframes promoOrbit{to{transform:rotate(360deg)}}@media(max-width:600px){.cinematic-ad-promo{min-height:220px;margin-top:18px;padding:25px 12px;border-radius:17px}.promo-kicker{font-size:9px;letter-spacing:2px}.promo-content p{font-size:12px}.promo-offer{gap:10px}.promo-cta{font-size:12px;padding:11px 17px}}
-/* Public client account, message and ad-post forms are not available on the homepage. */
-/* Admin-only website: public ad posting, client registration, client dashboard, payment UI and listing plans are not exposed. */
+/* 24Adz: client registration, login, dashboard and ad-post forms are available.
+   Modals remain closed by default and open only through their existing controls. */
 #loginModal,#registerModal,#clientDashboardModal,#postModal{display:none;visibility:visible;pointer-events:auto}
 #loginModal.open,#registerModal.open,#clientDashboardModal.open,#postModal.open{display:flex!important}
-#listingPlans{display:none!important}
 @media(prefers-reduced-motion:reduce){.promo-orbit,.promo-light-sweep{animation:none!important}}
 </style>
 
@@ -1319,7 +1316,7 @@ header .premium-24adz-logo .brand-dot{
   <nav class="nav">
     <a class="logo premium-24adz-logo" href="/" aria-label="24adz.com Home"><span class="brand-main">24adz<span class="brand-dot">.</span>com</span></a>
     <div class="nav-actions" id="accountNav">
-      <button class="btn btn-primary" id="navLoginBtn" type="button" onclick="openModal('loginModal')">Login</button><button class="btn btn-outline" id="navRegisterBtn" type="button" onclick="openModal('registerModal')">Register</button><button class="btn btn-primary" id="navDashboardBtn" type="button" hidden onclick="openClientDashboard()">My 24Adz</button><button class="btn btn-outline" id="navLogoutBtn" type="button" hidden onclick="clientLogout()">Logout</button>
+      <button class="btn btn-primary" id="navLoginBtn" type="button" onclick="openModal('loginModal')">Login</button><button class="btn btn-outline" id="navRegisterBtn" type="button" onclick="openModal('registerModal')">Register</button><a class="btn btn-outline" href="/client.html" style="text-decoration:none">Client Panel</a><button class="btn btn-primary" id="navDashboardBtn" type="button" hidden onclick="openClientDashboard()">My 24Adz</button><button class="btn btn-outline" id="navLogoutBtn" type="button" hidden onclick="clientLogout()">Logout</button>
     </div>
   </nav>
   <nav class="reference-top-links" aria-label="Quick categories">
@@ -1348,11 +1345,11 @@ header .premium-24adz-logo .brand-dot{
   <section class="cinematic-ad-promo" aria-label="Advertise on 24Adz" hidden>
     <div class="promo-orbit promo-orbit-one"></div><div class="promo-orbit promo-orbit-two"></div>
     <div class="promo-content">
-      <span class="promo-kicker">GROW YOUR BUSINESS WITH HEY... MR</span>
+      <span class="promo-kicker">GROW YOUR BUSINESS WITH 24ADZ.COM</span>
       <h2>ADVERTISE <em>HERE</em></h2>
       <p>Put your business in the spotlight across Tamil Nadu</p>
       <div class="promo-offer" id="homepagePromoOffer" aria-live="polite" aria-atomic="true"><span id="homepagePromoDays">3 DAYS</span><strong id="homepagePromoPrice">₹300</strong></div>
-      <a class="promo-cta" href="https://wa.me/918870017424?text=Hello%20Admin%2C%20I%20want%20to%20post%20an%20advertisement%20on%20your%20HEY...%20MR%20website.%20Please%20contact%20me%20and%20share%20the%20advertising%20details." target="_blank" rel="noopener">CONTACT ADMIN NOW <span>↗</span></a>
+      <a class="promo-cta" href="https://wa.me/918870017424?text=Hello%20Admin%2C%20I%20want%20to%20post%20an%20advertisement%20on%20your%2024adz.com%20website.%20Please%20contact%20me%20and%20share%20the%20advertising%20details." target="_blank" rel="noopener">CONTACT ADMIN NOW <span>↗</span></a>
     </div>
     <div class="promo-light-sweep"></div>
   </section>
@@ -1658,7 +1655,7 @@ const categories = {
   "Other Services":["Other Wellness Services"]
 };
 const sampleAds = [];
-let ads = []; // Public listings are loaded only from the HEY MR D1 API; browser-local ads are ignored.
+let ads = []; // Public listings are loaded from the 24Adz D1 API; browser-local ads are ignored.
 
 // Remove previously generated demo listings from this browser.
 // Keep all genuine user-created advertisements unchanged.
@@ -1666,9 +1663,9 @@ let ads = []; // Public listings are loaded only from the HEY MR D1 API; browser
   const before = ads.length;
   ads = ads.filter(a => !a || (!a.demo && !String(a.id || "").startsWith("demo-")));
   if (ads.length !== before) {
-    try { localStorage.setItem("heymr_ads_v1", JSON.stringify(ads)); } catch(e) {}
+    
   }
-  try { localStorage.removeItem("heymr_demo_800_seeded"); } catch(e) {}
+  
 }
 
 function fillDistricts(select){
@@ -1753,7 +1750,13 @@ fillDistricts(document.getElementById("postDistrict"));
 fillAreas(document.getElementById("postDistrict"),document.getElementById("postArea"));
 renderDistrictList();
 fillDistrictFilterOptions();
-document.getElementById("districtFilterCategory").addEventListener("change",updateDistrictFilterSubcategories);
+document.getElementById("districtFilterCategory").addEventListener("change",()=>{
+  updateDistrictFilterSubcategories();
+  document.getElementById("districtFilterSubcategory").value="";
+});
+document.getElementById("districtFilterSubcategory").addEventListener("change",()=>{
+  // Keep the selected subcategory ready for Apply Filters.
+});
 document.getElementById("districtFilterDistrict").addEventListener("change",()=>{
   activeDistrictListing=document.getElementById("districtFilterDistrict").value;
   updateDistrictFilterAreas();
@@ -1915,9 +1918,7 @@ function goHomeTop(){
   else window.scrollTo({top:0,behavior:"smooth"});
 }
 function openClientMessages(){
-  // The client dashboard is the connected account entry point; its messaging
-  // area is reached there without inventing an unsupported route.
-  location.href="client.html";
+  if(typeof openClientDashboard==="function")openClientDashboard();
 }
 function quickCategory(category){
   const select=document.getElementById("searchCategory");
@@ -1940,11 +1941,14 @@ function openSearchResults(){
   const cat=document.getElementById("searchCategory").value;
   const dist=document.getElementById("searchDistrict").value;
   const area=document.getElementById("searchArea").value;
-  if(!cat){toast("Please select a category.");return;}
-  if(!dist){toast("Please select a district.");return;}
-  if(!area){toast("Please select an area.");return;}
+  const keyword=document.getElementById("keyword").value.trim();
+  if(!cat && !dist && !area && !keyword){toast("Please enter a keyword or select a category.");return;}
+  // District and area are optional: a category-only search must include
+  // matching advertisements from every Tamil Nadu district.
+  document.getElementById("districtResultsFilters").hidden=true;
   document.body.classList.add("search-results-mode");
-  document.getElementById("adsHeading").innerHTML='Search Results <span>· '+escapeHtml(area)+'</span>';
+  const scope=area || dist || "All Districts";
+  document.getElementById("adsHeading").innerHTML='Search Results <span>· '+escapeHtml(scope)+'</span>';
   searchAds();
   window.scrollTo({top:0,behavior:"smooth"});
 }
@@ -2071,18 +2075,23 @@ function closeSearchResults(){
   window.scrollTo({top:0,behavior:"smooth"});
 }
 function searchAds(){
-  const keyword=document.getElementById("keyword").value.trim().toLowerCase();
+  const keyword=document.getElementById("keyword").value.trim().toLocaleLowerCase("en-IN");
   const cat=document.getElementById("searchCategory").value;
   const dist=document.getElementById("searchDistrict").value;
   const area=document.getElementById("searchArea").value;
-  let filtered=ads.filter(a=>
-    (!keyword||(String(a.title||"")+" "+String(a.description||"")+" "+String(a.contact||"")+" "+String(a.category||"")).toLowerCase().includes(keyword)) &&
-    (!cat||a.category===cat) && (!dist||String(a.district||"").trim()===dist) && (!area||String(a.area||"").trim()===area)
-  );
+  const normalize=value=>String(value||"").trim().replace(/\\s+/g," ").toLocaleLowerCase("en-IN");
+  let filtered=ads.filter(a=>{
+    const searchable=[a.title,a.description,a.contact,a.category,a.subcategory,a.district,a.area]
+      .map(value=>String(value||"")).join(" ").toLocaleLowerCase("en-IN");
+    return (!keyword||searchable.includes(keyword)) &&
+      (!cat||normalize(a.category)===normalize(cat)) &&
+      (!dist||normalize(a.district)===normalize(dist)) &&
+      (!area||normalize(a.area)===normalize(area));
+  });
   const sort=document.getElementById("sortListings")?.value || "newest";
   if(sort==="price-low") filtered.sort((a,b)=>(Number(a.price)||0)-(Number(b.price)||0));
   if(sort==="price-high") filtered.sort((a,b)=>(Number(b.price)||0)-(Number(a.price)||0));
-  if(sort==="newest") filtered.sort((a,b)=>(Number(b.id)||0)-(Number(a.id)||0));
+  if(sort==="newest") filtered.sort((a,b)=>getAdStartTime(b)-getAdStartTime(a));
   renderAds(filtered,1);
 }
 let adsCurrentPage=1;
@@ -2413,31 +2422,32 @@ document.getElementById("resetPasswordForm").addEventListener("submit",async e=>
 // Email verification links are processed once when the visitor returns from email.
 (async()=>{const params=new URLSearchParams(location.search),verify=params.get("verify_email"),reset=params.get("reset_password");if(verify){try{const d=await a24Call("/api/client/verify-email","POST",{token:verify});toast(d.message);history.replaceState({},"",location.pathname)}catch(e){toast(e.message)}}if(reset){openModal("resetPasswordModal")}})();
 
-// Browser-preview client account and dashboard. Production-grade shared accounts,
-// secure password storage, and cross-device ad ownership require backend endpoints.
-function getCurrentClient(){try{return JSON.parse(sessionStorage.getItem("heymr_current_client_v1")||"null");}catch(_){return null;}}
-function setCurrentClient(client){sessionStorage.setItem("heymr_current_client_v1",JSON.stringify({name:client.name,phone:digits(client.phone)}));}
+// 24Adz account navigation: client sessions are stored under the current project key.
+function getCurrentClient(){try{return JSON.parse(localStorage.getItem("24adz_client")||"null");}catch(_){return null;}}
+function setCurrentClient(client){localStorage.setItem("24adz_client",JSON.stringify(client||{}));}
 function updateAccountNav(){
- const logged=!!localStorage.getItem("hey_mr_client_token");
- document.getElementById("navLoginBtn").style.display=logged?"none":"";
- document.getElementById("navRegisterBtn").style.display=logged?"none":"";
- document.getElementById("navDashboardBtn").style.display=logged?"":"none";
- document.getElementById("navLogoutBtn").style.display=logged?"":"none";
+ const logged=!!localStorage.getItem("24adz_client_token");
+ const login=document.getElementById("navLoginBtn"),register=document.getElementById("navRegisterBtn"),
+       dashboard=document.getElementById("navDashboardBtn"),logout=document.getElementById("navLogoutBtn");
+ if(login)login.style.display=logged?"none":"";
+ if(register)register.style.display=logged?"none":"";
+ if(dashboard)dashboard.style.display=logged?"":"none";
+ if(logout)logout.style.display=logged?"":"none";
 }
 function clientLogout(){
- localStorage.removeItem("hey_mr_client_token");
- sessionStorage.removeItem("heymr_current_client_v1");
+ localStorage.removeItem("24adz_client_token");
+ localStorage.removeItem("24adz_client");
  location.href="/";
 }
 function startPostAd(){
- // All new listings use the authenticated Client Dashboard and D1-backed API.
- location.href="client.html";
+ if(!a24Token()){openModal("loginModal");return;}
+ openModal("postModal");
 }
-function resetPostFormForNew(){const form=document.getElementById("postForm");form.reset();document.getElementById("editingAdId").value="";const c=getCurrentClient();if(c){form.elements.contact.value=c.name||"";form.elements.phone.value=c.phone||"";form.elements.whatsapp.value=c.phone||"";}document.getElementById("postAge").value="";document.getElementById("agePickerTrigger").innerHTML='Select Age <span>▾</span>';goPostStep(1);}
+function resetPostFormForNew(){const form=document.getElementById("postForm");form.reset();document.getElementById("editingAdId").value="";const c=getCurrentClient();if(c){form.elements.contact.value=c.name||"";form.elements.phone.value=c.mobile||c.phone||"";form.elements.whatsapp.value=c.mobile||c.phone||"";}document.getElementById("postAge").value="";document.getElementById("agePickerTrigger").innerHTML='Select Age <span>▾</span>';goPostStep(1);}
 function escapeDashboardText(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function openClientDashboard(){
- // Client Dashboard is the single source of truth for account-owned advertisements.
- location.href="client.html";
+ if(!a24Token()){openModal("loginModal");return;}
+ openModal("clientDashboardModal");
 }
 function editClientAd(id){
  const c=getCurrentClient(),a=ads.find(x=>String(x.id)===String(id)&&digits(x.ownerPhone||x.phone)===digits(c?.phone));if(!a)return;
@@ -2497,27 +2507,27 @@ setInterval(()=>{
 },30000);
 
 
-/* HEY MR Admin-to-Website integration. Public contact methods are Call + WhatsApp only.
+/* 24Adz Admin-to-Website integration. Public contact methods are Call + WhatsApp only.
    Existing homepage markup/styles and browser-side listing behaviour remain as fallback.
    Active admin categories, contact settings, VIP pricing and form fields are loaded from D1. */
 (function(){
-  const HM={categories:[],settings:{contact_buttons:{call:true,whatsapp:true},vip_pricing:{"3":300,"5":500,"7":700}},fields:[]};
-  window.HEY_MR_ADMIN_CONFIG=HM;
-  const hmEscape=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-  async function hmGet(path){
+  const ADZ24={categories:[],settings:{contact_buttons:{call:true,whatsapp:true},vip_pricing:{"3":300,"5":500,"7":700}},fields:[]};
+  window.ADZ24_ADMIN_CONFIG=ADZ24;
+  const adz24Escape=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  async function adz24Get(path){
     const r=await fetch(path,{headers:{"Accept":"application/json"},cache:"no-store"});
     const d=await r.json().catch(()=>({}));
     if(!r.ok||d.success===false)throw new Error(d.error||"Could not load website settings");
     return d;
   }
-  function hmApplyCategoryData(rows){
-    HM.categories=Array.isArray(rows)?rows:[];
+  function adz24ApplyCategoryData(rows){
+    ADZ24.categories=Array.isArray(rows)?rows:[];
     Object.keys(categories).forEach(k=>delete categories[k]);
     const isPersonalService=name=>/(person|massage|spa|wellness|beauty|reflexology|salon)/i.test(String(name||''));
-    const roots=HM.categories.filter(x=>!x.parent_id);
-    const serviceRows=HM.categories.filter(x=>isPersonalService(x.name));
+    const roots=ADZ24.categories.filter(x=>!x.parent_id);
+    const serviceRows=ADZ24.categories.filter(x=>isPersonalService(x.name));
     roots.forEach(parent=>{
-      categories[parent.name]=HM.categories.filter(x=>String(x.parent_id)===String(parent.id)).map(x=>x.name);
+      categories[parent.name]=ADZ24.categories.filter(x=>String(x.parent_id)===String(parent.id)).map(x=>x.name);
     });
     // Group all personal-care/service categories under the existing Personals panel.
     // They must not be appended as separate top-level homepage cards.
@@ -2541,7 +2551,7 @@ setInterval(()=>{
         if(!name||(hasPluralHouses&&name.toLowerCase()==='house')||known.has(name))return;
         const card=document.createElement('button');
         card.type='button';card.className='category';
-        card.innerHTML='<span class="ico">'+hmEscape(x.icon||'◆')+'</span><strong>'+hmEscape(name)+'</strong>';
+        card.innerHTML='<span class="ico">'+adz24Escape(x.icon||'◆')+'</span><strong>'+adz24Escape(name)+'</strong>';
         card.addEventListener('click',()=>chooseCategory(name,card));
         grid.appendChild(card);known.add(name);
       });
@@ -2562,7 +2572,7 @@ setInterval(()=>{
           if(!name||knownSub.has(name))return;
           const card=document.createElement('button');
           card.type='button';card.className='category';
-          card.innerHTML='<span class="ico">'+hmEscape(x.icon||'◆')+'</span><strong>'+hmEscape(name)+'</strong>';
+          card.innerHTML='<span class="ico">'+adz24Escape(x.icon||'◆')+'</span><strong>'+adz24Escape(name)+'</strong>';
           card.addEventListener('click',()=>chooseCategory(name,card));
           subGrid.appendChild(card);knownSub.add(name);
         });
@@ -2582,12 +2592,12 @@ setInterval(()=>{
     if(post&&postSub)populateSubcategories(post,postSub);
   }
   function hmApplySettings(settings){
-    HM.settings={...HM.settings,...(settings||{})};
-    const c=HM.settings.contact_buttons||{};
+    ADZ24.settings={...ADZ24.settings,...(settings||{})};
+    const c=ADZ24.settings.contact_buttons||{};
     document.documentElement.dataset.hmCall=c.call===false?"off":"on";
     document.documentElement.dataset.hmWhatsapp=c.whatsapp===false?"off":"on";
 
-    const p=HM.settings.vip_pricing||{};
+    const p=ADZ24.settings.vip_pricing||{};
     const select=document.getElementById("pricePlanSelect");
     if(select){
       const current=select.value;
@@ -2603,7 +2613,7 @@ setInterval(()=>{
     const originalRenderAdCard=renderAdCard;
     renderAdCard=function(ad){
       let markup=originalRenderAdCard(ad);
-      const c=HM.settings.contact_buttons||{};
+      const c=ADZ24.settings.contact_buttons||{};
       if(c.call===false)markup=markup.replace(/<a href="tel:[\s\S]*?<\/a>/g,"");
       if(c.whatsapp===false)markup=markup.replace(/<a href="https:\/\/wa\.me\/[\s\S]*?<\/a>/g,"");
       return markup;
@@ -2611,7 +2621,7 @@ setInterval(()=>{
   }
   // Make the price-plan detail card use the prices saved by the Admin panel.
   window.showPricePlan=function(){
-    const key=document.getElementById("pricePlanSelect")?.value,p=HM.settings.vip_pricing||{};
+    const key=document.getElementById("pricePlanSelect")?.value,p=ADZ24.settings.vip_pricing||{};
     const days=key==="vip3"?"3":key==="vip5"?"5":key==="vip7"?"7":null;
     const panel=document.getElementById("pricePlanDetails");if(!panel)return;
     if(key==="free"){
@@ -2629,13 +2639,13 @@ setInterval(()=>{
     panel.hidden=false;
   };
   function hmApplyFields(rows){
-    HM.fields=(rows||[]).filter(x=>Number(x.active??1)!==0);
+    ADZ24.fields=(rows||[]).filter(x=>Number(x.active??1)!==0);
     const form=document.getElementById("postForm"),sub=document.getElementById("postSubcategory");
     if(!form||!sub)return;
     let wrap=document.getElementById("adminCustomFields");
     if(!wrap){wrap=document.createElement("div");wrap.id="adminCustomFields";wrap.className="admin-custom-fields";sub.insertAdjacentElement("afterend",wrap)}
     wrap.innerHTML="";
-    HM.fields.forEach((field,i)=>{
+    ADZ24.fields.forEach((field,i)=>{
       const id="adminField_"+field.id,label=document.createElement("label");
       label.htmlFor=id;label.textContent=field.label+(Number(field.required)?" *":"");
       let input;
@@ -2655,7 +2665,7 @@ setInterval(()=>{
   async function hmLoadPublicAds(){
     const remote=[];
     for(let page=1;page<=20;page++){
-      const d=await hmGet("/api/public/ads?page="+page+"&limit=100");
+      const d=await adz24Get("/api/public/ads?page="+page+"&limit=100");
       const batch=d.ads||[];
       batch.forEach(x=>remote.push({
         id:String(x.id),title:x.title||"",description:x.description||"",category:x.category||"",
@@ -2677,13 +2687,13 @@ setInterval(()=>{
   async function hmSync(){
     try{
       const [cat,settings,fields]=await Promise.all([
-        hmGet("/api/public/categories"),hmGet("/api/public/settings"),hmGet("/api/public/form-fields")
+        adz24Get("/api/public/categories"),adz24Get("/api/public/settings"),adz24Get("/api/public/form-fields")
       ]);
-      hmApplyCategoryData(cat.categories||[]);
+      adz24ApplyCategoryData(cat.categories||[]);
       hmApplySettings(settings.settings||{});
       hmApplyFields(fields.fields||[]);
       await hmLoadPublicAds().catch(e=>console.warn("24Adz.com public ads fallback:",e.message));
-      document.dispatchEvent(new CustomEvent("heymr:admin-settings-loaded",{detail:HM}));
+      document.dispatchEvent(new CustomEvent("24adz:admin-settings-loaded",{detail:ADZ24}));
     }catch(e){console.warn("24Adz.com admin integration fallback:",e.message)}
   }
   window.addEventListener("DOMContentLoaded",hmSync);
@@ -2691,7 +2701,7 @@ setInterval(()=>{
 })();
 
 
-/* Legacy admin-only posting redirect removed for the 24Adz.com client account flow. */
+/* 24Adz client posting uses the authenticated homepage modal. */
 
 </script>
 
