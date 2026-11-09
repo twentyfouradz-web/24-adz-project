@@ -1431,7 +1431,7 @@ header .premium-24adz-logo .brand-dot{
       <label class="price-dropdown-label" for="pricePlanSelect">Choose a Listing Plan</label>
       <select class="field price-plan-select" id="pricePlanSelect" onchange="showPricePlan()">
         <option value="">Select Price Plan</option>
-        <option value="free">Free Listing · ₹0</option>
+        <option value="free">Free Listing · ₹0 (3/month/mobile)</option>
         <option value="vip3">VIP Promotion · 3 Days · ₹300</option>
         <option value="vip5">VIP Promotion · 5 Days · ₹500</option>
         <option value="vip7">VIP Promotion · 7 Days · ₹700</option>
@@ -1793,7 +1793,7 @@ function showPricePlan(){
   const key=document.getElementById("pricePlanSelect").value;
   const panel=document.getElementById("pricePlanDetails");
   const plans={
-    free:{name:"FREE LISTING",amount:"₹0",description:"Up to 10 free advertisements per account.",features:["Standard listing","Call & WhatsApp contact"]},
+    free:{name:"FREE LISTING",amount:"₹0",description:"Up to 3 free advertisements per mobile number each calendar month.",features:["Standard listing","Call & WhatsApp contact"]},
     vip3:{name:"VIP · 3 DAYS",amount:"₹300",description:"Promote your advertisement for 3 days.",features:["VIP placement","More visibility","Call & WhatsApp contact"]},
     vip5:{name:"VIP · 5 DAYS",amount:"₹500",description:"Promote your advertisement for 5 days.",features:["VIP placement","More visibility","Call & WhatsApp contact"]},
     vip7:{name:"VIP · 7 DAYS",amount:"₹700",description:"Promote your advertisement for 7 days.",features:["VIP placement","More visibility","Call & WhatsApp contact"]}
@@ -2337,7 +2337,7 @@ async function getImageSafetyModels(){
 function imageFileToImage(file){return new Promise((ok,bad)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>ok(im);im.onerror=bad;im.src=r.result;};r.onerror=bad;r.readAsDataURL(file);});}
 async function checkAdImage(file){
  if(!file)return {ok:true};
- if(!/^image\/(jpeg|png|webp)$/.test(file.type)||file.size>8*1024*1024)return {ok:false,reason:"Upload JPG, PNG or WEBP up to 8 MB only."};
+ if(!/^image\/(jpeg|png|webp)$/.test(file.type)||file.size>5*1024*1024)return {ok:false,reason:"Upload JPG, PNG or WEBP up to 5 MB only."};
  document.getElementById("imageSafetyStatus").textContent="Checking adult content and visible numbers…";
  try{
   const libs=await getImageSafetyModels(),img=await imageFileToImage(file);
@@ -2527,14 +2527,16 @@ setInterval(()=>{
     ADZ24.categories=sourceRows;
     Object.keys(categories).forEach(k=>delete categories[k]);
     const isPersonalService=name=>/(person|massage|spa|wellness|beauty|reflexology|salon)/i.test(String(name||''));
-    const roots=ADZ24.categories.filter(x=>!x.parent_id);
-    const serviceRows=ADZ24.categories.filter(x=>isPersonalService(x.name));
+    const roots=ADZ24.categories.filter(x=>x.parent_id===null||x.parent_id===undefined);
+    const personalRoot=roots.find(x=>String(x.name||'').trim().toLowerCase()==='personals');
+    // Subcategories must be direct children of their main category. In particular,
+    // never include the Personals parent itself as one of its own subcategories.
     roots.forEach(parent=>{
       categories[parent.name]=ADZ24.categories.filter(x=>String(x.parent_id)===String(parent.id)).map(x=>x.name);
     });
-    // Group all personal-care/service categories under the existing Personals panel.
-    // They must not be appended as separate top-level homepage cards.
-    if(serviceRows.length)categories['Personals']=serviceRows.map(x=>x.name);
+    const serviceRows=personalRoot
+      ? ADZ24.categories.filter(x=>String(x.parent_id)===String(personalRoot.id))
+      : [];
 
     const grid=document.getElementById('categories');
     if(grid){
@@ -2581,7 +2583,9 @@ setInterval(()=>{
         });
       }
     }
-    const selectableRows=[...roots.filter(x=>!isPersonalService(x.name)),...serviceRows.filter(x=>!roots.some(r=>String(r.id)===String(x.id)))];
+    // Main-category selectors contain only the six parent categories.
+    // The selected main category controls its own subcategory selector.
+    const selectableRows=roots;
     ['searchCategory','districtFilterCategory','postCategory'].forEach(id=>{
       const sel=document.getElementById(id);if(!sel)return;
       const old=sel.value;sel.innerHTML='<option value="">Select Category</option>';
@@ -2606,7 +2610,7 @@ setInterval(()=>{
     const select=document.getElementById("pricePlanSelect");
     if(select){
       const current=select.value;
-      select.innerHTML='<option value="">Select Price Plan</option><option value="free">Free Listing · ₹0</option>'+
+      select.innerHTML='<option value="">Select Price Plan</option><option value="free">Free Listing · ₹0 (3/month/mobile)</option>'+
         '<option value="vip3">VIP Promotion · 3 Days · ₹'+Number(p["3"]??300)+'</option>'+
         '<option value="vip5">VIP Promotion · 5 Days · ₹'+Number(p["5"]??500)+'</option>'+
         '<option value="vip7">VIP Promotion · 7 Days · ₹'+Number(p["7"]??700)+'</option>';
@@ -2632,7 +2636,7 @@ setInterval(()=>{
     if(key==="free"){
       document.getElementById("pricePlanName").textContent="FREE LISTING";
       document.getElementById("pricePlanAmount").textContent="₹0";
-      document.getElementById("pricePlanDescription").textContent="Standard advertisement listing.";
+      document.getElementById("pricePlanDescription").textContent="Standard listing. Maximum 3 free ads per mobile number per calendar month.";
       document.getElementById("pricePlanFeatures").innerHTML="<li>Standard listing</li><li>Contact options controlled by website settings</li>";
       panel.hidden=false;return;
     }
@@ -2728,8 +2732,6 @@ async function showCoinPackages(){const packages=[1000,2000,3000,4000,5000];cons
 function openMessages(){if(!a24Token()){openModal("loginModal");return}openClientDashboard();}
 function openAdChat(adId){if(!a24Token()){openModal("loginModal");toast("Login to chat with the advertiser.");return}document.getElementById("chatAdId").value=adId;document.getElementById("adChatHistory").textContent="Send a message to start this conversation.";openModal("adChatModal");}
 document.getElementById("adChatForm").addEventListener("submit",async e=>{e.preventDefault();try{await a24Call("/api/client/chat","POST",{ad_id:document.getElementById("chatAdId").value,message:document.getElementById("chatMessage").value});document.getElementById("chatMessage").value="";document.getElementById("adChatHistory").textContent="Message sent. Check Messages in My 24Adz for replies.";toast("Message sent.")}catch(x){toast(x.message)}});
-// Client-side ad submission is disabled: all new advertisements are created by Admin only.
-
 updateAccountNav();
 </script>
 
