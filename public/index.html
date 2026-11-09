@@ -1314,7 +1314,7 @@ header .premium-24adz-logo .brand-dot{
   <nav class="nav">
     <a class="logo premium-24adz-logo" href="/" aria-label="24adz.com Home"><span class="brand-main">24adz<span class="brand-dot">.</span>com</span></a>
     <div class="nav-actions" id="accountNav">
-      <button class="btn btn-primary" id="navLoginBtn" type="button" onclick="openModal('loginModal')">Login</button><button class="btn btn-outline" id="navRegisterBtn" type="button" onclick="openModal('registerModal')">Register</button><a class="btn btn-outline" href="/client.html" style="text-decoration:none">Client Panel</a><button class="btn btn-primary" id="navDashboardBtn" type="button" hidden onclick="openClientDashboard()">My 24Adz</button><button class="btn btn-outline" id="navLogoutBtn" type="button" hidden onclick="clientLogout()">Logout</button>
+      <button class="btn btn-primary" id="navLoginBtn" type="button" onclick="openModal('loginModal')">Login</button><button class="btn btn-outline" id="navRegisterBtn" type="button" onclick="openModal('registerModal')">Register</button>
     </div>
   </nav>
   <nav class="reference-top-links" aria-label="Quick categories">
@@ -1373,7 +1373,7 @@ header .premium-24adz-logo .brand-dot{
     <div id="searchFields" class="search-fields" hidden>
       <input id="keyword" class="field" placeholder="Search listings or business name">
       <div class="search-grid">
-        <select id="searchCategory" class="field"><option value="">Select Category</option><option>Cars</option><option>Bikes</option><option>Houses</option><option>Mobiles</option><option>Jobs</option><option>Personals</option><option>Massage & Spa</option><option>Full Body Massage</option><option>Head Massage</option><option>Foot Massage</option><option>Spa & Wellness</option><option>Beauty & Wellness</option><option>Other Services</option></select>
+        <select id="searchCategory" class="field"><option value="">Select Main Category</option><option>Cars</option><option>Bikes</option><option>Mobiles</option><option>Jobs</option><option>Houses</option><option>Personals</option></select><select id="searchSubcategory" class="field" disabled><option value="">Select Subcategory</option></select>
         <select id="searchDistrict" class="field" disabled><option value="">Select District</option></select>
       </div>
       <select id="searchArea" class="field" disabled><option value="">Select Area</option></select>
@@ -1392,7 +1392,7 @@ header .premium-24adz-logo .brand-dot{
       <div class="category" onclick="toggleMainCategory('Cars',this)"><span class="ico">🚗</span><strong>Cars</strong></div>
       <div class="category" onclick="toggleMainCategory('Bikes',this)"><span class="ico">🏍️</span><strong>Bikes</strong></div>
       <div class="category" onclick="toggleMainCategory('Mobiles',this)"><span class="ico">📱</span><strong>Mobiles</strong></div>
-      <div class="category" onclick="chooseCategory('Jobs',this)"><span class="ico">💼</span><strong>Jobs</strong></div>
+      <div class="category" onclick="toggleMainCategory('Jobs',this)"><span class="ico">💼</span><strong>Jobs</strong></div>
       <div class="category" onclick="toggleMainCategory('Houses',this)"><span class="ico">🏠</span><strong>Houses</strong></div>
       <button type="button" class="category personals-category" id="personalsCategory" aria-expanded="false" aria-controls="personalsSubcategories" onclick="toggleMainCategory('Personals',this)"><span class="ico">❤️</span><strong>Personals</strong></button>
     </div>
@@ -1641,7 +1641,7 @@ const districtAreas = {
 const districts = Object.keys(districtAreas);
 const categories = {
   "Cars":["New Cars","Used Cars","Car Rentals","Car Services"],
-  "Bikes":["New Bikes","Used Bikes","Bike Rentals","Bike Services"],
+  "Bikes":["New Bikes","Used Bikes","Bike Services"],
   "Houses":["Houses for Rent","Houses for Sale","PG & Shared Accommodation","Commercial Properties","Land & Plots"],
   "Mobiles":["New Mobiles","Used Mobiles","Mobile Accessories","Mobile Services"],
   "Jobs":["Full-time Jobs","Part-time Jobs","Work from Home","Temporary Jobs"],
@@ -1713,6 +1713,16 @@ function updatePostAreas(){
 const searchCategorySelect=document.getElementById("searchCategory");
 const searchDistrictSelect=document.getElementById("searchDistrict");
 const searchAreaSelect=document.getElementById("searchArea");
+const searchSubcategorySelect=document.getElementById("searchSubcategory");
+function populateSearchSubcategories(category){
+  if(!searchSubcategorySelect)return;
+  searchSubcategorySelect.innerHTML='<option value="">All Subcategories</option>';
+  (categories[category]||[]).forEach(value=>{
+    const option=document.createElement("option");option.value=value;option.textContent=value;
+    searchSubcategorySelect.appendChild(option);
+  });
+  searchSubcategorySelect.disabled=!(categories[category]||[]).length;
+}
 
 function updateSearchFilterSteps(){
   const hasCategory=!!searchCategorySelect.value;
@@ -1730,8 +1740,11 @@ function updateSearchFilterSteps(){
 searchCategorySelect.addEventListener("change",()=>{
   searchDistrictSelect.value="";
   searchAreaSelect.value="";
+  populateSearchSubcategories(searchCategorySelect.value);
+  if(searchSubcategorySelect)searchSubcategorySelect.value="";
   updateSearchFilterSteps();
 });
+searchSubcategorySelect?.addEventListener("change",()=>{});
 searchDistrictSelect.addEventListener("change",()=>{
   updateSearchAreas();
   updateSearchFilterSteps();
@@ -1749,6 +1762,7 @@ document.getElementById("districtFilterDistrict").addEventListener("change",()=>
   updateDistrictFilterAreas();
   document.getElementById("districtFilterArea").value="";
 });
+populateSearchSubcategories(searchCategorySelect.value);
 updateSearchFilterSteps();
 
 function populateSubcategories(categorySelect,subSelect){
@@ -1885,6 +1899,8 @@ function chooseCategory(cat,el){
   const personalsTrigger=document.getElementById("personalsCategory");
   if(personalsTrigger && el!==personalsTrigger)personalsTrigger.classList.remove("active");
   document.getElementById("searchCategory").value=cat;
+  populateSearchSubcategories(cat);
+  if(document.getElementById("searchSubcategory"))document.getElementById("searchSubcategory").value="";
   updateSearchFilterSteps();
   document.querySelectorAll(".category").forEach(x=>x.classList.remove("active"));
   el.classList.add("active");
@@ -1906,6 +1922,8 @@ function openClientMessages(){
 function quickCategory(category){
   const select=document.getElementById("searchCategory");
   if(select && [...select.options].some(option=>option.value===category))select.value=category;
+  populateSearchSubcategories(category);
+  if(document.getElementById("searchSubcategory"))document.getElementById("searchSubcategory").value="";
   document.getElementById("keyword").value="";
   document.body.classList.add("search-results-mode");
   document.getElementById("adsHeading").innerHTML='Listings <span>· '+escapeHtml(category)+'</span>';
@@ -2057,11 +2075,12 @@ function closeSearchResults(){
 function searchAds(){
   const keyword=document.getElementById("keyword").value.trim().toLowerCase();
   const cat=document.getElementById("searchCategory").value;
+  const sub=document.getElementById("searchSubcategory")?.value||"";
   const dist=document.getElementById("searchDistrict").value;
   const area=document.getElementById("searchArea").value;
   let filtered=ads.filter(a=>
     (!keyword||(String(a.title||"")+" "+String(a.description||"")+" "+String(a.contact||"")+" "+String(a.category||"")).toLowerCase().includes(keyword)) &&
-    (!cat||a.category===cat||a.subcategory===cat||(()=>{try{return JSON.parse(a.details_json||"{}").subcategory===cat}catch(_){return false}})()) && (!dist||String(a.district||"").trim()===dist) && (!area||String(a.area||"").trim()===area)
+    (!cat||a.category===cat) && (!sub||a.subcategory===sub||(()=>{try{return JSON.parse(a.details_json||"{}").subcategory===sub}catch(_){return false}})()) && (!dist||String(a.district||"").trim()===dist) && (!area||String(a.area||"").trim()===area)
   );
   const sort=document.getElementById("sortListings")?.value || "newest";
   if(sort==="price-low") filtered.sort((a,b)=>(Number(a.price)||0)-(Number(b.price)||0));
@@ -2401,13 +2420,9 @@ document.getElementById("resetPasswordForm").addEventListener("submit",async e=>
 function getCurrentClient(){try{return JSON.parse(localStorage.getItem("24adz_client")||"null");}catch(_){return null;}}
 function setCurrentClient(client){localStorage.setItem("24adz_client",JSON.stringify(client||{}));}
 function updateAccountNav(){
- const logged=!!localStorage.getItem("24adz_client_token");
- const login=document.getElementById("navLoginBtn"),register=document.getElementById("navRegisterBtn"),
-       dashboard=document.getElementById("navDashboardBtn"),logout=document.getElementById("navLogoutBtn");
- if(login)login.style.display=logged?"none":"";
- if(register)register.style.display=logged?"none":"";
- if(dashboard)dashboard.style.display=logged?"":"none";
- if(logout)logout.style.display=logged?"":"none";
+ const login=document.getElementById("navLoginBtn"),register=document.getElementById("navRegisterBtn");
+ if(login)login.style.display="";
+ if(register)register.style.display="";
 }
 function clientLogout(){
  localStorage.removeItem("24adz_client_token");
@@ -2723,19 +2738,19 @@ updateAccountNav();
 (function(){
  const categoryMap={
   Cars:["New Cars","Used Cars","Car Rentals","Car Services"],
-  Bikes:["New Bikes","Used Bikes","Bike Rentals","Bike Services"],
+  Bikes:["New Bikes","Used Bikes","Bike Services"],
   Houses:["Houses for Rent","Houses for Sale","PG & Shared Accommodation","Commercial Properties","Land & Plots"],
   Mobiles:["New Mobiles","Used Mobiles","Mobile Accessories","Mobile Services"],
   Jobs:["Full-time Jobs","Part-time Jobs","Work from Home","Temporary Jobs"],
   Personals:["Massage & Spa","Full Body Massage","Head Massage","Foot Massage","Spa & Wellness","Beauty & Wellness","Other Services"]
  };
- const icons={"New Cars":"🚘","Used Cars":"🚗","Car Rentals":"🚕","Car Services":"🛠️","New Bikes":"🏍️","Used Bikes":"🏍️","Bike Rentals":"🛵","Bike Services":"🔧","Houses for Rent":"🏠","Houses for Sale":"🏡","PG & Shared Accommodation":"🏘️","Commercial Properties":"🏢","Land & Plots":"🌳","New Mobiles":"📱","Used Mobiles":"📲","Mobile Accessories":"🎧","Mobile Services":"🛠️","Full-time Jobs":"💼","Part-time Jobs":"🕒","Work from Home":"🏡","Temporary Jobs":"📋","Massage & Spa":"💆","Full Body Massage":"🧖","Head Massage":"💆‍♀️","Foot Massage":"🦶","Spa & Wellness":"🌿","Beauty & Wellness":"✨","Other Services":"⭐"};
+ const icons={"New Cars":"🚘","Used Cars":"🚗","Car Rentals":"🚕","Car Services":"🛠️","New Bikes":"🏍️","Used Bikes":"🏍️","Bike Services":"🔧","Houses for Rent":"🏠","Houses for Sale":"🏡","PG & Shared Accommodation":"🏘️","Commercial Properties":"🏢","Land & Plots":"🌳","New Mobiles":"📱","Used Mobiles":"📲","Mobile Accessories":"🎧","Mobile Services":"🛠️","Full-time Jobs":"💼","Part-time Jobs":"🕒","Work from Home":"🏡","Temporary Jobs":"📋","Massage & Spa":"💆","Full Body Massage":"🧖","Head Massage":"💆‍♀️","Foot Massage":"🦶","Spa & Wellness":"🌿","Beauty & Wellness":"✨","Other Services":"⭐"};
  const $=id=>document.getElementById(id);
  function ensurePanels(){
   const root=$("categories"), personal=$("personalsSubcategories"); if(!root||!personal)return;
   personal.innerHTML='<h3 class="personals-subcategory-title">Categories <span id="activeSubcategoryHeading">Personals</span></h3><div class="categories personals-subcategories" id="dynamicSubcategoryGrid"></div>';
   const search=$("searchCategory"),post=$("postCategory");
-  if(search){const keep=search.value;const values=[...Object.keys(categoryMap),...Object.values(categoryMap).flat()];search.innerHTML='<option value="">Select Category</option>'+values.map(v=>`<option value="${v}">${v}</option>`).join('');if(values.includes(keep))search.value=keep;}if(post){const keep=post.value;const values=Object.keys(categoryMap);post.innerHTML='<option value="">Select Category</option>'+values.map(v=>`<option value="${v}">${v}</option>`).join('');if(values.includes(keep))post.value=keep;}
+  if(search){const keep=search.value;const values=Object.keys(categoryMap);search.innerHTML='<option value="">Select Main Category</option>'+values.map(v=>`<option value="${v}">${v}</option>`).join('');if(values.includes(keep))search.value=keep;}if(post){const keep=post.value;const values=Object.keys(categoryMap);post.innerHTML='<option value="">Select Category</option>'+values.map(v=>`<option value="${v}">${v}</option>`).join('');if(values.includes(keep))post.value=keep;}
  }
  window.toggleMainCategory=function(name,el){
   const panel=$("personalsSubcategories"),trigger=$("personalsCategory"); if(!panel)return;
@@ -2744,7 +2759,7 @@ updateAccountNav();
   if(trigger)trigger.setAttribute('aria-expanded',String(opening&&name==='Personals'));
   document.querySelectorAll('#categories .category').forEach(x=>x.classList.remove('active'));
   if(opening&&el)el.classList.add('active');
-  if(opening){$('activeSubcategoryHeading').textContent=name;const grid=$('dynamicSubcategoryGrid');grid.innerHTML='';(categoryMap[name]||[]).forEach(sub=>{const card=document.createElement('button');card.type='button';card.className='category';card.innerHTML='<span class="ico"></span><strong></strong>';card.querySelector('.ico').textContent=icons[sub]||'◆';card.querySelector('strong').textContent=sub;card.addEventListener('click',()=>{const search=$('searchCategory');if(search)search.value=sub; if(typeof updateSearchFilterSteps==='function')updateSearchFilterSteps();if(typeof searchAds==='function')searchAds();$('adsSection')?.scrollIntoView({behavior:'smooth',block:'start'});});grid.appendChild(card)});panel.scrollIntoView({behavior:'smooth',block:'nearest'});}
+  if(opening){$('activeSubcategoryHeading').textContent=name;const grid=$('dynamicSubcategoryGrid');grid.innerHTML='';(categoryMap[name]||[]).forEach(sub=>{const card=document.createElement('button');card.type='button';card.className='category';card.innerHTML='<span class="ico"></span><strong></strong>';card.querySelector('.ico').textContent=icons[sub]||'◆';card.querySelector('strong').textContent=sub;card.addEventListener('click',()=>{const search=$('searchCategory'),subSearch=$('searchSubcategory');if(search)search.value=name;if(subSearch){populateSearchSubcategories(name);subSearch.value=sub;} if(typeof updateSearchFilterSteps==='function')updateSearchFilterSteps();if(typeof searchAds==='function')searchAds();$('adsSection')?.scrollIntoView({behavior:'smooth',block:'start'});});grid.appendChild(card)});panel.scrollIntoView({behavior:'smooth',block:'nearest'});}
  };
  window.collectCategoryDetails=function(root){const data={};if(!root)return data;root.querySelectorAll('[data-detail-key]').forEach(el=>{if(el.value)data[el.dataset.detailKey]=el.value.trim()});return data;};
  function field(label,key,type='text',opts){let html='<label>'+label+'</label>';if(type==='select'){html+='<select class="field" data-detail-key="'+key+'"><option value="">Select '+label+'</option>'+opts.map(x=>'<option>'+x+'</option>').join('')+'</select>';}else html+='<input class="field" data-detail-key="'+key+'" type="'+type+'" placeholder="'+label+'">';return html;}
