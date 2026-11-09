@@ -17,7 +17,7 @@ async function claims(req,secret){try{const t=(req.headers.get("Authorization")|
 async function isAdmin(req,env){return (await claims(req,env.ADMIN_SESSION_SECRET))?.role==="admin"}
 async function passwordHash(password,salt){const material=await crypto.subtle.importKey("raw",new TextEncoder().encode(password),"PBKDF2",false,["deriveBits"]);const bits=await crypto.subtle.deriveBits({name:"PBKDF2",salt:new TextEncoder().encode(salt),iterations:150000,hash:"SHA-256"},material,256);return enc(bits)}
 async function clientClaims(req,env){const secret=env.CLIENT_SESSION_SECRET||env.ADMIN_SESSION_SECRET;const c=await claims(req,secret);return c?.role==="client"?c:null}
-async function clientAuth(req,env,db){const c=await clientClaims(req,env);if(!c?.sub)return null;const row=await first(db,"SELECT id,name,email,mobile,account_id,email_verified FROM client_accounts WHERE id=?",c.sub);return row||null}
+async function clientAuth(req,env,db){const c=await clientClaims(req,env);if(!c?.sub)return null;const row=await first(db,"SELECT id,name,email,mobile,account_id,email_verified FROM client_accounts WHERE id=?",c.sub);return row&&Number(row.email_verified)===1?row:null}
 async function sha256(value){return enc(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(value)))}
 async function rateLimit(db,key,max,windowMs){
  const now=Date.now(),row=await first(db,"SELECT hits,window_started FROM api_rate_limits WHERE rate_key=?",key);
@@ -48,7 +48,7 @@ async function listAreas(db,district){
  const value=str(district,100);
  if(!value)return [];
  const c=await cols(db,"areas");
- // Current HEY MR schema stores the district relation as areas.district_id.
+ // Current 24Adz schema stores the district relation as areas.district_id.
  // Accept either the numeric district ID (used by the homepage dropdown)
  // or a district name, so this works for all 38 districts.
  if(c.includes("district_id")&&await table(db,"districts")){
@@ -157,15 +157,12 @@ export default {async fetch(req,env){
   }
   const clientAd=p.match(/^\/api\/client\/ads\/([^/]+)$/);
   if(clientAd&&req.method==="PATCH"){
-   return bad("Only Admin can edit advertisements. Please contact Admin.",403);
    const client=await clientAuth(req,env,env.DB);if(!client)return bad("Client login required",401);const b=await readBody(req)||{},a=safeAd(b,client.mobile);const owned=await first(env.DB,"SELECT id,image_url FROM ads WHERE id=? AND owner_client_id=?",clientAd[1],client.id);if(!owned)return bad("You can only edit ads assigned to your account",403);if(!a.title||!a.description||!a.category||!a.district||!a.area)return bad("Title, description, category, district and area are required");const image=a.image_url||owned.image_url;await run(env.DB,"UPDATE ads SET title=?,description=?,category=?,district=?,area=?,price=?,phone=?,whatsapp=?,image_url=? WHERE id=? AND owner_client_id=?",a.title,a.description,a.category,a.district,a.area,a.price,a.phone,a.whatsapp,image,clientAd[1],client.id);return out({success:true});
   }
   if(clientAd&&req.method==="DELETE"){
-   return bad("Only Admin can delete advertisements. Please contact Admin.",403);
    const client=await clientAuth(req,env,env.DB);if(!client)return bad("Client login required",401);const owned=await first(env.DB,"SELECT id,image_url FROM ads WHERE id=? AND owner_client_id=?",clientAd[1],client.id);if(!owned)return bad("You can only delete ads assigned to your account",403);await run(env.DB,"DELETE FROM ads WHERE id=? AND owner_client_id=?",clientAd[1],client.id);return out({success:true});
   }
   if(p==="/api/client/ads"&&req.method==="POST"){
-   return bad("Only Admin can publish advertisements. Contact Admin to book a VIP or Free listing.",403);
    const client=await clientAuth(req,env,env.DB);if(!client)return bad("Client login required",401);
    const ip=req.headers.get("CF-Connecting-IP")||"unknown";
    if(!await rateLimit(env.DB,await sha256(`client-ad:${client.id}:${ip}`),10,3600000))return bad("Ad posting limit reached. Try again later.",429);
