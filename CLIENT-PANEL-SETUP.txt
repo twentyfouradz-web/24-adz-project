@@ -1,0 +1,30 @@
+24ADZ.COM CLIENT PANEL – DEPLOYMENT CHECKLIST
+================================================
+
+New frontend file:
+- public/client.html
+- Homepage now includes a Client Panel link to /client.html.
+- Worker static-assets binding serves this page; no separate Worker or Pages project is needed.
+
+Existing backend endpoints are used:
+- /api/client/register, /verify-email, /login, /forgot-password, /reset-password
+- /api/client/me, /profile, /ads, /images/upload
+- /api/client/chat, /messages, /coin-packages, /coin-requests
+
+Important production configuration:
+1. Keep the existing D1 database_name and database_id in wrangler.toml unchanged.
+2. Keep the existing R2 bucket_name in wrangler.toml unchanged.
+3. Configure Worker secrets: ADMIN_PASSWORD, ADMIN_SESSION_SECRET, RESEND_API_KEY, RESEND_FROM.
+4. Set CLIENT_SESSION_SECRET (recommended); otherwise the Worker currently falls back to ADMIN_SESSION_SECRET.
+5. Set PUBLIC_SITE_URL to https://24adz.com so verification/reset emails use the correct domain.
+6. Ensure all migrations 0001 through 0005 have been applied to the existing D1 database. Do not re-apply already applied migrations.
+7. Test /api/health, registration email delivery, email verification, login, client ad create/edit/delete, image upload to R2, and admin reply before public launch.
+
+No mobile OTP is required. Email verification is required for client login and protected client APIs.
+Client ad ownership is enforced by the Worker API; clients cannot edit/delete other clients' ads.
+No new database migration is introduced by the client.html page.
+
+NOTE:
+- Coin requests are manually confirmed by Admin; no payment gateway is included.
+- Client chat API currently requires an approved advertisement ID. The Client Panel offers the related-ad selector for this reason.
+- Client registration requires a 10-character password including at least one letter and one number.

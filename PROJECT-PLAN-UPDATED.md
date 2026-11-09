@@ -17,7 +17,9 @@
 - Client Post Ad action opens the existing homepage posting modal and does not redirect to a missing `client.html`.
 
 ## Retained settings
-- Free/VIP ad and coin rules are retained from the supplied package.
+- Free quota is enforced server-side as 3 ads per mobile number per calendar month across multiple email accounts.
+- The 4th ad and later ads require a paid VIP plan using wallet coins.
+- Coin package requests remain manual; Razorpay checkout, signature verification and webhook crediting still require gateway credentials and setup.
 - Existing homepage appearance, D1 schema history and R2 bindings are preserved.
 - No SMS OTP, MSG91 or Razorpay is configured.
 

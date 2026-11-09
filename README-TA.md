@@ -26,9 +26,9 @@
 
 ## ஏற்கனவே உள்ள அமைப்புகள்
 
-- Free Ads மற்றும் VIP Coin விதிகள் ZIP-ல் இருந்தபடியே பாதுகாக்கப்பட்டுள்ளன.
+- ஒரே Mobile Number-க்கு ஒவ்வொரு calendar month-லும் மொத்தம் 3 Free Ads மட்டுமே. அதே எண்ணை வேறு Email account-ல் பயன்படுத்தினாலும் அனைத்து client accounts-ஐ சேர்த்து quota கணக்கிடப்படும். 4வது Ad முதல் Free plan அனுமதி இல்லை; Coin wallet மூலம் VIP plan தேர்வு செய்ய வேண்டும்.
 - VIP: 3 நாட்கள் = 300 Coins; 5 நாட்கள் = 500 Coins; 7 நாட்கள் = 700 Coins.
-- Coin வாங்க Admin-ஐ WhatsApp மூலம் தொடர்பு கொள்ளும் நடைமுறை தொடர்கிறது.
+- Coin package endpoint மற்றும் wallet ledger உள்ளன. ஆனால் இந்த ZIP-ல் Razorpay live order creation / signature verification / webhook integration இல்லை. Gateway credentials மற்றும் webhook அமைக்காமல் online payment enable செய்ய வேண்டாம். தற்போதைய manual WhatsApp coin request fallback மட்டுமே.
 - D1 மற்றும் R2 bindings பாதுகாக்கப்பட்டுள்ளன.
 
 ## Cloudflare Resource பாதுகாப்பு

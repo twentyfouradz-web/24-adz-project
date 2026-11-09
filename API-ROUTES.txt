@@ -1,0 +1,77 @@
+24Adz.com API ROUTES
+====================
+
+PUBLIC
+GET    /api/health
+GET    /api/public/categories
+GET    /api/public/districts
+GET    /api/public/areas?district=...
+GET    /api/public/ads
+GET    /api/public/search?q=...
+GET    /api/public/filter?...
+GET    /api/public/settings
+GET    /api/public/contact-settings
+GET    /api/images/{key}
+
+ADMIN AUTH
+POST   /api/admin/login
+
+ADMIN ROUTES (Admin bearer token required)
+GET    /api/admin/dashboard
+GET/POST /api/admin/ads
+PATCH/DELETE /api/admin/ads/{id}
+POST   /api/admin/ads/bulk
+POST   /api/admin/images/upload
+DELETE /api/admin/images/{key}
+GET/POST /api/admin/vip
+POST   /api/admin/vip/{id}/activate
+GET/PUT /api/admin/contact-settings
+GET/PUT /api/admin/settings
+GET/POST /api/admin/form-fields
+DELETE /api/admin/form-fields/{id}
+GET/POST/PUT/DELETE /api/admin/categories
+GET/POST/PUT/DELETE /api/admin/districts
+GET    /api/admin/clients
+GET    /api/admin/coin-requests
+POST   /api/admin/coin-requests/{id}/confirm
+POST   /api/admin/coins/credit
+GET    /api/admin/coin-transactions
+GET    /api/admin/messages
+POST   /api/admin/messages/{id}/reply
+
+CLIENT ACCOUNT ROUTES
+POST   /api/client/register
+POST   /api/client/verify-email
+POST   /api/client/login
+POST   /api/client/forgot-password
+POST   /api/client/reset-password
+GET    /api/client/me
+PUT    /api/client/profile
+DELETE /api/client/account
+GET    /api/client/ads
+POST   /api/client/ads
+PATCH  /api/client/ads/{id}
+DELETE /api/client/ads/{id}
+POST   /api/client/images/upload
+POST   /api/client/chat
+GET    /api/client/messages
+GET    /api/client/coin-packages
+POST   /api/client/coin-requests (manual request; gateway integration pending)
+
+SECURITY / PERMISSIONS
+- Admin can create and manage all ads using Admin APIs.
+- Email-verified clients can create ads and manage only ads owned by their account.
+- Public visitors can browse/search/filter published ads but cannot create or manage ads.
+- Email verification is required for client login and client API access.
+- Mobile OTP/SMS verification is not implemented or required. Mobile number is a contact field only.
+- Admin APIs require an Admin bearer token.
+- Client APIs require a valid Client bearer token for an email-verified account.
+- Images are stored in the configured R2 bucket (max 5 MB; supported image formats validated by the Worker).
+
+MIGRATIONS
+- Migration files are ordered history. Apply only migrations that are not already applied.
+- Back up D1 before production migrations.
+- Confirm `database_name` and `database_id` in wrangler.toml identify the intended database before any remote migration.
+
+CLIENT FRONTEND
+- /client.html : Client registration, email verification, login, dashboard, own ads, profile, messages and coin requests.
