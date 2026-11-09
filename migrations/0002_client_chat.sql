@@ -1,6 +1,6 @@
 -- LEGACY MIGRATION: retained for migration-history compatibility only.
--- The current HEY MR website does not expose or use Chat Messenger endpoints/UI.
--- HEY MR additive production features. Safe to apply over existing 0001 schema.
+-- Legacy migration history; the 24Adz project uses the chat tables below for client/Admin messaging.
+-- Legacy additive schema retained for migration-history compatibility. Safe to apply over existing 0001 schema.
 CREATE TABLE IF NOT EXISTS ad_owners (
   ad_id TEXT PRIMARY KEY,
   mobile TEXT NOT NULL,
