@@ -46,6 +46,15 @@ function safeAd(b,mobile,status="approved"){
  if(b.subcategory)details.subcategory=str(b.subcategory,100);
  return {id:uid(),title:str(b.title,160),description:str(b.description,5000),category:str(b.category,100),district:str(b.district,100),area:str(b.area,120),price:str(b.price,40),phone:mobile||digits(b.phone),whatsapp:digits(b.whatsapp||mobile||b.phone),image_url:str(b.image_url||b.image,2048),details_json:JSON.stringify(details),status};
 }
+function validateAdContent(a){
+ const category=String(a.category||"").toLowerCase();
+ if(["cars","bikes","houses","jobs","mobiles"].includes(category)){
+  const text=(String(a.title||"")+" "+String(a.description||"")+" "+String(a.details_json||"")).toLowerCase();
+  const blocked=/\b(porn|pornography|xxx|sex|nude|naked|escort|adult|erotic|sexual|hooker|prostitut\w*|call\s*girl|blowjob|handjob|boobs|breasts|genitals|vagina|penis|anal)\b/i;
+  if(blocked.test(text))return "Adult or sexually explicit words are not allowed in this category.";
+ }
+ return "";
+}
 async function saveAd(db,a){await run(db,"INSERT INTO ads(id,title,description,category,district,area,price,phone,whatsapp,image_url,status,details_json,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,datetime('now'))",a.id,a.title,a.description,a.category,a.district,a.area,a.price,a.phone,a.whatsapp,a.image_url,a.status,a.details_json||"{}");}
 const MAIN_CATEGORIES=["Cars","Bikes","Houses","Mobiles","Jobs","Personals"];
 async function validateAdCategory(db,category,detailsJson){
@@ -172,7 +181,7 @@ export default {async fetch(req,env){
   }
   const clientAd=p.match(/^\/api\/client\/ads\/([^/]+)$/);
   if(clientAd&&req.method==="PATCH"){
-   const client=await clientAuth(req,env,env.DB);if(!client)return bad("Client login required",401);const b=await readBody(req)||{},a=safeAd(b,client.mobile);const owned=await first(env.DB,"SELECT id,image_url FROM ads WHERE id=? AND owner_client_id=?",clientAd[1],client.id);if(!owned)return bad("You can only edit ads assigned to your account",403);if(!a.title||!a.description||!a.category||!a.district||!a.area)return bad("Title, description, category, district and area are required");const categoryError=await validateAdCategory(env.DB,a.category,a.details_json);if(categoryError)return bad(categoryError);const image=a.image_url||owned.image_url;await run(env.DB,"UPDATE ads SET title=?,description=?,category=?,district=?,area=?,price=?,phone=?,whatsapp=?,image_url=?,details_json=? WHERE id=? AND owner_client_id=?",a.title,a.description,a.category,a.district,a.area,a.price,a.phone,a.whatsapp,image,a.details_json,clientAd[1],client.id);return out({success:true});
+   const client=await clientAuth(req,env,env.DB);if(!client)return bad("Client login required",401);const b=await readBody(req)||{},a=safeAd(b,client.mobile);const owned=await first(env.DB,"SELECT id,image_url FROM ads WHERE id=? AND owner_client_id=?",clientAd[1],client.id);if(!owned)return bad("You can only edit ads assigned to your account",403);if(!a.title||!a.description||!a.category||!a.district||!a.area)return bad("Title, description, category, district and area are required");const categoryError=await validateAdCategory(env.DB,a.category,a.details_json);if(categoryError)return bad(categoryError);const contentError=validateAdContent(a);if(contentError)return bad(contentError);const image=a.image_url||owned.image_url;await run(env.DB,"UPDATE ads SET title=?,description=?,category=?,district=?,area=?,price=?,phone=?,whatsapp=?,image_url=?,details_json=? WHERE id=? AND owner_client_id=?",a.title,a.description,a.category,a.district,a.area,a.price,a.phone,a.whatsapp,image,a.details_json,clientAd[1],client.id);return out({success:true});
   }
   if(clientAd&&req.method==="DELETE"){
    const client=await clientAuth(req,env,env.DB);if(!client)return bad("Client login required",401);const owned=await first(env.DB,"SELECT id,image_url FROM ads WHERE id=? AND owner_client_id=?",clientAd[1],client.id);if(!owned)return bad("You can only delete ads assigned to your account",403);await run(env.DB,"DELETE FROM ads WHERE id=? AND owner_client_id=?",clientAd[1],client.id);return out({success:true});
@@ -183,7 +192,7 @@ export default {async fetch(req,env){
    if(!await rateLimit(env.DB,await sha256(`client-ad:${client.id}:${ip}`),10,3600000))return bad("Ad posting limit reached. Try again later.",429);
    const b=await readBody(req)||{},a=safeAd(b,client.mobile,"approved");
    if(!a.title||!a.description||!a.category||!a.district||!a.area)return bad("Title, description, category, district and area are required");
-   const categoryError=await validateAdCategory(env.DB,a.category,a.details_json);if(categoryError)return bad(categoryError);
+   const categoryError=await validateAdCategory(env.DB,a.category,a.details_json);if(categoryError)return bad(categoryError);const contentError=validateAdContent(a);if(contentError)return bad(contentError);
    const [emailCount,phoneCount]=await Promise.all([
     first(env.DB,"SELECT COUNT(*) n FROM ads WHERE owner_client_id=? AND created_at>=datetime('now','start of month')",client.id),
     first(env.DB,"SELECT COUNT(*) n FROM ads a LEFT JOIN client_accounts c ON c.id=a.owner_client_id WHERE (c.mobile=? OR a.phone=?) AND a.created_at>=datetime('now','start of month')",client.mobile,client.mobile)
@@ -191,7 +200,7 @@ export default {async fetch(req,env){
    const freeAllowed=Number(phoneCount?.n||0)<3;
    const plan=str(b.plan||"free",20),days=plan==="vip3"?3:plan==="vip5"?5:plan==="vip7"?7:0;
    const cost=days===3?300:days===5?500:days===7?700:0;
-   if(!freeAllowed&&(!days))return bad("Free ad limit reached. Choose a VIP plan or contact Admin.",402);
+   if(!freeAllowed&&(!days))return bad("Your free limit of "+freeLimit+" ads per mobile number for "+period+" days has been reached. Contact 24Adz Admin on WhatsApp to purchase Coins and continue posting.",402);
    if(days){
     const wallet=await first(env.DB,"SELECT balance FROM client_coin_wallets WHERE client_id=?",client.id);
     if(Number(wallet?.balance||0)<cost)return bad(`Insufficient coins. ${cost} coins required for this VIP plan.`,402);
@@ -408,7 +417,7 @@ export default {async fetch(req,env){
   if(p==="/api/admin/ads"&&req.method==="POST"){
     const b=await readBody(req)||{},a=safeAd(b,null,"approved");
     if(!a.title||!a.category||!a.district)return bad("Ad title, category and district are required");
-    const categoryError=await validateAdCategory(env.DB,a.category,a.details_json);if(categoryError)return bad(categoryError);
+    const categoryError=await validateAdCategory(env.DB,a.category,a.details_json);if(categoryError)return bad(categoryError);const contentError=validateAdContent(a);if(contentError)return bad(contentError);
     await saveAd(env.DB,a);
     const vipAmount=700;
     await run(env.DB,"INSERT INTO vip_promotions(ad_id,days,amount,status,reference,created_at) VALUES(?,?,?,?,?,datetime('now'))",a.id,7,vipAmount,"active","ADMIN_AUTO_VIP");
@@ -422,7 +431,7 @@ export default {async fetch(req,env){
     for(const item of items){
      const a=safeAd(item,null,"approved");
      if(!a.title||!a.category||!a.district)return bad("Every ad requires title, category and district");
-     const categoryError=await validateAdCategory(env.DB,a.category,a.details_json);if(categoryError)return bad(categoryError);
+     const categoryError=await validateAdCategory(env.DB,a.category,a.details_json);if(categoryError)return bad(categoryError);const contentError=validateAdContent(a);if(contentError)return bad(contentError);
      await saveAd(env.DB,a);
      const amount=700;
      await run(env.DB,"INSERT INTO vip_promotions(ad_id,days,amount,status,reference,created_at) VALUES(?,?,?,?,?,datetime('now'))",a.id,7,amount,"active","ADMIN_BULK_VIP");
@@ -444,14 +453,14 @@ export default {async fetch(req,env){
    return bad("Bulk action must be create, delete or status");
   }
   const ad=p.match(/^\/api\/admin\/ads\/([^/]+)$/);
-  if(ad&&req.method==="PATCH"){const b=await readBody(req)||{};if(b.status){if(!["pending","approved","rejected","paused"].includes(b.status))return bad("Invalid ad status");await run(env.DB,"UPDATE ads SET status=? WHERE id=?",b.status,ad[1])}else{const a=safeAd(b,null);const categoryError=await validateAdCategory(env.DB,a.category,a.details_json);if(categoryError)return bad(categoryError);await run(env.DB,"UPDATE ads SET title=?,description=?,category=?,district=?,area=?,price=?,phone=?,whatsapp=?,image_url=?,details_json=? WHERE id=?",a.title,a.description,a.category,a.district,a.area,a.price,a.phone,a.whatsapp,a.image_url,a.details_json,ad[1])}return out({success:true})}
+  if(ad&&req.method==="PATCH"){const b=await readBody(req)||{};if(b.status){if(!["pending","approved","rejected","paused"].includes(b.status))return bad("Invalid ad status");await run(env.DB,"UPDATE ads SET status=? WHERE id=?",b.status,ad[1])}else{const a=safeAd(b,null);const categoryError=await validateAdCategory(env.DB,a.category,a.details_json);if(categoryError)return bad(categoryError);const contentError=validateAdContent(a);if(contentError)return bad(contentError);await run(env.DB,"UPDATE ads SET title=?,description=?,category=?,district=?,area=?,price=?,phone=?,whatsapp=?,image_url=?,details_json=? WHERE id=?",a.title,a.description,a.category,a.district,a.area,a.price,a.phone,a.whatsapp,a.image_url,a.details_json,ad[1])}return out({success:true})}
   if(ad&&req.method==="DELETE"){
    const adRow=await first(env.DB,"SELECT image_url FROM ads WHERE id=?",ad[1]);
    if(adRow?.image_url&&env.IMAGES){const m=String(adRow.image_url).match(/\/api\/images\/(.+)$/);if(m)await env.IMAGES.delete(m[1]).catch(()=>{});}
    await run(env.DB,"DELETE FROM ads WHERE id=?",ad[1]);return out({success:true})
   }
-  if(p==="/api/admin/settings"&&req.method==="GET"){const rows=await all(env.DB,"SELECT key,value FROM settings"),settings={};for(const r of rows){try{settings[r.key]=JSON.parse(r.value)}catch{settings[r.key]=r.value}}return out({success:true,settings})}
-  if(p==="/api/admin/settings"&&req.method==="PUT"){const b=await readBody(req)||{};for(const [k,v] of Object.entries(b)){const value=k==='vip_pricing'?{"3":300,"5":500,"7":700}:v;await run(env.DB,"INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",str(k,80),JSON.stringify(value));}return out({success:true, vip_pricing:{"3":300,"5":500,"7":700}})}
+  if(p==="/api/admin/settings"&&req.method==="GET"){if(!await isAdmin(req,env))return bad("Admin login required",401);const rows=await all(env.DB,"SELECT key,value FROM settings"),settings={};for(const r of rows){try{settings[r.key]=JSON.parse(r.value)}catch{settings[r.key]=r.value}}return out({success:true,settings})}
+  if(p==="/api/admin/settings"&&req.method==="PUT"){if(!await isAdmin(req,env))return bad("Admin login required",401);const b=await readBody(req)||{};for(const [k,v] of Object.entries(b)){if(k==="contact"){const n=digits(v?.whatsapp_number);if(!validMobile(n))return bad("Enter a valid 10-digit WhatsApp number.");await run(env.DB,"INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",k,JSON.stringify({whatsapp_number:n}));continue;}if(k==="free_ads"){const limit=Number(v?.limit),period=Number(v?.period_days);if(!Number.isInteger(limit)||limit<0||limit>1000||![7,15,30,60,90].includes(period))return bad("Invalid free-ad settings.");}await run(env.DB,"INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",str(k,80),JSON.stringify(v));}return out({success:true,message:"Settings saved."})}
   if(p==="/api/admin/contact-settings"&&req.method==="GET"){
    const row=await first(env.DB,"SELECT value FROM settings WHERE key='contact_buttons'");
    let settings={call:true,whatsapp:true};
