@@ -1347,7 +1347,7 @@ header .premium-24adz-logo .brand-dot{
       <h2>ADVERTISE <em>HERE</em></h2>
       <p>Put your business in the spotlight across Tamil Nadu</p>
       <div class="promo-offer" id="homepagePromoOffer" aria-live="polite" aria-atomic="true"><span id="homepagePromoDays">3 DAYS</span><strong id="homepagePromoPrice">₹300</strong></div>
-      <a class="promo-cta" href="https://wa.me/918870017424?text=Hello%20Admin%2C%20I%20want%20to%20post%20an%20advertisement%20on%20your%2024adz.com%20website.%20Please%20contact%20me%20and%20share%20the%20advertising%20details." target="_blank" rel="noopener">CONTACT ADMIN NOW <span>↗</span></a>
+      <a class="promo-cta" href="https://wa.me/918870017424?text=Hello%20Admin%2C%20I%20want%20to%20post%20an%20advertisement%20on%20your%2024adz.com%20website.%20Please%20contact%20me%20and%20share%20the%20advertising%20details." id="promoAdminWhatsApp" target="_blank" rel="noopener">CONTACT ADMIN NOW <span>↗</span></a>
     </div>
     <div class="promo-light-sweep"></div>
   </section>
@@ -1399,7 +1399,7 @@ header .premium-24adz-logo .brand-dot{
     <div class="personals-subcategory-panel" id="personalsSubcategories" hidden>
       <h3 class="personals-subcategory-title">Personals <span>Categories</span></h3>
       <div class="categories personals-subcategories">
-        <div class="category" onclick="chooseCategory('Massage & Spa',this)"><span class="ico">💆</span><strong>Massage & Spa</strong></div>
+        <div class="category" onclick="chooseCategory('Massage & Spa',this)"><span class="ico" aria-hidden="true">💆‍♀️</span><strong>Massage & Spa</strong></div>
         <div class="category" onclick="chooseCategory('Full Body Massage',this)"><span class="ico">🧖</span><strong>Full Body Massage</strong></div>
         <div class="category" onclick="chooseCategory('Head Massage',this)"><span class="ico">💆‍♀️</span><strong>Head Massage</strong></div>
         <div class="category" onclick="chooseCategory('Foot Massage',this)"><span class="ico">🦶</span><strong>Foot Massage</strong></div>
@@ -1496,10 +1496,10 @@ header .premium-24adz-logo .brand-dot{
   <button type="button" class="bottom-nav-item active" onclick="goHomeTop()"><span class="bottom-nav-icon">⌂</span><span>Home</span></button>
   <button type="button" class="bottom-nav-item" onclick="openClientDashboard()"><span class="bottom-nav-icon">▤</span><span>My Ads</span></button>
   <button type="button" class="bottom-nav-item" onclick="startPostAd()"><span class="bottom-nav-icon">＋</span><span>Post Ad</span></button>
-  <button type="button" class="bottom-nav-item" onclick="openMessages()"><span class="bottom-nav-icon">☏</span><span>Messages</span></button>
+  <button type="button" class="bottom-nav-item" onclick="openMessages()"><span class="bottom-nav-icon">💬</span><span>Messages</span></button>
   <button type="button" class="bottom-nav-item" onclick="openClientDashboard()"><span class="bottom-nav-icon">☰</span><span>My 24Adz</span></button>
 </nav>
-<footer>© 2026 24Adz.com · Tamil Nadu Classifieds <br><span style="display:inline-block;margin-top:8px">Use this platform responsibly. Verify service details before making a booking or payment.</span><br><a href="/admin.html" style="color:#ff8a00;text-decoration:none;display:inline-block;margin-top:10px">Admin Login</a></footer>
+<footer>© 2026 24Adz.com · Tamil Nadu Classifieds <br><span style="display:inline-block;margin-top:8px">Use this platform responsibly. Verify service details before making a booking or payment.</span></footer>
 
 <!-- Cross-district payment prompt -->
 <div class="modal" id="districtPaymentModal"><div class="modal-box">
@@ -1932,7 +1932,13 @@ function quickCategory(category){
 }
 function runQuickSearch(event){
   event.preventDefault();
-  document.getElementById("keyword").value=document.getElementById("quickKeyword").value.trim();
+  let query=document.getElementById("quickKeyword").value.trim();
+  const districtSelect=document.getElementById("searchDistrict");
+  const districtOptions=[...(districtSelect?.options||[])].map(o=>o.value).filter(Boolean);
+  const normalized=query.toLocaleLowerCase("en-IN");
+  const matchedDistrict=districtOptions.find(name=>normalized.includes(String(name).toLocaleLowerCase("en-IN")));
+  if(matchedDistrict){districtSelect.value=matchedDistrict;query=query.replace(new RegExp(matchedDistrict.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"ig"),"").replace(/\s+/g," ").trim();}
+  document.getElementById("keyword").value=query;
   document.body.classList.add("search-results-mode");
   document.getElementById("adsHeading").innerHTML='Search <span>Results</span>';
   searchAds();
@@ -2335,15 +2341,18 @@ async function getImageSafetyModels(){
  return imageSafetyModels;
 }
 function imageFileToImage(file){return new Promise((ok,bad)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>ok(im);im.onerror=bad;im.src=r.result;};r.onerror=bad;r.readAsDataURL(file);});}
-async function checkAdImage(file){
+async function checkAdImage(file,category=""){
  if(!file)return {ok:true};
  if(!/^image\/(jpeg|png|webp)$/.test(file.type)||file.size>5*1024*1024)return {ok:false,reason:"Upload JPG, PNG or WEBP up to 5 MB only."};
  document.getElementById("imageSafetyStatus").textContent="Checking adult content and visible numbers…";
  try{
   const libs=await getImageSafetyModels(),img=await imageFileToImage(file);
   const scores=await libs.model.classify(img);
-  if(scores.some(x=>["Porn","Hentai","Sexy"].includes(x.className)&&x.probability>=0.35))
-   return {ok:false,reason:"Adult / nude image detected. The picture has been removed."};
+  const isMassage=/massage|spa/i.test(String(category||""));
+  const blockedImage=scores.some(x=>["Porn","Hentai"].includes(x.className)&&x.probability>=0.35)
+   || scores.some(x=>x.className==="Sexy"&&x.probability>=(isMassage?0.75:0.35));
+  if(blockedImage)
+   return {ok:false,reason:isMassage?"Nude or pornographic images are not allowed in Massage / Spa listings.":"Adult / nude image detected. The picture has been removed."};
   const worker=await Tesseract.createWorker("eng");let result;
   try{result=await worker.recognize(img);}finally{await worker.terminate();}
   if(/\d/.test(String(result?.data?.text||"")))
@@ -2368,7 +2377,12 @@ document.getElementById("postForm").addEventListener("submit",async e=>{
  const invalid=[...e.target.querySelectorAll("input,select,textarea")].find(el=>!el.checkValidity());
  if(invalid){const step=invalid.closest("#postStep1")?1:2;if(currentPostStep!==step)goPostStep(step);invalid.reportValidity();invalid.focus();return;}
  const file=document.getElementById("clientAdImageFile")?.files?.[0];
- const imageCheck=await checkAdImage(file);
+ const selectedCategory=String(e.target.elements.category?.value||"");
+ if(/^(Cars|Bikes|Houses|Jobs|Mobiles)$/i.test(selectedCategory)){
+  const adText=(String(e.target.elements.title?.value||"")+" "+String(e.target.elements.description?.value||"")).toLowerCase();
+  if(/\b(porn|pornography|xxx|\bsex\b|nude|naked|escort|adult|erotic|sexual|hooker|prostitut\w*|call\s*girl|blowjob|handjob|boobs|breasts|genitals|vagina|penis|anal)\b/i.test(adText)){toast("Adult or sexually explicit words are not allowed in this category.");return;}
+ }
+ const imageCheck=await checkAdImage(file,selectedCategory+" "+String(e.target.elements.subcategory?.value||""));
  if(!imageCheck.ok){clearRejectedImage();toast(imageCheck.reason);return;}
  const f=new FormData(e.target),editingId=String(f.get("editingId")||"");
  const mobile=digits(f.get("phone"));
@@ -2719,7 +2733,7 @@ setInterval(()=>{
 <script id="24adz-client-bridge">
 const A24_API="";let a24Client=null;
 function a24Token(){return localStorage.getItem("24adz_client_token")||""}
-async function a24Call(path,method="GET",body){const r=await fetch(A24_API+path,{method,headers:{...(body?{"Content-Type":"application/json"}:{}),...(a24Token()?{Authorization:"Bearer "+a24Token()}:{})},body:body?JSON.stringify(body):undefined});const d=await r.json().catch(()=>({}));if(!r.ok||d.success===false)throw new Error(d.error||"Request failed");return d}
+async function a24Call(path,method="GET",body){const r=await fetch(A24_API+path,{method,headers:{...(body?{"Content-Type":"application/json"}:{}),...(a24Token()?{Authorization:"Bearer "+a24Token()}:{})},body:body?JSON.stringify(body):undefined});const d=await r.json().catch(()=>({}));if(!r.ok||d.success===false){const e=new Error(d.error||"Request failed");e.status=r.status;throw e}return d}
 function updateAccountNav(){const logged=!!a24Token();for(const id of ["navLoginBtn","navRegisterBtn"])document.getElementById(id).hidden=logged;for(const id of ["navDashboardBtn","navLogoutBtn"])document.getElementById(id).hidden=!logged;}
 function clientLogout(){localStorage.removeItem("24adz_client_token");localStorage.removeItem("24adz_client");a24Client=null;updateAccountNav();toast("Logged out.");}
 function getCurrentClient(){try{return JSON.parse(localStorage.getItem("24adz_client")||"null")}catch{return null}}
@@ -2728,7 +2742,10 @@ function resetPostFormForNew(){const f=document.getElementById("postForm");f.res
 async function openClientDashboard(){if(!a24Token()){openModal("loginModal");return}try{const [me,own]=await Promise.all([a24Call("/api/client/me"),a24Call("/api/client/ads")]);const c=me.client,w=me.wallet,limits=me.freeAds;document.getElementById("clientDashboardContent").innerHTML=`<p><b>Account ID:</b> ${c.account_id}</p><p><b>Email:</b> ${c.email}</p><p><b>Coin Balance:</b> ${w.balance}</p><p><b>Free Ads:</b> ${limits.emailUsed}/${limits.emailLimit} · This month mobile: ${limits.phoneUsedThisMonth}/${limits.phoneMonthlyLimit}</p><button class="btn btn-primary" onclick="showCoinPackages()">Purchase Coins</button><h3>My Ads</h3>${own.ads.map(a=>`<article class="ad-card"><b>${escapeDashboardText(a.title)}</b><p>${escapeDashboardText(a.category)} · ${escapeDashboardText(a.district)} / ${escapeDashboardText(a.area)}</p><small>${a.is_vip?"VIP":"Standard"} · ${escapeDashboardText(a.status)}</small><div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-outline" onclick="editServerAd('${String(a.id).replace(/'/g,"\'")}')">Edit</button><button class="btn btn-outline" onclick="deleteServerAd('${String(a.id).replace(/'/g,"\'")}')">Delete</button></div></article>`).join("")||"No ads yet."}`;window.__24adzOwnAds=own.ads;openModal("clientDashboardModal")}catch(e){toast(e.message)}}
 function editServerAd(id){const a=(window.__24adzOwnAds||[]).find(x=>String(x.id)===String(id));if(!a)return;closeModal("clientDashboardModal");resetPostFormForNew();const f=document.getElementById("postForm");for(const k of ["title","description","category","district","area","price","phone","whatsapp"])if(f.elements[k])f.elements[k].value=a[k]||"";document.getElementById("editingAdId").value=a.id;updatePostAreas();document.getElementById("postArea").value=a.area||"";goPostStep(1);openModal("postModal");}
 async function deleteServerAd(id){if(!confirm("Delete this advertisement permanently?"))return;try{await a24Call("/api/client/ads/"+encodeURIComponent(id),"DELETE");toast("Advertisement deleted.");openClientDashboard();}catch(e){toast(e.message)}}
-async function showCoinPackages(){const packages=[1000,2000,3000,4000,5000];const choice=prompt("24Adz Coin Packages\n1000 Coins – ₹1,000\n2000 Coins – ₹2,000\n3000 Coins – ₹3,000\n4000 Coins – ₹4,000\n5000 Coins – ₹5,000\n\nEnter coin amount to purchase:");const coins=Number(choice);if(!packages.includes(coins))return;try{const r=await a24Call("/api/client/coin-requests","POST",{coins});const message=`Hello Admin, I want to purchase ${coins} Coins for 24Adz.com. Request ID: ${r.request_id}. Please share payment details.`;window.open("https://wa.me/918870017424?text="+encodeURIComponent(message),"_blank");toast("WhatsApp opened. Admin will credit coins after payment confirmation.")}catch(e){toast(e.message)}}
+async function getAdminWhatsApp(){try{const r=await fetch("/api/public/settings"),d=await r.json();return String(d.settings?.contact?.whatsapp_number||"8870017424").replace(/\D/g,"")}catch{return "8870017424"}}
+async function syncAdminWhatsAppLinks(){const n=await getAdminWhatsApp(),link=document.getElementById("promoAdminWhatsApp");if(link)link.href="https://wa.me/91"+n+"?text="+encodeURIComponent("Hello Admin, I want to advertise on 24Adz.com. Please share the details.");}
+syncAdminWhatsAppLinks();
+async function showCoinPackages(){const packages=[1000,2000,3000,4000,5000];const choice=prompt("24Adz Coin Packages\n1000 Coins – ₹1,000\n2000 Coins – ₹2,000\n3000 Coins – ₹3,000\n4000 Coins – ₹4,000\n5000 Coins – ₹5,000\n\nEnter coin amount to purchase:");const coins=Number(choice);if(!packages.includes(coins))return;try{const r=await a24Call("/api/client/coin-requests","POST",{coins});const number=await getAdminWhatsApp();const message=`Hello 24Adz Admin, I want to purchase ${coins} Coins. Request ID: ${r.request_id}. Please share the official payment details.`;window.open("https://wa.me/91"+number+"?text="+encodeURIComponent(message),"_blank");toast("WhatsApp opened. Admin will credit coins after payment confirmation.")}catch(e){toast(e.message)}}
 function openMessages(){if(!a24Token()){openModal("loginModal");return}openClientDashboard();}
 function openAdChat(adId){if(!a24Token()){openModal("loginModal");toast("Login to chat with the advertiser.");return}document.getElementById("chatAdId").value=adId;document.getElementById("adChatHistory").textContent="Send a message to start this conversation.";openModal("adChatModal");}
 document.getElementById("adChatForm").addEventListener("submit",async e=>{e.preventDefault();try{await a24Call("/api/client/chat","POST",{ad_id:document.getElementById("chatAdId").value,message:document.getElementById("chatMessage").value});document.getElementById("chatMessage").value="";document.getElementById("adChatHistory").textContent="Message sent. Check Messages in My 24Adz for replies.";toast("Message sent.")}catch(x){toast(x.message)}});
