@@ -1,0 +1,9 @@
+24Adz.com category update
+
+- Removed Houses from the main category list.
+- Real Estate remains as the main category.
+- Existing ads categorized as Houses are preserved and moved to Real Estate.
+- Old Houses category/subcategories are deactivated.
+- Hotel Rooms and Fashion & Beauty remain available.
+
+Deployment required: run migrations/0011_remove_houses_main_category.sql on the existing D1 database, then deploy workers/index.js and publish the public files.
