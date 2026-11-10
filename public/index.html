@@ -1321,7 +1321,7 @@ header .premium-24adz-logo .brand-dot{
     <button type="button" onclick="quickCategory('Cars')">Cars</button>
     <button type="button" onclick="quickCategory('Bikes')">Bikes</button>
     <button type="button" onclick="quickCategory('Jobs')">Jobs</button>
-    <button type="button" onclick="quickCategory('Houses')">Houses</button>
+    <button type="button" onclick="quickCategory('Real Estate')">Real Estate</button>
   </nav>
 </header>
 
@@ -1334,11 +1334,10 @@ header .premium-24adz-logo .brand-dot{
   </form>
   <div class="hero-post-action"><button class="btn btn-primary" style="font-size:17px;padding:18px 34px" type="button" onclick="startPostAd()">＋ POST AD</button></div>
   <div class="scam-alert" role="alert" aria-label="Scam and payment safety alert">
-    <strong>⚠ SCAM ALERT · BUYER SAFETY</strong>
-    <span>NEVER PAY ADVANCE MONEY to unknown sellers or agents.</span>
-    <span>Meet in a safe public place, inspect the product / property, verify documents and ownership, and confirm the seller before paying.</span>
-    <span>Do not share OTP, UPI PIN, passwords or banking details. Beware of fake payment screenshots and courier / QR-code scams.</span>
-    <span>If an ad or user looks suspicious, stop the conversation and contact 24Adz Admin through the official WhatsApp contact.</span>
+    <strong>⚠ SCAM ALERT · IMPORTANT DISCLAIMER</strong>
+    <span>This website is an advertising platform only.</span>
+    <span>Meet the advertiser in person and verify the advertisement before making any payment.</span>
+    <span>Do not trust fake or misleading advertisements without meeting the advertiser. 24Adz.com is not responsible for any loss arising from transactions between users.</span>
   </div>
   <section class="cinematic-ad-promo" aria-label="Advertise on 24Adz" hidden>
     <div class="promo-orbit promo-orbit-one"></div><div class="promo-orbit promo-orbit-two"></div>
@@ -1373,7 +1372,7 @@ header .premium-24adz-logo .brand-dot{
     <div id="searchFields" class="search-fields" hidden>
       <input id="keyword" class="field" placeholder="Search listings or business name">
       <div class="search-grid">
-        <select id="searchCategory" class="field"><option value="">Select Main Category</option><option>Cars</option><option>Bikes</option><option>Mobiles</option><option>Jobs</option><option>Houses</option><option>Personals</option></select><select id="searchSubcategory" class="field" disabled><option value="">Select Subcategory</option></select>
+        <select id="searchCategory" class="field"><option value="">Select Main Category</option><option>Cars</option><option>Bikes</option><option>Mobiles</option><option>Jobs</option><option>Real Estate</option><option>Hotel Rooms</option><option>Fashion &amp; Beauty</option><option>Personals</option></select><select id="searchSubcategory" class="field" disabled><option value="">Select Subcategory</option></select>
         <select id="searchDistrict" class="field" disabled><option value="">Select District</option></select>
       </div>
       <select id="searchArea" class="field" disabled><option value="">Select Area</option></select>
@@ -1393,7 +1392,7 @@ header .premium-24adz-logo .brand-dot{
       <div class="category" onclick="toggleMainCategory('Bikes',this)"><span class="ico">🏍️</span><strong>Bikes</strong></div>
       <div class="category" onclick="toggleMainCategory('Mobiles',this)"><span class="ico">📱</span><strong>Mobiles</strong></div>
       <div class="category" onclick="toggleMainCategory('Jobs',this)"><span class="ico">💼</span><strong>Jobs</strong></div>
-      <div class="category" onclick="toggleMainCategory('Houses',this)"><span class="ico">🏠</span><strong>Houses</strong></div>
+      <div class="category" onclick="toggleMainCategory('Real Estate',this)"><span class="ico">🏡</span><strong>Real Estate</strong></div>
       <button type="button" class="category personals-category" id="personalsCategory" aria-expanded="false" aria-controls="personalsSubcategories" onclick="toggleMainCategory('Personals',this)"><span class="ico">❤️</span><strong>Personals</strong></button>
     </div>
     <div class="personals-subcategory-panel" id="personalsSubcategories" hidden>
@@ -1520,7 +1519,7 @@ header .premium-24adz-logo .brand-dot{
     <div class="post-step-indicator" id="postStepIndicator">STEP 1 OF 2 · BASIC DETAILS</div>
     <div class="post-form-step" id="postStep1">
       <label>Advertisement Title *</label><input class="field" name="title" required placeholder="Enter ad title">
-      <label>Category *</label><select class="field" name="category" id="postCategory" required><option value="">Select Category</option><option>Cars</option><option>Bikes</option><option>Houses</option><option>Mobiles</option><option>Jobs</option><option>Personals</option><option>Massage & Spa</option><option>Full Body Massage</option><option>Head Massage</option><option>Foot Massage</option><option>Spa & Wellness</option><option>Beauty & Wellness</option><option>Other Services</option></select>
+      <label>Category *</label><select class="field" name="category" id="postCategory" required><option value="">Select Category</option><option>Cars</option><option>Bikes</option><option>Real Estate</option><option>Hotel Rooms</option><option>Fashion &amp; Beauty</option><option>Mobiles</option><option>Jobs</option><option>Personals</option><option>Massage & Spa</option><option>Full Body Massage</option><option>Head Massage</option><option>Foot Massage</option><option>Spa & Wellness</option><option>Beauty & Wellness</option><option>Other Services</option></select>
       <label>Subcategory</label><select class="field" name="subcategory" id="postSubcategory"><option value="">Select Subcategory</option></select>
       <div id="categorySpecificFields" class="category-specific-fields" aria-live="polite"></div>
       <label>Model Year (Cars / Bikes / Mobiles where applicable)</label><input class="field" name="model_year" type="number" min="1900" max="2099" placeholder="e.g. 2022">
@@ -1642,7 +1641,9 @@ const districts = Object.keys(districtAreas);
 const categories = {
   "Cars":["New Cars","Used Cars","Car Rentals","Car Services"],
   "Bikes":["New Bikes","Used Bikes","Bike Services"],
-  "Houses":["Houses for Rent","Houses for Sale","PG & Shared Accommodation","Commercial Properties","Land & Plots"],
+  "Real Estate":["Residential Properties","Commercial Spaces","Houses for Sale","Houses for Rent","Apartments & Flats","Land & Plots","PG & Hostels"],
+  "Hotel Rooms":["Budget Hotel Rooms","Luxury Hotel Rooms","AC Rooms","Non-AC Rooms","Family Rooms","Lodges","Service Apartments"],
+  "Fashion & Beauty":["Beauty Parlour Ads","Dresses","Men's Fashion","Women's Fashion","Men's & Women's Clothing","Beauty Products","Makeup & Cosmetics","Accessories"],
   "Mobiles":["New Mobiles","Used Mobiles","Mobile Accessories","Mobile Services"],
   "Jobs":["Full-time Jobs","Part-time Jobs","Work from Home","Temporary Jobs"],
   "Personals":["Massage & Spa","Full Body Massage","Head Massage","Foot Massage","Spa & Wellness","Beauty & Wellness","Other Services"]
@@ -2344,13 +2345,16 @@ function imageFileToImage(file){return new Promise((ok,bad)=>{const r=new FileRe
 async function checkAdImage(file,category=""){
  if(!file)return {ok:true};
  if(!/^image\/(jpeg|png|webp)$/.test(file.type)||file.size>5*1024*1024)return {ok:false,reason:"Upload JPG, PNG or WEBP up to 5 MB only."};
+ const moderation=window.__24adzModerationSettings||{};
+ if(moderation.image_enabled===false)return {ok:true};
  document.getElementById("imageSafetyStatus").textContent="Checking adult content and visible numbers…";
  try{
   const libs=await getImageSafetyModels(),img=await imageFileToImage(file);
   const scores=await libs.model.classify(img);
   const isMassage=/massage|spa/i.test(String(category||""));
+  const generalThreshold=Number(moderation.general_sexy_threshold??0.35),massageThreshold=Number(moderation.massage_sexy_threshold??0.75);
   const blockedImage=scores.some(x=>["Porn","Hentai"].includes(x.className)&&x.probability>=0.35)
-   || scores.some(x=>x.className==="Sexy"&&x.probability>=(isMassage?0.75:0.35));
+   || scores.some(x=>x.className==="Sexy"&&x.probability>=(isMassage?massageThreshold:generalThreshold));
   if(blockedImage)
    return {ok:false,reason:isMassage?"Nude or pornographic images are not allowed in Massage / Spa listings.":"Adult / nude image detected. The picture has been removed."};
   const worker=await Tesseract.createWorker("eng");let result;
@@ -2378,7 +2382,7 @@ document.getElementById("postForm").addEventListener("submit",async e=>{
  if(invalid){const step=invalid.closest("#postStep1")?1:2;if(currentPostStep!==step)goPostStep(step);invalid.reportValidity();invalid.focus();return;}
  const file=document.getElementById("clientAdImageFile")?.files?.[0];
  const selectedCategory=String(e.target.elements.category?.value||"");
- if(/^(Cars|Bikes|Houses|Jobs|Mobiles)$/i.test(selectedCategory)){
+ if(/^(Cars|Bikes|Real Estate|Jobs|Mobiles)$/i.test(selectedCategory)){
   const adText=(String(e.target.elements.title?.value||"")+" "+String(e.target.elements.description?.value||"")).toLowerCase();
   if(/\b(porn|pornography|xxx|\bsex\b|nude|naked|escort|adult|erotic|sexual|hooker|prostitut\w*|call\s*girl|blowjob|handjob|boobs|breasts|genitals|vagina|penis|anal)\b/i.test(adText)){toast("Adult or sexually explicit words are not allowed in this category.");return;}
  }
@@ -2540,7 +2544,7 @@ setInterval(()=>{
     }
     ADZ24.categories=sourceRows;
     Object.keys(categories).forEach(k=>delete categories[k]);
-    const isPersonalService=name=>/(person|massage|spa|wellness|beauty|reflexology|salon)/i.test(String(name||''));
+    const isPersonalService=name=>/^personals$/i.test(String(name||'').trim());
     const roots=ADZ24.categories.filter(x=>x.parent_id===null||x.parent_id===undefined);
     const personalRoot=roots.find(x=>String(x.name||'').trim().toLowerCase()==='personals');
     // Subcategories must be direct children of their main category. In particular,
@@ -2597,7 +2601,7 @@ setInterval(()=>{
         });
       }
     }
-    // Main-category selectors contain only the six parent categories.
+    // Main-category selectors contain all active parent categories from D1.
     // The selected main category controls its own subcategory selector.
     const selectableRows=roots;
     ['searchCategory','districtFilterCategory','postCategory'].forEach(id=>{
@@ -2616,6 +2620,21 @@ setInterval(()=>{
   }
   function hmApplySettings(settings){
     ADZ24.settings={...ADZ24.settings,...(settings||{})};
+    window.__24adzModerationSettings=ADZ24.settings.moderation||{enabled:true,image_enabled:true};
+    const site=ADZ24.settings.site||{},scam=ADZ24.settings.scam_alert||{},promoCfg=ADZ24.settings.homepage_promo||{},seo=ADZ24.settings.seo||{},maintenance=ADZ24.settings.maintenance||{};
+    if(site.name){const heroTitle=document.querySelector('.hero h1');if(heroTitle)heroTitle.textContent=site.name;document.title=seo.title||site.name+' | Tamil Nadu Classifieds';}
+    if(site.tagline){const tagline=document.querySelector('.reference-headline');if(tagline)tagline.textContent=site.tagline;}
+    if(site.logo_url){const heroTitle=document.querySelector('.hero h1');if(heroTitle){heroTitle.textContent='';const logo=document.createElement('img');logo.src=site.logo_url;logo.alt=site.name||'24Adz';logo.style.cssText='max-width:80%;max-height:90px;object-fit:contain';heroTitle.appendChild(logo);}}
+    if(site.footer_message){const footer=document.querySelector('footer span');if(footer)footer.textContent=site.footer_message;}
+    const contact=ADZ24.settings.contact||{};let support=document.getElementById('24adzSupportContacts');
+    if(contact.phone||contact.email){if(!support){support=document.createElement('div');support.id='24adzSupportContacts';support.style.cssText='margin-top:8px;font-size:13px';document.querySelector('footer')?.appendChild(support);}support.textContent='';if(contact.phone){const p=document.createElement('a');p.href='tel:'+String(contact.phone).replace(/[^0-9+]/g,'');p.textContent='Support: '+contact.phone;p.style.cssText='color:inherit;margin:0 8px';support.appendChild(p);}if(contact.email){const e=document.createElement('a');e.href='mailto:'+contact.email;e.textContent=contact.email;e.style.cssText='color:inherit;margin:0 8px';support.appendChild(e);}}else if(support)support.remove();
+    const scamBox=document.querySelector('.scam-alert');
+    if(scamBox){scamBox.hidden=scam.enabled===false;if(scam.title){const t=scamBox.querySelector('strong');if(t)t.textContent=scam.title;}if(scam.message){const lines=String(scam.message).split(/\r?\n/).filter(Boolean);scamBox.querySelectorAll('span').forEach((el,i)=>{if(lines[i]!==undefined)el.textContent=lines[i];else el.remove();});if(lines.length>scamBox.querySelectorAll('span').length){lines.slice(scamBox.querySelectorAll('span').length).forEach(line=>{const s=document.createElement('span');s.textContent=line;scamBox.appendChild(s);});}}}
+    const promo=document.querySelector('.cinematic-ad-promo');
+    if(promo){promo.hidden=promoCfg.enabled!==true;const set=(sel,val)=>{const el=promo.querySelector(sel);if(el&&val)el.textContent=val;};set('.promo-kicker',promoCfg.kicker);set('.promo-content h2',promoCfg.title);set('.promo-content p',promoCfg.description);const cta=promo.querySelector('.promo-cta');if(cta&&promoCfg.button_text){cta.textContent=promoCfg.button_text+' ';const arrow=document.createElement('span');arrow.textContent='↗';cta.appendChild(arrow);}const prices=ADZ24.settings.vip_pricing||{};const price=document.getElementById('homepagePromoPrice');if(price)price.textContent='₹'+Number(prices['3']??300);const days=document.getElementById('homepagePromoDays');if(days)days.textContent='3 DAYS';}
+    if(seo.title){document.title=seo.title;let m=document.querySelector('meta[name="description"]');if(!m){m=document.createElement('meta');m.name='description';document.head.appendChild(m);}m.content=seo.description||'';let k=document.querySelector('meta[name="keywords"]');if(!k){k=document.createElement('meta');k.name='keywords';document.head.appendChild(k);}k.content=seo.keywords||'';}
+    if(maintenance.enabled===true&&!location.pathname.endsWith('/admin.html')){let cover=document.getElementById('24adzMaintenanceCover');if(!cover){cover=document.createElement('div');cover.id='24adzMaintenanceCover';cover.style.cssText='position:fixed;inset:0;z-index:999999;background:#090604;color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font:600 20px Arial';document.body.appendChild(cover);}cover.textContent=maintenance.message||'24Adz.com is under maintenance. Please visit again soon.';}
+
     const c=ADZ24.settings.contact_buttons||{};
     document.documentElement.dataset.hmCall=c.call===false?"off":"on";
     document.documentElement.dataset.hmWhatsapp=c.whatsapp===false?"off":"on";
@@ -2624,7 +2643,8 @@ setInterval(()=>{
     const select=document.getElementById("pricePlanSelect");
     if(select){
       const current=select.value;
-      select.innerHTML='<option value="">Select Price Plan</option><option value="free">Free Listing · ₹0 (3/month/mobile)</option>'+
+      const free=ADZ24.settings.free_ads||{};const freeLimit=Number(free.limit??3),freePeriod=Number(free.period_days??30);
+      select.innerHTML='<option value="">Select Price Plan</option><option value="free">Free Listing · ₹0 ('+freeLimit+'/'+freePeriod+' days/mobile)</option>'+
         '<option value="vip3">VIP Promotion · 3 Days · ₹'+Number(p["3"]??300)+'</option>'+
         '<option value="vip5">VIP Promotion · 5 Days · ₹'+Number(p["5"]??500)+'</option>'+
         '<option value="vip7">VIP Promotion · 7 Days · ₹'+Number(p["7"]??700)+'</option>';
@@ -2650,7 +2670,7 @@ setInterval(()=>{
     if(key==="free"){
       document.getElementById("pricePlanName").textContent="FREE LISTING";
       document.getElementById("pricePlanAmount").textContent="₹0";
-      document.getElementById("pricePlanDescription").textContent="Standard listing. Maximum 3 free ads per mobile number per calendar month.";
+      const free=ADZ24.settings.free_ads||{};document.getElementById("pricePlanDescription").textContent="Standard listing. Maximum "+Number(free.limit??3)+" free ads per mobile number every "+Number(free.period_days??30)+" days.";
       document.getElementById("pricePlanFeatures").innerHTML="<li>Standard listing</li><li>Contact options controlled by website settings</li>";
       panel.hidden=false;return;
     }
@@ -2745,7 +2765,7 @@ async function deleteServerAd(id){if(!confirm("Delete this advertisement permane
 async function getAdminWhatsApp(){try{const r=await fetch("/api/public/settings"),d=await r.json();return String(d.settings?.contact?.whatsapp_number||"8870017424").replace(/\D/g,"")}catch{return "8870017424"}}
 async function syncAdminWhatsAppLinks(){const n=await getAdminWhatsApp(),link=document.getElementById("promoAdminWhatsApp");if(link)link.href="https://wa.me/91"+n+"?text="+encodeURIComponent("Hello Admin, I want to advertise on 24Adz.com. Please share the details.");}
 syncAdminWhatsAppLinks();
-async function showCoinPackages(){const packages=[1000,2000,3000,4000,5000];const choice=prompt("24Adz Coin Packages\n1000 Coins – ₹1,000\n2000 Coins – ₹2,000\n3000 Coins – ₹3,000\n4000 Coins – ₹4,000\n5000 Coins – ₹5,000\n\nEnter coin amount to purchase:");const coins=Number(choice);if(!packages.includes(coins))return;try{const r=await a24Call("/api/client/coin-requests","POST",{coins});const number=await getAdminWhatsApp();const message=`Hello 24Adz Admin, I want to purchase ${coins} Coins. Request ID: ${r.request_id}. Please share the official payment details.`;window.open("https://wa.me/91"+number+"?text="+encodeURIComponent(message),"_blank");toast("WhatsApp opened. Admin will credit coins after payment confirmation.")}catch(e){toast(e.message)}}
+async function showCoinPackages(){try{const data=await a24Call("/api/client/coin-packages"),packages=data.packages||[];const promptText="24Adz Coin Packages\n"+packages.map(x=>Number(x.coins).toLocaleString("en-IN")+" Coins – ₹"+Number(x.amount).toLocaleString("en-IN")).join("\n")+"\n\nEnter coin amount to purchase:";const coins=Number(prompt(promptText));if(!packages.some(x=>Number(x.coins)===coins))return;const r=await a24Call("/api/client/coin-requests","POST",{coins});const number=await getAdminWhatsApp();const message=`Hello 24Adz Admin, I want to purchase ${coins} Coins. Request ID: ${r.request_id}. Please share the official payment details.`;window.open("https://wa.me/91"+number+"?text="+encodeURIComponent(message),"_blank");toast("WhatsApp opened. Admin will credit coins after payment confirmation.")}catch(e){toast(e.message)}}
 function openMessages(){if(!a24Token()){openModal("loginModal");return}openClientDashboard();}
 function openAdChat(adId){if(!a24Token()){openModal("loginModal");toast("Login to chat with the advertiser.");return}document.getElementById("chatAdId").value=adId;document.getElementById("adChatHistory").textContent="Send a message to start this conversation.";openModal("adChatModal");}
 document.getElementById("adChatForm").addEventListener("submit",async e=>{e.preventDefault();try{await a24Call("/api/client/chat","POST",{ad_id:document.getElementById("chatAdId").value,message:document.getElementById("chatMessage").value});document.getElementById("chatMessage").value="";document.getElementById("adChatHistory").textContent="Message sent. Check Messages in My 24Adz for replies.";toast("Message sent.")}catch(x){toast(x.message)}});
@@ -2758,12 +2778,14 @@ updateAccountNav();
  const categoryMap={
   Cars:["New Cars","Used Cars","Car Rentals","Car Services"],
   Bikes:["New Bikes","Used Bikes","Bike Services"],
-  Houses:["Houses for Rent","Houses for Sale","PG & Shared Accommodation","Commercial Properties","Land & Plots"],
   Mobiles:["New Mobiles","Used Mobiles","Mobile Accessories","Mobile Services"],
   Jobs:["Full-time Jobs","Part-time Jobs","Work from Home","Temporary Jobs"],
-  Personals:["Massage & Spa","Full Body Massage","Head Massage","Foot Massage","Spa & Wellness","Beauty & Wellness","Other Services"]
+  Personals:["Massage & Spa","Full Body Massage","Head Massage","Foot Massage","Spa & Wellness","Beauty & Wellness","Other Services"],
+  "Hotel Rooms":["Budget Hotel Rooms","Luxury Hotel Rooms","AC Rooms","Non-AC Rooms","Family Rooms","Lodges","Service Apartments"],
+  "Real Estate":["Residential Properties","Commercial Spaces","Houses for Sale","Houses for Rent","Apartments & Flats","Land & Plots","PG & Hostels"],
+  "Fashion & Beauty":["Beauty Parlour Ads","Dresses","Men's Fashion","Women's Fashion","Men's & Women's Clothing","Beauty Products","Makeup & Cosmetics","Accessories"]
  };
- const icons={"New Cars":"🚘","Used Cars":"🚗","Car Rentals":"🚕","Car Services":"🛠️","New Bikes":"🏍️","Used Bikes":"🏍️","Bike Services":"🔧","Houses for Rent":"🏠","Houses for Sale":"🏡","PG & Shared Accommodation":"🏘️","Commercial Properties":"🏢","Land & Plots":"🌳","New Mobiles":"📱","Used Mobiles":"📲","Mobile Accessories":"🎧","Mobile Services":"🛠️","Full-time Jobs":"💼","Part-time Jobs":"🕒","Work from Home":"🏡","Temporary Jobs":"📋","Massage & Spa":"💆","Full Body Massage":"🧖","Head Massage":"💆‍♀️","Foot Massage":"🦶","Spa & Wellness":"🌿","Beauty & Wellness":"✨","Other Services":"⭐"};
+ const icons={"New Cars":"🚘","Used Cars":"🚗","Car Rentals":"🚕","Car Services":"🛠️","New Bikes":"🏍️","Used Bikes":"🏍️","Bike Services":"🔧","Houses for Rent":"🏠","Houses for Sale":"🏡","PG & Shared Accommodation":"🏘️","Commercial Properties":"🏢","Land & Plots":"🌳","New Mobiles":"📱","Used Mobiles":"📲","Mobile Accessories":"🎧","Mobile Services":"🛠️","Full-time Jobs":"💼","Part-time Jobs":"🕒","Work from Home":"🏡","Temporary Jobs":"📋","Massage & Spa":"💆","Full Body Massage":"🧖","Head Massage":"💆‍♀️","Foot Massage":"🦶","Spa & Wellness":"🌿","Beauty & Wellness":"✨","Other Services":"⭐","Budget Hotel Rooms":"🛏️","Luxury Hotel Rooms":"🏨","AC Rooms":"❄️","Non-AC Rooms":"🛌","Family Rooms":"👨‍👩‍👧","Lodges":"🏩","Service Apartments":"🏢","Residential Properties":"🏠","Commercial Spaces":"🏬","Apartments & Flats":"🏢","PG & Hostels":"🏘️","Beauty Parlour Ads":"💇","Dresses":"👗","Men's Fashion":"👔","Women's Fashion":"👚","Men's & Women's Clothing":"👕","Beauty Products":"💄","Makeup & Cosmetics":"💅","Accessories":"👜"};
  const $=id=>document.getElementById(id);
  function ensurePanels(){
   const root=$("categories"), personal=$("personalsSubcategories"); if(!root||!personal)return;
