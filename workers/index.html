@@ -1,0 +1,2849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080808">
+<title>24Adz.com | Tamil Nadu Classifieds</title>
+<style>
+:root{--bg:#080808;--panel:#111;--panel2:#171717;--line:#292929;--orange:#ff8a00;--red:#f04416;--muted:#a5a5a5;--white:#f6f6f6}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--white);font-family:Arial,Helvetica,sans-serif}
+button,input,select,textarea{font:inherit}button{cursor:pointer}
+header{position:sticky;top:0;z-index:20;background:rgba(8,8,8,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.nav{max-width:1200px;margin:auto;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.logo{font-size:30px;font-weight:900;letter-spacing:1px;color:#eee;text-decoration:none}.logo span{color:var(--orange)}
+.nav-actions{display:flex;gap:10px;align-items:center}.btn{border:0;border-radius:10px;padding:13px 19px;font-weight:700;transition:.2s}
+.btn-primary{background:linear-gradient(110deg,var(--orange),var(--red));color:#111}.btn-outline{background:transparent;border:1px solid var(--orange);color:var(--orange)}
+.btn:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.hero{text-align:center;padding:65px 20px 38px;background:radial-gradient(ellipse at top,rgba(255,132,0,.13),transparent 58%)}
+.hero h1{font-size:clamp(46px,9vw,86px);margin:0 0 12px;letter-spacing:3px;background:linear-gradient(90deg,#ff9a18,#f04b1a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .tag{font-size:20px;color:#ddd;margin:0 0 12px}.hero p{max-width:680px;margin:0 auto 28px;color:var(--muted);font-size:17px;line-height:1.6}
+.hero-note{margin-top:22px;color:#d97819;letter-spacing:5px;font-size:12px;font-weight:bold}
+.wrap{max-width:1200px;margin:0 auto;padding:0 22px}
+.search-panel{max-width:850px;margin:0 auto 54px;padding:22px;background:linear-gradient(145deg,#121212,#0c0c0c);border:1px solid var(--line);border-radius:22px;box-shadow:0 18px 55px #0008}
+.field{width:100%;background:#090909;color:#fff;border:1px solid #292929;border-radius:12px;padding:16px;margin:0 0 13px;outline:none}
+.field:focus{border-color:var(--orange)}select.field{color:#ddd}select.field option{background:#111;color:#fff}
+.search-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}.search-grid .field{min-width:0}
+.search-panel .btn{width:100%;font-size:17px;padding:16px}
+.section-title{font-size:27px;margin:0 0 22px}.section-title span{color:var(--orange)}
+.categories{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:14px;margin-bottom:52px}
+.category{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 12px;text-align:center;color:#eee;cursor:pointer;transition:.2s}
+.category:hover,.category.active{border-color:var(--orange);background:#21160c}.category .ico{font-size:28px;display:block;margin-bottom:10px}.category strong{font-size:14px}
+.listing-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.muted{color:var(--muted)}
+.ads{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin-bottom:60px}
+.ad-card{background:linear-gradient(150deg,#1b1712 0%,#111 58%,#090909 100%);border:1px solid rgba(255,158,48,.28);border-radius:17px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.34),inset 0 1px rgba(255,255,255,.035);transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}.ad-card:hover{border-color:rgba(255,158,48,.62);box-shadow:0 12px 30px rgba(0,0,0,.45),0 0 18px rgba(255,132,0,.09);transform:translateY(-2px)}
+.ad-card.vip-ad-card{position:relative;border:1px solid #ffb52e;background:linear-gradient(145deg,#241707 0%,#12100d 48%,#101010 100%);box-shadow:0 0 0 1px rgba(255,181,46,.18),0 10px 32px rgba(255,138,0,.16),inset 0 1px 0 rgba(255,220,150,.12);transform:translateZ(0)}
+.ad-card.vip-ad-card:before{content:"";position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,#8b4b00,#ffd978,#ff7900,#ffe5a3);z-index:2}
+.ad-card.vip-ad-card .ad-image{height:185px;background:radial-gradient(ellipse at 50% 20%,rgba(255,181,46,.32),transparent 60%),linear-gradient(135deg,#3a2108,#100d08 70%)}
+.ad-card.vip-ad-card .ad-image img{filter:saturate(1.08) contrast(1.04)}
+.ad-card.vip-ad-card .ad-body h3{color:#ffe0a0;text-shadow:0 1px 12px rgba(255,166,36,.18)}
+.ad-card.vip-ad-card .ad-price{color:#ffd16b;text-shadow:0 0 14px rgba(255,174,40,.2)}
+.vip-ribbon{display:inline-flex;align-items:center;gap:5px;margin:0 0 9px;padding:6px 11px;border:1px solid rgba(255,226,157,.55);border-radius:999px;background:linear-gradient(110deg,#ffe29a,#ff9a18 48%,#c94b0a);color:#211000;font-size:10px;font-weight:1000;letter-spacing:1.2px;box-shadow:0 3px 16px rgba(255,153,24,.28)}
+.ad-card.free-ad-card{border-color:#303030;background:linear-gradient(145deg,#171717,#101010);box-shadow:0 7px 18px rgba(0,0,0,.22)}
+.ads-scroll-sentinel{height:22px;display:flex;align-items:center;justify-content:center;color:#888;font-size:11px;letter-spacing:.5px;grid-column:1/-1}
+.ads-scroll-sentinel:after{content:"SCROLL FOR MORE ADS"}
+.vip-ribbon{display:inline-block;margin:0 0 8px;padding:4px 9px;border-radius:6px;background:linear-gradient(110deg,var(--orange),var(--red));color:#111;font-size:10px;font-weight:900;letter-spacing:1px}
+.ad-image{height:165px;background:linear-gradient(135deg,#2b1b0b,#151515);display:grid;place-items:center;font-size:50px;color:#d98222}
+.ad-body{padding:17px}.ad-body h3{margin:0 0 9px;font-size:19px}.ad-meta{font-size:13px;color:var(--muted);line-height:1.6}.ad-price{color:var(--orange);font-size:18px;font-weight:bold;margin:12px 0}
+.ad-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:14px}.ad-actions a,.ad-actions button{display:flex;justify-content:center;align-items:center;text-decoration:none;text-align:center;border:1px solid #393939;border-radius:8px;background:#171717;color:#eee;padding:10px 4px;font-size:12px;font-weight:bold}.ad-actions a:hover,.ad-actions button:hover{border-color:var(--orange);color:var(--orange)}
+.empty{padding:35px;text-align:center;border:1px dashed #383838;border-radius:15px;color:var(--muted);grid-column:1/-1}
+footer{border-top:1px solid var(--line);padding:30px 20px;text-align:center;color:#888;font-size:13px}
+.modal{position:fixed;inset:0;background:#000c;z-index:50;display:none;align-items:center;justify-content:center;padding:15px}.modal.open{display:flex}
+.modal-box{width:min(560px,100%);max-height:90vh;overflow:auto;background:#121212;border:1px solid #393939;border-radius:18px;padding:22px;box-shadow:0 20px 80px #000}
+.modal-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.modal-top h2{margin:0;color:var(--orange);font-size:23px}.close{background:#252525;color:#fff;border:0;border-radius:8px;width:36px;height:36px;font-size:22px}
+.modal-box label{display:block;color:#ccc;font-size:13px;margin:0 0 7px}.modal-box .field{margin-bottom:13px}.modal-box textarea{min-height:90px;resize:vertical}
+.modal-box .btn{width:100%;margin-top:5px}.small-note{font-size:12px;color:#888;line-height:1.5;margin:12px 0 0}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#242424;color:#fff;border:1px solid var(--orange);padding:13px 18px;border-radius:10px;z-index:90;display:none;max-width:90%;text-align:center}
+@media(max-width:600px){.nav{padding:13px 15px}.logo{font-size:25px}.nav-actions{gap:6px}.nav-actions .btn{padding:10px 11px;font-size:12px}.hero{padding:48px 16px 30px}.search-panel{padding:15px}.search-grid{grid-template-columns:1fr}.wrap{padding:0 15px}.section-title{font-size:23px}.ad-actions{gap:5px}.ad-actions a,.ad-actions button{font-size:11px;padding:9px 2px}}
+
+
+.pricing-section{margin:0 0 58px}.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.price-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px}
+.price-card.featured{border-color:var(--orange);background:linear-gradient(145deg,#24170b,#111)}
+.plan-name{color:var(--orange);font-size:13px;font-weight:800;letter-spacing:1.5px}
+.plan-price{font-size:34px;font-weight:900;margin:10px 0}
+.price-card p,.price-card li,.plan-note{color:var(--muted);font-size:13px;line-height:1.6}
+.price-card ul{padding-left:18px;margin-bottom:0}.plan-note{margin-top:14px}
+
+
+/* Collapsible search: show only the Search Listings trigger until opened. */
+.search-panel:not(.is-open){background:transparent;border:0;box-shadow:none;padding:0}
+.search-toggle{display:block;width:100%;max-width:520px;margin:0 auto 54px;font-size:17px;padding:17px}
+.search-fields{margin-top:0}
+.search-panel.is-open .search-toggle{margin-bottom:18px}
+.search-fields[hidden]{display:none!important}
+\n
+
+/* One Solution premium search filter + dedicated results view */
+.search-panel.is-open{
+  position:relative;max-width:850px;padding:24px;margin:0 auto 54px;border-radius:26px;
+  border:1px solid rgba(255,153,35,.42);
+  background:radial-gradient(ellipse at 12% 0%,rgba(255,138,0,.13),transparent 42%),linear-gradient(145deg,#1b120b 0%,#100d0b 48%,#090909 100%);
+  box-shadow:0 18px 55px rgba(0,0,0,.58),0 0 28px rgba(255,111,0,.09),inset 0 1px 0 rgba(255,210,145,.08);
+}
+.search-panel.is-open:before{content:"FIND YOUR AREA · DISCOVER LOCAL LISTINGS";display:block;margin:0 2px 17px;color:#ffb04a;font-size:11px;font-weight:900;letter-spacing:2px;text-align:center}
+.search-panel .search-toggle{border-radius:15px;box-shadow:0 8px 24px rgba(255,94,0,.19)}
+.search-panel.is-open .search-toggle{max-width:none;margin:0 0 18px;padding:15px;border:1px solid rgba(255,183,85,.24);background:linear-gradient(105deg,#ffae22,#ff6811 58%,#f04416);color:#160b04;font-size:16px}
+.search-fields{display:grid;gap:12px}
+.search-fields .field{min-height:58px;margin:0;padding:16px 18px;border:1px solid #39302a;border-radius:15px;background:linear-gradient(145deg,#080808,#111);color:#f5f5f5;font-size:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.025);transition:border-color .2s,box-shadow .2s}
+.search-fields .field:focus{border-color:#ff9a22;box-shadow:0 0 0 3px rgba(255,138,0,.12),0 0 18px rgba(255,104,0,.09)}
+.search-fields .field:disabled{opacity:.48;cursor:not-allowed}
+.search-fields select.field{color-scheme:dark}
+.search-fields .search-grid{gap:12px}
+.search-fields .btn{min-height:60px;margin-top:3px;border-radius:15px;background:linear-gradient(105deg,#ffb52b 0%,#ff7914 55%,#f13b18 100%);color:#160b04;font-size:18px;letter-spacing:.2px;box-shadow:0 9px 26px rgba(255,91,0,.2)}
+#adsSection .results-back{display:none}
+body.search-results-mode main{padding-top:24px;min-height:75vh}
+body.search-results-mode main>section:not(#adsSection),body.search-results-mode .hero,body.search-results-mode footer{display:none!important}
+body.search-results-mode #adsSection{display:block;min-height:65vh}
+body.search-results-mode #adsSection .results-back{display:inline-flex;align-items:center;gap:8px;margin:0 0 20px;padding:11px 17px;border:1px solid rgba(255,153,35,.55);border-radius:11px;background:#17100b;color:#ffad3b;font-weight:800}
+body.search-results-mode #adsSection .listing-head{padding:18px;border:1px solid #35251a;border-radius:16px;background:linear-gradient(110deg,#1b120b,#101010);}
+body.search-results-mode #adsSection .section-title{font-size:25px}
+body.search-results-mode #adsSection .empty{padding:48px 20px;border:1px solid rgba(255,139,28,.3);border-radius:18px;background:radial-gradient(ellipse at top,rgba(255,112,0,.11),transparent 65%),#111;color:#ddd;line-height:1.7}
+@media(max-width:600px){
+ .search-panel.is-open{padding:16px;margin-bottom:40px;border-radius:22px}
+ .search-fields .field{min-height:58px;padding:15px 16px;font-size:16px;border-radius:14px}
+ .search-fields .search-grid{grid-template-columns:1fr;gap:0}
+ .search-fields .btn{min-height:60px;font-size:17px}
+ body.search-results-mode main{padding-top:16px}
+ body.search-results-mode #adsSection .listing-head{align-items:flex-start;flex-direction:column;gap:6px}
+}
+
+/* Compact Post Ad popup: fixed 4-inch panel; all fields remain accessible by scrolling */
+#postModal .modal-box{
+  height:4in;
+  max-height:4in;
+  min-height:4in;
+  overflow-y:auto;
+  overflow-x:hidden;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  padding:12px 14px;
+}
+#postModal .modal-top{
+  position:sticky;
+  top:-12px;
+  z-index:2;
+  background:#121212;
+  padding:5px 0 8px;
+  margin-bottom:10px;
+}
+#postModal .modal-top h2{font-size:19px}
+#postModal .modal-box label{font-size:12px;margin:0 0 4px}
+#postModal .modal-box .field{min-height:40px;padding:9px 11px;margin-bottom:8px;font-size:14px}
+#postModal .modal-box textarea{min-height:58px}
+#postModal .modal-box .btn{min-height:42px;margin-top:3px}
+#postModal .small-note{font-size:11px;line-height:1.35}
+#postModal .modal-box::-webkit-scrollbar{width:4px}
+#postModal .modal-box::-webkit-scrollbar-thumb{background:#555;border-radius:8px}
+
+
+/* Premium fiery heart trigger for Explore Categories */
+.heart-category-trigger{
+  position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  width:100%;max-width:310px;min-height:178px;margin:0 auto 34px;padding:20px 16px;
+  border:1px solid rgba(255,119,24,.55);border-radius:24px;overflow:hidden;
+  color:#fff;background:radial-gradient(ellipse at 50% 48%,#451707 0%,#1b0c08 43%,#090909 78%);
+  box-shadow:0 0 18px rgba(255,76,0,.22),inset 0 0 24px rgba(255,112,0,.12);
+  cursor:pointer;transition:transform .25s,box-shadow .25s,border-color .25s;
+}
+.heart-category-trigger:before{
+  content:"";position:absolute;inset:-45%;z-index:-1;
+  background:conic-gradient(from 0deg,transparent 0 22%,rgba(255,80,0,.25) 30%,rgba(255,174,38,.5) 36%,transparent 48% 72%,rgba(255,55,0,.3) 82%,transparent 90%);
+  animation:heartOrbit 7s linear infinite;
+}
+.heart-category-trigger:after{
+  content:"";position:absolute;inset:2px;border-radius:22px;z-index:-1;
+  background:radial-gradient(ellipse at center,rgba(255,80,0,.16),transparent 65%);
+}
+.heart-category-trigger:hover{transform:translateY(-3px) scale(1.015);border-color:#ffb13b;box-shadow:0 0 30px rgba(255,76,0,.4),0 0 65px rgba(255,130,0,.15),inset 0 0 28px rgba(255,112,0,.2)}
+.heart-aura{position:absolute;width:116px;height:116px;border-radius:50%;background:#ff4b00;filter:blur(34px);opacity:.32;animation:heartPulse 2s ease-in-out infinite}
+.heart-symbol{position:relative;font-size:91px;line-height:1;color:#ff4b19;
+  text-shadow:0 0 8px #ffb13b,0 0 19px #ff4b00,0 0 38px #e51c00,0 0 58px rgba(255,106,0,.8);
+  animation:heartBeat 1.35s ease-in-out infinite}
+.heart-flame{position:absolute;top:25px;right:calc(50% - 61px);font-size:29px;filter:drop-shadow(0 0 9px #ff6a00);animation:flameFloat 1.8s ease-in-out infinite}
+.heart-trigger-label{position:relative;margin-top:10px;font-size:11px;font-weight:900;letter-spacing:3px;color:#ffd39a;text-shadow:0 0 10px #ff5a00}
+.categories[hidden]{display:none!important}
+.categories:not([hidden]){animation:categoryReveal .35s ease both}
+@keyframes heartBeat{0%,100%{transform:scale(1)}15%{transform:scale(1.12)}30%{transform:scale(1)}45%{transform:scale(1.07)}}
+@keyframes heartPulse{0%,100%{transform:scale(.85);opacity:.22}50%{transform:scale(1.2);opacity:.48}}
+@keyframes flameFloat{0%,100%{transform:translateY(2px) rotate(-8deg)}50%{transform:translateY(-7px) rotate(8deg)}}
+@keyframes heartOrbit{to{transform:rotate(360deg)}}
+@keyframes categoryReveal{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:600px){.heart-category-trigger{max-width:270px;min-height:158px}.heart-symbol{font-size:78px}}
+\n
+/* Compact dropdown for the Listing Plans section */
+.price-dropdown-wrap{max-width:650px;margin:0 auto 18px}
+.price-dropdown-label{display:block;color:#ff9a18;font-size:14px;font-weight:800;letter-spacing:1px;margin:0 0 9px}
+.price-plan-select{margin:0 0 14px;border:1px solid #ff8a00;background:#111;font-weight:700;min-height:54px}
+.price-plan-details{margin-top:8px;animation:categoryReveal .25s ease both}
+.price-plan-details[hidden]{display:none!important}
+.price-plan-details .plan-price{color:#fff}
+.price-plan-details ul{padding-left:20px}
+\n
+
+/* =========================================================
+   One Solution CINEMATIC VISUAL SKIN — CSS ONLY
+   Existing content, forms, categories, ads and interactions stay intact.
+   ========================================================= */
+:root{
+  --bg:#050505;--panel:#101010;--panel2:#17110d;--line:rgba(255,145,35,.22);
+  --orange:#ff9a16;--red:#f04416;--muted:#b4aaa0;--white:#fff8ef;
+}
+html{background:#050505}
+body{
+  background:
+    radial-gradient(ellipse at 50% -12%,rgba(255,104,0,.19),transparent 38%),
+    radial-gradient(ellipse at 0% 38%,rgba(120,28,0,.12),transparent 32%),
+    radial-gradient(ellipse at 100% 72%,rgba(255,116,0,.08),transparent 30%),
+    #050505;
+  background-attachment:fixed;
+  letter-spacing:.1px;
+}
+body:before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;opacity:.16;
+  background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:54px 54px;
+  mask-image:linear-gradient(to bottom,#000,transparent 78%);
+}
+header{
+  background:rgba(5,5,5,.78);
+  backdrop-filter:blur(22px) saturate(145%);
+  border-bottom:1px solid rgba(255,145,35,.2);
+  box-shadow:0 12px 35px rgba(0,0,0,.32);
+}
+.nav{padding-top:18px;padding-bottom:18px}
+.logo{font-size:clamp(26px,4vw,34px);text-shadow:0 0 24px rgba(255,119,0,.2)}
+.btn{border-radius:12px;letter-spacing:.3px}
+.btn-primary{
+  background:linear-gradient(115deg,#ffb12e 0%,#ff7900 45%,#ed3517 100%);
+  color:#160a03;box-shadow:0 8px 26px rgba(255,91,0,.22),inset 0 1px rgba(255,255,255,.35);
+}
+.btn-outline{border-color:rgba(255,151,31,.75);box-shadow:inset 0 0 18px rgba(255,112,0,.04)}
+.hero{
+  position:relative;isolation:isolate;overflow:hidden;
+  padding:clamp(65px,10vw,112px) 20px 62px;
+  background:
+    radial-gradient(ellipse at 50% 15%,rgba(255,105,0,.2),transparent 48%),
+    linear-gradient(180deg,rgba(12,7,4,.1),rgba(5,5,5,.05));
+}
+.hero:before,.hero:after{content:"";position:absolute;pointer-events:none;z-index:-1}
+.hero:before{
+  width:min(760px,90vw);height:min(760px,90vw);left:50%;top:-68%;
+  transform:translateX(-50%);border-radius:50%;
+  border:1px solid rgba(255,140,30,.12);
+  box-shadow:0 0 0 34px rgba(255,140,30,.018),0 0 0 78px rgba(255,140,30,.014),0 0 100px rgba(255,91,0,.14);
+}
+.hero:after{
+  left:50%;bottom:0;width:min(720px,90vw);height:1px;transform:translateX(-50%);
+  background:linear-gradient(90deg,transparent,rgba(255,148,32,.65),transparent);
+}
+.hero h1{
+  position:relative;display:inline-block;
+  font-size:clamp(52px,11vw,104px);font-weight:950;letter-spacing:clamp(3px,.8vw,9px);
+  background:linear-gradient(180deg,#fff2d7 0%,#ffbd58 27%,#ff7800 62%,#d92c12 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 8px 25px rgba(255,83,0,.22));
+  animation:cinemaTitleIn 1.2s cubic-bezier(.2,.8,.2,1) both,cinemaGlow 4.5s ease-in-out 1.2s infinite;
+}
+.hero .tag{font-size:clamp(18px,3vw,23px);font-weight:700;letter-spacing:2px;color:#fff0dc}
+.hero p{color:#c5b9ad}
+.hero-note{color:#ffb04b;text-shadow:0 0 18px rgba(255,107,0,.55);letter-spacing:clamp(2px,.6vw,6px)}
+.hero-post-action{display:flex;justify-content:center;align-items:center;margin:24px auto 0}
+.hero-post-action .btn{display:inline-flex;align-items:center;justify-content:center;margin:0 auto}
+.scam-alert{width:min(760px,100%);box-sizing:border-box;margin:28px auto 0;padding:15px 18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;border:1px solid rgba(255,91,35,.55);border-radius:14px;background:linear-gradient(135deg,rgba(83,20,8,.62),rgba(27,12,7,.82));box-shadow:0 8px 28px rgba(0,0,0,.28),0 0 22px rgba(255,70,20,.09);color:#ffe8d2;font-size:14px;line-height:1.5}
+.scam-alert strong{color:#ff744d;font-size:16px;letter-spacing:1.5px}
+.scam-alert span:first-of-type{font-weight:800;color:#ffd18b}
+@media(max-width:600px){.hero-post-action{margin-top:20px}.scam-alert{margin-top:22px;padding:13px 12px;font-size:13px}.scam-alert strong{font-size:15px}}
+
+.search-panel{
+  background:linear-gradient(145deg,rgba(28,19,13,.94),rgba(9,9,9,.96));
+  border:1px solid rgba(255,145,35,.28);
+  box-shadow:0 22px 70px rgba(0,0,0,.55),0 0 35px rgba(255,94,0,.07),inset 0 1px rgba(255,255,255,.045);
+}
+.search-panel:not(.is-open){background:transparent;border:0;box-shadow:none}
+.search-toggle{box-shadow:0 12px 35px rgba(255,91,0,.2)}
+.field{
+  background:rgba(5,5,5,.88);border-color:rgba(255,255,255,.13);
+  border-radius:13px;transition:border-color .25s,box-shadow .25s,background .25s;
+}
+.field:focus{border-color:#ff9a16;box-shadow:0 0 0 3px rgba(255,138,0,.12),0 0 22px rgba(255,110,0,.08);background:#0b0806}
+.section-title{
+  letter-spacing:.2px;text-shadow:0 4px 20px rgba(0,0,0,.65);
+}
+.section-title span{
+  background:linear-gradient(100deg,#ffc15b,#ff7b00,#ed3517);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.category{
+  position:relative;isolation:isolate;overflow:hidden;
+  background:linear-gradient(145deg,rgba(25,21,18,.96),rgba(10,10,10,.98));
+  border-color:rgba(255,255,255,.11);
+  box-shadow:0 12px 30px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.035);
+  transition:transform .3s,border-color .3s,box-shadow .3s,background .3s;
+}
+.category:before{
+  content:"";position:absolute;inset:0;z-index:-1;opacity:0;
+  background:radial-gradient(circle at 50% 0%,rgba(255,132,0,.2),transparent 70%);
+  transition:opacity .3s;
+}
+.category:hover,.category.active{
+  transform:translateY(-5px);
+  border-color:rgba(255,154,22,.85);
+  background:linear-gradient(145deg,#2a190c,#100d0a);
+  box-shadow:0 16px 38px rgba(0,0,0,.4),0 0 24px rgba(255,103,0,.12);
+}
+.category:hover:before,.category.active:before{opacity:1}
+.category .ico{filter:drop-shadow(0 5px 10px rgba(255,128,0,.22))}
+.ad-card,.price-card{
+  background:linear-gradient(145deg,rgba(24,20,17,.98),rgba(10,10,10,.99));
+  border-color:rgba(255,255,255,.12);
+  box-shadow:0 15px 38px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.035);
+  transition:transform .28s,border-color .28s,box-shadow .28s;
+}
+.ad-card:hover,.price-card:hover{
+  transform:translateY(-5px);
+  border-color:rgba(255,145,35,.48);
+  box-shadow:0 22px 48px rgba(0,0,0,.45),0 0 24px rgba(255,104,0,.08);
+}
+.ad-card.vip-ad-card{
+  border-color:#ff951b;
+  box-shadow:0 0 0 1px rgba(255,145,25,.12),0 15px 42px rgba(255,91,0,.1),inset 0 0 35px rgba(255,100,0,.035);
+}
+.vip-ribbon{box-shadow:0 4px 16px rgba(255,91,0,.2)}
+.ad-image{
+  position:relative;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 30%,#57300e,#1b120b 55%,#090909);
+}
+.ad-image:after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,transparent 55%,rgba(0,0,0,.4));
+}
+.ad-body h3{letter-spacing:.15px}
+.ad-actions a,.ad-actions button{
+  border-color:rgba(255,255,255,.15);background:rgba(255,255,255,.035);
+  transition:background .2s,border-color .2s,color .2s,transform .2s;
+}
+.ad-actions a:hover,.ad-actions button:hover{
+  background:rgba(255,130,0,.1);transform:translateY(-2px);
+}
+.ads-pagination button{
+  border-color:rgba(255,145,35,.28);background:linear-gradient(145deg,#1b1510,#0c0c0c);
+}
+.ads-pagination button.active{box-shadow:0 0 18px rgba(255,120,0,.2)}
+.price-card.featured{
+  background:radial-gradient(ellipse at 100% 0%,rgba(255,116,0,.18),transparent 55%),linear-gradient(145deg,#24170b,#0c0c0c);
+  box-shadow:0 15px 40px rgba(255,91,0,.08);
+}
+.price-plan-select{box-shadow:0 8px 25px rgba(0,0,0,.3)}
+.modal{backdrop-filter:blur(9px);background:rgba(0,0,0,.78)}
+.modal-box{
+  background:linear-gradient(145deg,#19130e,#0c0c0c 60%);
+  border-color:rgba(255,145,35,.3);
+  box-shadow:0 28px 90px rgba(0,0,0,.8),0 0 35px rgba(255,91,0,.08);
+}
+#postModal .modal-top{background:#15100c}
+footer{background:linear-gradient(180deg,transparent,rgba(255,104,0,.035));border-color:rgba(255,145,35,.18)}
+.toast{background:rgba(18,13,9,.96);backdrop-filter:blur(12px);box-shadow:0 10px 35px #0009}
+@keyframes cinemaTitleIn{
+  from{opacity:0;transform:translateY(24px) scale(.96);filter:blur(8px)}
+  to{opacity:1;transform:translateY(0) scale(1);filter:drop-shadow(0 8px 25px rgba(255,83,0,.22))}
+}
+@keyframes cinemaGlow{
+  0%,100%{filter:drop-shadow(0 8px 22px rgba(255,83,0,.2))}
+  50%{filter:drop-shadow(0 8px 34px rgba(255,113,0,.42))}
+}
+@media(max-width:600px){
+  .hero{padding-top:58px;padding-bottom:42px}
+  .hero h1{letter-spacing:3px}
+  .category:hover,.ad-card:hover,.price-card:hover{transform:none}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}
+}
+
+
+/* Contact action buttons: Call and WhatsApp only */
+.ad-actions > :nth-child(1){
+  background:#f5f5f5!important;color:#171717!important;border-color:#f5f5f5!important;
+}
+.ad-actions > :nth-child(1):hover{
+  background:#ffffff!important;color:#000!important;border-color:#fff!important;
+}
+.ad-actions > :nth-child(2){
+  background:#168b45!important;color:#fff!important;border-color:#168b45!important;
+}
+.ad-actions > :nth-child(2):hover{
+  background:#20a956!important;color:#fff!important;border-color:#20a956!important;
+}
+.ad-actions > :nth-child(3){
+  background:#343434!important;color:#f2f2f2!important;border-color:#4a4a4a!important;
+}
+.ad-actions > :nth-child(3):hover{
+  background:#414141!important;color:#fff!important;border-color:#666!important;
+}
+
+
+/* Cinematic category icon treatment — existing category labels/actions remain unchanged */
+.category{
+  min-height:148px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:9px;
+  background:
+    radial-gradient(ellipse at 50% 22%,rgba(255,132,0,.13),transparent 52%),
+    linear-gradient(145deg,rgba(29,22,16,.98),rgba(8,8,8,.99));
+}
+.category .ico{
+  position:relative;isolation:isolate;
+  width:66px;height:66px;margin:0 auto 5px;
+  display:grid;place-items:center;
+  border-radius:22px;
+  font-size:35px;line-height:1;
+  background:
+    radial-gradient(circle at 35% 25%,rgba(255,209,129,.2),transparent 48%),
+    linear-gradient(145deg,#3a210d,#15100b 68%,#090909);
+  border:1px solid rgba(255,157,54,.42);
+  box-shadow:0 7px 20px rgba(0,0,0,.45),0 0 19px rgba(255,111,0,.14),inset 0 1px rgba(255,255,255,.16);
+  filter:drop-shadow(0 0 8px rgba(255,117,0,.22));
+  transition:transform .32s cubic-bezier(.2,.8,.2,1),box-shadow .32s,border-color .32s;
+}
+.category .ico:before{
+  content:"";position:absolute;inset:-6px;border-radius:26px;z-index:-1;
+  border:1px solid rgba(255,150,44,.18);
+  box-shadow:0 0 16px rgba(255,106,0,.08);
+}
+.category strong{font-size:14px;letter-spacing:.15px;text-shadow:0 2px 10px #000}
+.category:hover .ico,.category.active .ico{
+  transform:translateY(-4px) scale(1.07) rotate(-2deg);
+  border-color:#ffb04a;
+  box-shadow:0 10px 25px rgba(0,0,0,.5),0 0 28px rgba(255,117,0,.32),inset 0 1px rgba(255,255,255,.25);
+}
+@keyframes categoryIconShimmer{
+  0%,100%{filter:drop-shadow(0 0 6px rgba(255,117,0,.18))}
+  50%{filter:drop-shadow(0 0 13px rgba(255,157,52,.42))}
+}
+.category .ico{animation:categoryIconShimmer 4s ease-in-out infinite}
+@media(max-width:600px){
+  .category{min-height:142px}
+  .category .ico{width:62px;height:62px;font-size:33px}
+}
+
+
+/* Mobile: premium full-width cards, three listings per batch, continuous scroll */
+@media(max-width:600px){
+  #adsSection .ads{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:14px;
+    margin-bottom:20px;
+  }
+  #adsSection .ad-card{
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+    border:1px solid rgba(255,158,48,.38);
+    border-radius:17px;
+    background:linear-gradient(150deg,#1b1712 0%,#101010 55%,#090909 100%);
+    box-shadow:0 8px 24px rgba(0,0,0,.42),0 0 0 1px rgba(255,145,0,.07);
+  }
+  #adsSection .ad-image{
+    width:100%;
+    height:190px;
+    min-height:190px;
+    max-height:220px;
+    border-bottom:1px solid rgba(255,158,48,.24);
+    background:#17120d;
+  }
+  #adsSection .ad-image img,
+  #adsSection .ad-image .ad-artwork{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+  }
+  #adsSection .ad-body{
+    min-width:0;
+    padding:13px 13px 12px;
+  }
+  #adsSection .ad-body h3{
+    font-size:17px;
+    line-height:1.3;
+    margin:0 0 6px;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+  #adsSection .vip-ribbon{
+    font-size:10px;
+    padding:4px 8px;
+    margin:0 0 6px;
+  }
+  #adsSection .ad-meta{
+    font-size:13px;
+    line-height:1.55;
+    display:block;
+  }
+  #adsSection .ad-price{
+    font-size:20px;
+    margin:7px 0;
+  }
+  #adsSection .ad-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:9px;
+    margin-top:12px;
+  }
+  #adsSection .ad-actions a,
+  #adsSection .ad-actions button{
+    min-height:43px;
+    padding:10px 8px;
+    border-radius:10px;
+    font-size:13px;
+    font-weight:800;
+  }
+  #adsSection .ads-pagination{
+    margin:16px 0 30px;
+  }
+}
+/* Per-listing category artwork and smoother mobile scrolling */
+.ad-image{height:165px;overflow:hidden;position:relative}
+.ad-artwork{display:block;width:100%;height:100%;object-fit:cover}
+.ad-card{content-visibility:auto;contain-intrinsic-size:250px;overflow:hidden}
+#adsSection{scroll-margin-top:88px}
+html{scroll-behavior:smooth}
+body{-webkit-overflow-scrolling:touch}
+@media(max-width:600px){
+  .ad-card{contain-intrinsic-size:230px}
+  .ad-image{height:118px}
+  .ad-artwork{width:100%;height:100%}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+}
+
+
+/* Clear, readable pagination after each group of three listings */
+#adsSection .ads-pagination{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:9px;
+  width:100%;
+  margin:18px 0 38px;
+  padding:12px 8px;
+  clear:both;
+}
+#adsSection .ads-pagination button{
+  min-width:78px;
+  min-height:42px;
+  padding:10px 14px;
+  border:1px solid #ff9a16;
+  border-radius:10px;
+  background:linear-gradient(145deg,#26180c,#111);
+  color:#fff!important;
+  font-size:14px;
+  font-weight:800;
+  line-height:1.2;
+  text-align:center;
+  white-space:nowrap;
+  opacity:1;
+}
+#adsSection .ads-pagination button:disabled{
+  border-color:#555;
+  background:#292929;
+  color:#aaa!important;
+  opacity:.8;
+}
+#adsSection .ads-pagination button:not(:disabled):active{
+  background:#ff8a00;
+  color:#111!important;
+}
+#adsSection .ads-page-label{
+  display:inline-block;
+  min-width:92px;
+  color:#fff!important;
+  font-size:14px;
+  font-weight:800;
+  line-height:1.4;
+  text-align:center;
+  white-space:nowrap;
+}
+@media(max-width:600px){
+  #adsSection .ads-pagination{gap:7px;margin:16px 0 30px;padding:10px 4px}
+  #adsSection .ads-pagination button{min-width:72px;min-height:40px;padding:9px 10px;font-size:13px}
+  #adsSection .ads-page-label{min-width:84px;font-size:13px}
+}
+
+
+/* Small premium top Search Listings trigger */
+.search-panel:not(.is-open) .search-toggle{
+  width:auto!important;
+  min-width:190px;
+  max-width:270px;
+  margin:0 auto 54px;
+  padding:12px 22px;
+  border-radius:13px;
+  font-size:15px;
+  display:block;
+}
+.search-panel.is-open .search-toggle{
+  width:100%!important;
+  max-width:none;
+}
+
+/* Centered district search between Listing Plans and Latest Listings */
+.district-quick-search{
+  width:min(760px,100%);
+  margin:0 auto 54px;
+  padding:23px;
+  text-align:center;
+  border:1px solid rgba(255,151,31,.35);
+  border-radius:22px;
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(255,126,0,.15),transparent 58%),
+    linear-gradient(145deg,rgba(28,19,13,.96),rgba(8,8,8,.98));
+  box-shadow:0 16px 45px rgba(0,0,0,.42),0 0 25px rgba(255,100,0,.07),inset 0 1px rgba(255,255,255,.04);
+}
+.district-search-kicker{
+  display:block;
+  margin-bottom:8px;
+  color:#ffb04b;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:2.5px;
+}
+.district-search-heading h2{
+  margin:0;
+  color:#fff8ef;
+  font-size:24px;
+  font-weight:900;
+}
+.district-search-heading h2 span{
+  background:linear-gradient(100deg,#ffc15b,#ff7b00,#ed3517);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+.district-search-heading p{
+  margin:9px 0 18px;
+  color:#b4aaa0;
+  font-size:13px;
+  line-height:1.5;
+}
+.district-search-controls{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:10px;
+  align-items:center;
+}
+.district-search-controls .field{
+  min-width:0;
+  min-height:54px;
+  margin:0;
+  border:1px solid rgba(255,160,55,.32);
+  border-radius:13px;
+  background:#090909;
+  color:#fff;
+}
+.district-search-controls select{color-scheme:dark}
+.district-search-controls .btn{
+  min-height:54px;
+  padding:12px 18px;
+  white-space:nowrap;
+}
+@media(max-width:600px){
+  .search-panel:not(.is-open) .search-toggle{
+    min-width:175px;
+    max-width:220px;
+    padding:11px 18px;
+    font-size:14px;
+    margin-bottom:42px;
+  }
+  .district-quick-search{
+    margin-bottom:40px;
+    padding:18px 14px;
+    border-radius:19px;
+  }
+  .district-search-heading h2{font-size:21px}
+  .district-search-controls{grid-template-columns:1fr;gap:10px}
+  .district-search-controls .field,.district-search-controls .btn{
+    width:100%;
+    min-height:54px;
+  }
+}
+
+
+
+.district-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:20px}
+.district-list button{min-height:48px;padding:10px 8px;border:1px solid rgba(255,160,55,.28);border-radius:12px;background:linear-gradient(145deg,#15110d,#090909);color:#f5f0e9;font-size:13px;font-weight:700;cursor:pointer;transition:.2s}
+.district-list button:hover,.district-list button:focus-visible{border-color:var(--orange);background:#241609;color:#ffb04b;outline:none}
+.district-results-filters{box-sizing:border-box;width:100%;margin:0 0 22px;padding:17px;border:1px solid rgba(255,151,31,.32);border-radius:17px;background:linear-gradient(145deg,#17110c,#0c0c0c);height:2.5in;max-height:75vh;min-height:150px;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#a85b17 #130d08;touch-action:pan-y}
+.district-results-filters[hidden]{display:none!important}
+.district-filter-drag-handle{position:sticky;top:-17px;z-index:5;display:flex;align-items:center;justify-content:center;gap:9px;margin:-17px -17px 13px;padding:9px 12px;background:linear-gradient(180deg,#241508,#17110c);border-bottom:1px solid rgba(255,151,31,.25);color:#ffb04b;font-size:10px;font-weight:800;letter-spacing:2px;cursor:ns-resize;touch-action:none;user-select:none}.district-filter-drag-handle:before{content:"";width:34px;height:4px;border-radius:9px;background:#b97832;display:block}.district-filter-drag-handle:after{content:"";width:34px;height:4px;border-radius:9px;background:#b97832;display:block}.district-results-filters.is-dragging{transition:none;outline:1px solid rgba(255,151,31,.5)}
+.district-filter-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.district-results-filters .field{min-width:0;margin:0 0 10px;background:#090909;color:#fff;border:1px solid #39302a;border-radius:12px;padding:14px}
+.district-results-filters select{color-scheme:dark}
+.district-results-filters .btn{margin:4px 7px 0 0;min-height:45px}
+@media(max-width:600px){.district-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.district-list button{font-size:12px;min-height:46px}.district-filter-grid{grid-template-columns:1fr}.district-results-filters{padding:13px}.district-filter-drag-handle{top:-13px;margin:-13px -13px 11px;padding:8px 10px}}
+
+/* Password visibility controls; scoped to auth modals */
+.auth-password-wrap{position:relative;display:flex;align-items:center;margin-bottom:13px}
+.auth-password-wrap .field{margin:0;padding-right:54px;width:100%}
+.password-eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:40px;height:38px;border:1px solid #55402c;border-radius:9px;background:#21170f;color:#ffb04b;font-size:18px;display:grid;place-items:center}
+.password-eye:focus-visible{outline:2px solid #ffb04b;outline-offset:2px}
+
+
+/* Numbered 25-ad pagination */
+#adsSection .ads-pagination .page-number{
+  min-width:42px;
+  width:42px;
+  padding:9px 6px;
+}
+#adsSection .ads-pagination .page-number.active{
+  background:linear-gradient(110deg,#ffb52b,#ff7914);
+  border-color:#ffb52b;
+  color:#160b04!important;
+  box-shadow:0 0 18px rgba(255,120,0,.24);
+}
+#adsSection .ads-pagination button:disabled{
+  cursor:not-allowed;
+}
+@media(max-width:600px){
+  #adsSection .ads-pagination{gap:6px}
+  #adsSection .ads-pagination .page-number{min-width:34px;width:34px;padding:8px 3px}
+  #adsSection .ads-pagination .page-nav{min-width:66px;padding:8px 7px}
+}
+
+
+/* Main home categories: compact directory-style grid; Personals opens its own list. */
+.main-categories{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:18px;
+  margin-bottom:28px;
+}
+.main-categories .category{
+  min-height:132px;
+  padding:15px 8px;
+  border-radius:15px;
+}
+.main-categories .category .ico{
+  width:58px;height:58px;border-radius:50%;
+  font-size:30px;margin-bottom:5px;
+  background:linear-gradient(145deg,#38210e,#15100b);
+}
+.main-categories .category strong{font-size:14px;text-align:center}
+.personals-category{
+  font:inherit;
+  width:100%;
+}
+.personals-category[aria-expanded="true"]{
+  border-color:#ff9a16;
+  background:linear-gradient(145deg,#2a190c,#100d0a);
+}
+.personals-subcategory-panel{
+  margin:0 0 42px;
+  padding:18px;
+  border:1px solid rgba(255,145,35,.24);
+  border-radius:18px;
+  background:linear-gradient(145deg,rgba(25,17,11,.96),rgba(8,8,8,.98));
+}
+.personals-subcategory-panel[hidden]{display:none!important}
+.personals-subcategory-title{
+  margin:0 0 16px;
+  color:#fff8ef;
+  font-size:19px;
+}
+.personals-subcategory-title span{
+  background:linear-gradient(100deg,#ffc15b,#ff7b00,#ed3517);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.personals-subcategories{margin:0;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.personals-subcategories .category{min-height:116px;padding:12px 7px}
+@media(max-width:600px){
+  .main-categories{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .main-categories .category{min-height:126px}
+  .personals-subcategories{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .personals-subcategory-panel{padding:14px}
+}
+
+
+/* =========================================================
+   24ADZ.COM — CINEMATIC PREMIUM BRAND THEME
+   Visual-only layer. Existing HTML structure, IDs, handlers,
+   forms, data, filtering and API logic are intentionally kept.
+   ========================================================= */
+:root{
+ --bg:#050403;--panel:#100b08;--panel2:#1b1009;--line:rgba(255,137,20,.38);
+ --orange:#ff9b16;--red:#f04416;--muted:#b8aaa0;--white:#fff8ef;
+}
+html{background:#050403;scroll-behavior:smooth}
+body{
+ color:var(--white);
+ background:
+  radial-gradient(ellipse at 50% -8%,rgba(255,105,0,.22),transparent 38%),
+  radial-gradient(ellipse at 0% 48%,rgba(122,30,0,.12),transparent 32%),
+  radial-gradient(ellipse at 100% 82%,rgba(255,116,0,.10),transparent 34%),
+  #050403;
+ background-attachment:fixed;
+}
+body:before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.12;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:58px 58px;mask-image:linear-gradient(#000,transparent 82%)}
+header{background:rgba(5,4,3,.86);backdrop-filter:blur(22px) saturate(145%);border-bottom:1px solid rgba(255,145,35,.34);box-shadow:0 12px 38px #0009}
+.nav{padding:8px 22px;min-height:104px}
+.logo{display:flex;align-items:center;justify-content:flex-start;width:min(310px,48vw);height:92px;overflow:visible;text-decoration:none}
+.logo img{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 14px rgba(255,111,0,.25))}
+.nav-actions{gap:11px}
+.btn{border-radius:13px;letter-spacing:.25px}
+.btn-primary{background:linear-gradient(115deg,#ffd05b 0%,#ff970e 42%,#f04416 100%);color:#170900;box-shadow:0 8px 28px rgba(255,91,0,.24),inset 0 1px rgba(255,255,255,.38)}
+.btn-outline{border:1px solid #ff9a22;color:#ffb64b;background:linear-gradient(145deg,rgba(30,17,8,.8),rgba(7,6,5,.8));box-shadow:inset 0 0 18px rgba(255,112,0,.08),0 0 16px rgba(255,111,0,.07)}
+.btn:hover{filter:brightness(1.13);transform:translateY(-2px)}
+.hero{position:relative;isolation:isolate;overflow:hidden;padding:clamp(48px,8vw,88px) 20px 52px;background:radial-gradient(ellipse at 50% 12%,rgba(255,108,0,.22),transparent 52%),linear-gradient(180deg,rgba(12,7,4,.12),transparent)}
+.hero:before{content:"";position:absolute;z-index:-1;left:50%;top:-75%;width:min(760px,100vw);aspect-ratio:1;transform:translateX(-50%);border-radius:50%;border:1px solid rgba(255,139,27,.17);box-shadow:0 0 0 35px rgba(255,140,30,.025),0 0 0 80px rgba(255,140,30,.018),0 0 90px rgba(255,91,0,.14)}
+.hero:after{content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:min(760px,90vw);height:1px;background:linear-gradient(90deg,transparent,#ff9b28,transparent);box-shadow:0 0 16px #ff7b0b}
+.hero h1{font-size:clamp(44px,9vw,86px);font-weight:950;letter-spacing:2px;background:linear-gradient(180deg,#fff7e9 0%,#ffc45e 36%,#ff7900 70%,#d52b12 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 7px 24px rgba(255,83,0,.28));text-shadow:none}
+.hero-post-action{margin-top:24px}
+.scam-alert{border:1px solid rgba(255,111,37,.58);background:linear-gradient(135deg,rgba(83,20,8,.68),rgba(24,10,5,.9));box-shadow:0 8px 30px #0008,0 0 24px rgba(255,70,20,.12)}
+.wrap{max-width:1200px}
+.search-panel.is-open,.district-quick-search,.district-results-filters{border:1px solid rgba(255,151,31,.48);background:radial-gradient(ellipse at 50% 0%,rgba(255,126,0,.17),transparent 56%),linear-gradient(145deg,rgba(29,17,10,.97),rgba(7,6,5,.99));box-shadow:0 18px 55px rgba(0,0,0,.62),0 0 28px rgba(255,111,0,.09),inset 0 1px rgba(255,220,160,.08)}
+.search-panel:not(.is-open){background:transparent;border:0;box-shadow:none}
+.field,.search-fields .field,.district-results-filters .field{background:linear-gradient(145deg,#080706,#15100c);border:1px solid rgba(255,159,54,.25);color:#fff;border-radius:14px}
+.field:focus,.search-fields .field:focus{border-color:#ffad35;box-shadow:0 0 0 3px rgba(255,138,0,.14),0 0 22px rgba(255,110,0,.12)}
+.section-title{color:#fff7eb;text-shadow:0 4px 20px #000b}
+.section-title span,.personals-subcategory-title span{background:linear-gradient(100deg,#ffe0a0,#ff9a16,#ed3517);-webkit-background-clip:text;background-clip:text;color:transparent}
+.category{background:radial-gradient(ellipse at 50% 0%,rgba(255,132,0,.15),transparent 65%),linear-gradient(145deg,#1d1510,#080706);border:1px solid rgba(255,164,67,.25);box-shadow:0 12px 30px #0007,inset 0 1px rgba(255,255,255,.045)}
+.category:hover,.category.active{border-color:#ffad3d;background:linear-gradient(145deg,#39200c,#100a06);box-shadow:0 0 26px rgba(255,110,0,.18),inset 0 1px rgba(255,255,255,.08)}
+.category .ico{filter:drop-shadow(0 0 10px rgba(255,132,0,.28))}
+.price-card,.ad-card{background:linear-gradient(145deg,#1b120c,#090807);border-color:rgba(255,160,55,.22);box-shadow:0 14px 38px #0008,inset 0 1px rgba(255,255,255,.035)}
+.price-card.featured,.price-plan-details{border-color:#ff9e28;background:radial-gradient(ellipse at 100% 0%,rgba(255,116,0,.2),transparent 58%),linear-gradient(145deg,#2b190b,#0a0806)}
+.plan-name,.plan-note{color:#ffbd65}
+.district-quick-search{position:relative;overflow:hidden;border-radius:26px}
+.district-quick-search:before{content:"";position:absolute;inset:-45% -20%;pointer-events:none;background:conic-gradient(from 20deg,transparent 0 35%,rgba(255,105,0,.08) 43%,transparent 52% 100%);animation:adzRing 18s linear infinite}
+.district-search-kicker{color:#ffb84d;text-shadow:0 0 16px rgba(255,130,0,.5)}
+.district-search-heading h2{color:#fff6e8}
+.district-search-heading h2 span{background:linear-gradient(100deg,#ffe4b2,#ff9c1a,#ef4318);-webkit-background-clip:text;background-clip:text;color:transparent}
+.district-list button{position:relative;overflow:hidden;border:1px solid rgba(255,155,43,.48);border-radius:16px;background:linear-gradient(145deg,rgba(26,18,12,.98),rgba(5,5,5,.99));box-shadow:inset 0 1px rgba(255,255,255,.045),0 7px 20px #0008;color:#fff8ef;transition:transform .22s,border-color .22s,box-shadow .22s}
+.district-list button:hover,.district-list button:focus-visible{transform:translateY(-2px);border-color:#ffc15b;background:linear-gradient(110deg,#5a2b08,#1b0d05);color:#ffd18a;box-shadow:0 0 22px rgba(255,117,0,.28),inset 0 0 18px rgba(255,134,0,.12)}
+.ad-card.vip-ad-card{border-color:#ffb52e;box-shadow:0 0 0 1px rgba(255,145,25,.2),0 15px 42px rgba(255,91,0,.16),inset 0 0 35px rgba(255,100,0,.045)}
+.ad-card.free-ad-card{border-color:rgba(255,155,50,.2)}
+.ad-image{background:radial-gradient(ellipse at 50% 25%,#66350d,#1b1008 58%,#070605)}
+.ad-body h3{color:#fff0dc}
+.ad-meta{color:#c2b4a8}
+.ad-price{color:#ffb347;text-shadow:0 0 14px rgba(255,145,0,.18)}
+.ad-actions a,.ad-actions button{border-radius:9px}
+.ads-pagination button{border-color:rgba(255,160,55,.45);background:linear-gradient(145deg,#26180c,#0b0907)}
+.modal{backdrop-filter:blur(10px);background:rgba(0,0,0,.82)}
+.modal-box{background:linear-gradient(145deg,#1b120c,#090807 65%);border-color:rgba(255,151,31,.45);box-shadow:0 28px 90px #000,0 0 35px rgba(255,91,0,.12)}
+.modal-top h2{color:#ffad3c}
+footer{border-color:rgba(255,145,35,.25);background:linear-gradient(180deg,transparent,rgba(255,104,0,.055));color:#a99b90}
+.toast{background:rgba(18,11,7,.97);border-color:#ff9c27;box-shadow:0 10px 35px #000b,0 0 20px rgba(255,110,0,.12)}
+@keyframes adzRing{to{transform:rotate(360deg)}}
+@media(max-width:600px){
+ .nav{padding:6px 12px;min-height:78px;gap:8px}
+ .logo{width:min(190px,47vw);height:68px}
+ .nav-actions{gap:6px}
+ .nav-actions .btn{padding:10px 11px;font-size:12px}
+ .hero{padding:46px 15px 34px}
+ .hero h1{font-size:clamp(38px,10vw,62px);letter-spacing:1px}
+ .district-quick-search{border-radius:21px;padding:18px 14px}
+ .district-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .district-list button{min-height:52px;border-radius:13px}
+}
+@media(prefers-reduced-motion:reduce){.district-quick-search:before{animation:none}}
+
+
+
+/* Distance search controls — same cinematic premium visual language */
+.district-distance-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:10px 0 4px}
+.district-distance-actions .btn{min-height:44px}
+.district-distance-status{color:#d9b58b;font-size:12px;line-height:1.45}
+@media(max-width:600px){.district-distance-actions{align-items:stretch;flex-direction:column}.district-distance-actions .btn{width:100%}}
+
+/* Client account dashboard additions; existing homepage styling is preserved. */
+.client-dashboard{width:min(900px,100%)}
+.dashboard-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:0 0 16px}
+.dashboard-stat{padding:13px;border:1px solid #49301b;border-radius:12px;background:#17100b;text-align:center}
+.dashboard-stat strong{display:block;color:#ffad38;font-size:22px}
+.dashboard-stat span{font-size:11px;color:#b9aaa0}
+.client-ad-row{padding:14px;margin:10px 0;border:1px solid #39302a;border-radius:13px;background:#0c0b0a}
+.client-ad-row h3{margin:0 0 7px;font-size:16px}
+.client-ad-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.client-ad-actions button{padding:9px 12px;border-radius:8px;border:1px solid #69421f;background:#1c130b;color:#ffbd65;font-weight:700}
+.client-ad-actions button.danger{border-color:#74352c;color:#ff8c78}
+.dashboard-empty{padding:25px;text-align:center;color:#aaa;border:1px dashed #59432d;border-radius:12px}
+@media(max-width:520px){.dashboard-summary{grid-template-columns:repeat(3,1fr)}.dashboard-stat{padding:10px 4px}.dashboard-stat strong{font-size:18px}}
+
+
+/* Screenshot-inspired directory layout for 24Adz.
+   This layer changes presentation only; existing IDs, API hooks and handlers stay intact. */
+:root{--ref-blue:#075b9c;--ref-blue-deep:#064c82;--ref-paper:#f3f4f5;--ref-ink:#34383d}
+body{padding-bottom:78px;background:var(--ref-paper);color:var(--ref-ink)}
+header{position:relative;background:var(--ref-blue);border:0;box-shadow:0 3px 12px rgba(0,0,0,.12);backdrop-filter:none}
+header .nav{min-height:76px;padding:7px 18px}
+header .logo{height:64px;width:min(230px,44vw)}
+header .logo img{filter:drop-shadow(0 2px 4px rgba(0,0,0,.2))}
+header .nav-actions .btn{padding:10px 13px;border-radius:8px;font-size:13px}
+header .btn-outline{border:1px solid rgba(255,255,255,.65);color:#fff;background:transparent;box-shadow:none}
+header .btn-primary{background:#fff;color:var(--ref-blue);box-shadow:none}
+.reference-top-links{display:flex;justify-content:space-around;align-items:center;gap:8px;padding:10px 10px 14px;background:var(--ref-blue)}
+.reference-top-links button{border:0;background:transparent;color:#fff;font-size:clamp(13px,3.7vw,19px);padding:5px 8px}
+.hero{padding:20px 16px 24px;background:var(--ref-blue);color:#fff}
+.hero:before,.hero:after{display:none}
+.hero h1{font-size:clamp(30px,7vw,48px);letter-spacing:-.8px;background:none;color:#fff;filter:none;text-shadow:none;animation:none}
+.hero .reference-headline{margin:3px auto 18px;color:#fff;font-size:clamp(18px,4vw,25px);font-weight:700}
+.hero-post-action{display:none}
+.hero .scam-alert{margin:14px auto 0;max-width:650px;padding:9px 12px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.12);box-shadow:none;font-size:12px}
+.hero .scam-alert strong{color:#ffe3a4}
+.reference-quick-search{display:flex;align-items:center;max-width:900px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.13)}
+.reference-quick-search input{width:100%;min-width:0;border:0;outline:0;padding:16px 17px;color:#333;background:#fff;font-size:18px}
+.reference-quick-search input::placeholder{color:#888}
+.reference-quick-search button{width:66px;min-width:66px;height:54px;border:0;border-left:1px solid #ddd;background:#fff;color:var(--ref-blue);font-size:39px;line-height:1}
+.wrap{max-width:1100px;padding:0 15px}
+.search-panel:not(.is-open){margin:0;padding:0;height:0;overflow:visible}
+.search-panel:not(.is-open) .search-toggle{position:relative;z-index:2;display:block;margin:-1px auto 18px;padding:8px 14px;min-width:0;max-width:180px;background:var(--ref-blue-deep);color:#fff;font-size:12px;box-shadow:none}
+.search-panel.is-open{margin:14px auto 25px;padding:16px;border-radius:14px;background:#fff;border:1px solid #e3e6e9;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.search-panel.is-open:before{color:var(--ref-blue)}
+.search-panel .search-toggle{background:var(--ref-blue);color:#fff}
+.search-fields .field,.field{background:#fff;color:#333;border-color:#d9dfe4;border-radius:9px;box-shadow:none}
+.search-fields select.field{color:#333;color-scheme:light}
+.search-fields .btn{background:var(--ref-blue);color:#fff;box-shadow:none}
+#homeCategories{margin-top:0;padding:14px 10px 12px;background:#fff}
+#homeCategories>.section-title{display:none}
+.main-categories{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0}
+.main-categories .category{min-height:112px;padding:10px 5px;border:0;border-radius:8px;background:#fff;box-shadow:none;color:#333;transform:none}
+.main-categories .category:before{display:none}
+.main-categories .category .ico{width:58px;height:58px;margin:0 auto 7px;border-radius:50%;font-size:29px;background:var(--ref-blue);border:0;box-shadow:none;filter:none;animation:none}
+.main-categories .category strong{font-size:13px;color:#34383d;text-shadow:none}
+.main-categories .category:hover,.main-categories .category.active{background:#f0f6fb;border:0;box-shadow:none}
+.main-categories .category:hover .ico,.main-categories .category.active .ico{transform:scale(1.04);box-shadow:none}
+.personals-subcategory-panel{background:#fff;border:1px solid #e7e9ec;border-radius:12px;margin:12px 0 20px}
+.personals-subcategory-title{color:#333}
+.personals-subcategories .category{background:#f8fafc}
+.reference-locations{margin:18px 0 22px;padding:20px 17px;background:#fff;border:0;border-radius:0;box-shadow:none}
+.reference-locations .section-title{font-size:21px;color:#333;margin:0 0 15px;padding-bottom:12px;border-bottom:1px solid #e5e7e9}
+.reference-locations .section-title span{background:none;color:#333}
+.reference-location-chips{display:flex;flex-wrap:wrap;gap:10px}
+.reference-location-chips button{border:0;border-radius:7px;background:#eaf3fb;color:#303943;padding:9px 12px;font-size:13px;font-weight:700}
+.reference-location-chips button:active{background:#cfe5f8}
+.reference-all-locations{margin-top:24px;border:0;border-top:1px solid #e7e7e7;padding:18px 0 0;width:100%;text-align:left;background:transparent;color:#444;font-size:16px}
+#districtQuickSearch,.pricing-section,#adsSection{background:#fff;padding:18px;margin:18px 0;border-radius:0}
+#districtQuickSearch{border:0;box-shadow:none}
+.district-search-heading h2,.section-title{color:#333}
+.district-search-heading h2 span{background:none;color:var(--ref-blue)}
+.district-search-kicker{color:var(--ref-blue)}
+.district-list button{background:#eef5fb;color:#303943;border:1px solid #dbe8f2}
+#adsSection .listing-head{align-items:center}
+.ad-card,.price-card{background:#fff;color:#333;border:1px solid #e5e7eb;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.ad-body h3{color:#333}
+.ad-meta{color:#68717a}
+.ad-actions a,.ad-actions button{border:0}
+.ad-actions > :nth-child(1){background:#f4f4f4!important;color:#222!important}
+footer{background:#fff;color:#777}
+.mobile-bottom-nav{display:none;position:fixed;left:0;right:0;bottom:0;z-index:45;grid-template-columns:repeat(5,minmax(0,1fr));height:68px;padding:5px 4px calc(5px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #d9dde1;box-shadow:0 -3px 12px rgba(0,0,0,.1)}
+.bottom-nav-item{display:flex;min-width:0;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:0;border-right:1px solid #e7e9eb;background:transparent;color:#4a4f54;font-size:10px}
+.bottom-nav-item:last-child{border-right:0}
+.bottom-nav-icon{display:grid;place-items:center;width:29px;height:29px;font-size:25px;line-height:1;color:#555}
+.bottom-nav-item.active .bottom-nav-icon{color:var(--ref-blue)}
+.bottom-nav-item.bottom-post .bottom-nav-icon{width:34px;height:34px;border-radius:50%;background:var(--ref-blue);color:#fff;font-size:29px}
+.bottom-nav-item.bottom-post{font-weight:700;color:#333}
+body.search-results-mode .hero{display:none!important}
+body.search-results-mode main{padding-top:12px}
+@media(min-width:700px){
+ .reference-top-links{justify-content:center;gap:48px}
+ .reference-top-links button{font-size:17px}
+ .main-categories{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+ .main-categories .category{min-height:128px}
+ .reference-location-chips{gap:14px}
+}
+@media(max-width:600px){
+ body{padding-bottom:76px}
+ header .nav{min-height:62px;padding:5px 10px}
+ header .logo{height:54px;width:42vw}
+ header .nav-actions{gap:5px}
+ header .nav-actions .btn{padding:8px 9px;font-size:11px}
+ .reference-top-links{padding:8px 4px 11px}
+ .hero{padding:18px 15px 20px}
+ .hero h1{font-size:32px}
+ .hero .reference-headline{font-size:18px;margin-bottom:14px}
+ .reference-quick-search input{font-size:16px;padding:14px 12px}
+ .reference-quick-search button{height:50px;width:56px;min-width:56px}
+ .wrap{padding:0 12px}
+ #homeCategories{padding:12px 8px}
+ .main-categories{gap:8px}
+ .main-categories .category{min-height:105px}
+ .main-categories .category .ico{width:54px;height:54px;font-size:27px}
+ .reference-locations{padding:17px 13px}
+ .reference-location-chips{gap:8px}
+ .reference-location-chips button{padding:8px 10px;font-size:12px}
+ #districtQuickSearch,#adsSection,.pricing-section{padding:14px 12px}
+ .mobile-bottom-nav{display:grid;height:68px}
+}
+
+
+/* 24Adz final black / orange / white palette.
+   Screenshot-inspired layout and all existing IDs, handlers and API logic are retained. */
+:root{--ref-blue:#ff9418;--ref-blue-deep:#d95a0b;--ref-paper:#080706;--ref-ink:#fff8ef}
+html,body{background:#080706!important;color:#fff8ef!important}
+body{background:radial-gradient(ellipse at 50% -10%,rgba(255,130,0,.16),transparent 42%),#080706!important}
+header{background:linear-gradient(100deg,#100b07 0%,#211006 52%,#100b07 100%)!important;border-bottom:1px solid rgba(255,145,35,.38)!important;box-shadow:0 8px 28px rgba(0,0,0,.48)!important}
+header .btn-outline{border:1px solid #ff9a22!important;color:#ffbd68!important;background:#15100b!important}
+header .btn-primary{background:linear-gradient(110deg,#ffbd45,#ff7a12 58%,#ef3f18)!important;color:#160b04!important}
+.reference-top-links{background:linear-gradient(100deg,#100b07,#211006 52%,#100b07)!important;border-bottom:1px solid rgba(255,145,35,.3)!important}
+.reference-top-links button{color:#fff8ef!important;font-weight:700}
+.reference-top-links button:focus-visible,.reference-top-links button:hover{color:#ffb34b!important}
+.hero{background:radial-gradient(ellipse at 50% 8%,rgba(255,112,0,.2),transparent 58%),linear-gradient(180deg,#120b06,#080706)!important;color:#fff8ef!important}
+.hero h1{background:linear-gradient(180deg,#fff8e9,#ffc15b 42%,#ff7b0b 78%,#df3215)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important}
+.hero .reference-headline{color:#fff8ef!important}
+.hero .scam-alert{border:1px solid rgba(255,132,35,.55)!important;background:linear-gradient(135deg,#2a1208,#100a07)!important;color:#fff1df!important}
+.hero .scam-alert strong{color:#ff8051!important}
+.hero .scam-alert span:first-of-type{color:#ffd08b!important}
+.reference-quick-search{background:#100d0a!important;border:1px solid rgba(255,153,35,.48)!important;box-shadow:0 8px 28px rgba(0,0,0,.4)!important}
+.reference-quick-search input{background:#100d0a!important;color:#fff!important}
+.reference-quick-search input::placeholder{color:#b7aaa0!important}
+.reference-quick-search button{background:#17100a!important;color:#ffad38!important;border-left:1px solid rgba(255,153,35,.3)!important}
+#homeCategories{background:#0b0907!important;border-top:1px solid rgba(255,145,35,.16)!important;border-bottom:1px solid rgba(255,145,35,.16)!important}
+.main-categories .category{background:linear-gradient(145deg,#1b130d,#0d0b09)!important;border:1px solid rgba(255,145,35,.24)!important;color:#fff8ef!important;box-shadow:0 8px 20px rgba(0,0,0,.28)!important}
+.main-categories .category strong{color:#fff8ef!important}
+.main-categories .category .ico{background:linear-gradient(145deg,#ffad32,#e94a16)!important;color:#1b0d04!important;border:1px solid rgba(255,214,145,.5)!important;box-shadow:0 5px 18px rgba(255,103,0,.2)!important}
+.main-categories .category:hover,.main-categories .category.active{background:linear-gradient(145deg,#2b190b,#120c08)!important;border-color:#ff9a22!important}
+.personals-subcategory-panel,.reference-locations,#districtQuickSearch,#adsSection,.pricing-section{background:linear-gradient(145deg,#17100b,#0b0907)!important;color:#fff8ef!important;border:1px solid rgba(255,145,35,.25)!important;box-shadow:0 12px 30px rgba(0,0,0,.24)!important}
+.reference-locations .section-title,.district-search-heading h2,.section-title,.personals-subcategory-title{color:#fff8ef!important}
+.reference-locations .section-title span{color:#ffad38!important}
+.reference-location-chips button,.district-list button{background:#21150c!important;color:#fff1df!important;border:1px solid rgba(255,145,35,.35)!important}
+.district-search-heading p,.district-search-kicker{color:#d7b99a!important}
+.field,.search-fields .field,.district-results-filters .field{background:#090807!important;color:#fff!important;border:1px solid rgba(255,153,35,.32)!important}
+.field::placeholder{color:#b8aaa0!important}
+.search-panel.is-open,.district-results-filters{background:linear-gradient(145deg,#1b120b,#090807)!important;border-color:rgba(255,151,31,.42)!important}
+.search-panel .search-toggle,.search-fields .btn,.district-search-controls .btn{background:linear-gradient(105deg,#ffbd45,#ff7914 58%,#ed3b18)!important;color:#170a03!important}
+.ad-card,.price-card{background:linear-gradient(145deg,#1a130e,#0d0b09)!important;color:#fff8ef!important;border:1px solid rgba(255,145,35,.24)!important}
+.ad-body h3,.price-card h3,.price-card .plan-price{color:#fff8ef!important}
+.ad-meta,.price-card p,.price-card li,.plan-note{color:#c1b3a7!important}
+.ad-price,.plan-name{color:#ffad38!important}
+footer{background:#080706!important;color:#b9aaa0!important;border-top:1px solid rgba(255,145,35,.25)!important}
+.mobile-bottom-nav{background:rgba(10,8,6,.98)!important;border-top:1px solid rgba(255,145,35,.35)!important;box-shadow:0 -8px 24px rgba(0,0,0,.5)!important;backdrop-filter:blur(14px)}
+.bottom-nav-item{background:transparent!important;color:#d8cec4!important;border-right:1px solid rgba(255,255,255,.08)!important}
+.bottom-nav-icon{color:#c5b5a6!important}
+.bottom-nav-item.active .bottom-nav-icon{color:#ffad38!important}
+.bottom-nav-item.bottom-post .bottom-nav-icon{background:linear-gradient(145deg,#ffbd45,#ed4a16)!important;color:#170a03!important}
+.bottom-nav-item.bottom-post{color:#fff8ef!important}
+@media(max-width:600px){.reference-top-links{padding:9px 4px 11px!important}.reference-top-links button{font-size:14px!important}.main-categories .category{border-radius:12px!important}}
+
+
+
+/* =========================================================
+   24Adz requested mobile refinements — scoped overrides only
+   Keep the existing homepage structure, theme and features.
+   ========================================================= */
+@media (max-width: 600px) {
+  /* Compact the scam notice without removing its safety message. */
+  .hero .scam-alert {
+    width: min(100%, 560px) !important;
+    margin: 10px auto 0 !important;
+    padding: 7px 10px !important;
+    gap: 3px !important;
+    border-radius: 11px !important;
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+  }
+  .hero .scam-alert strong {
+    font-size: 13px !important;
+    letter-spacing: 1px !important;
+  }
+  .hero .scam-alert span {
+    font-size: 11px !important;
+  }
+
+  /* Keep the quick search prominent and easy to touch. */
+  .reference-quick-search {
+    width: 100% !important;
+    min-height: 62px !important;
+    margin: 0 auto 4px !important;
+    border-radius: 15px !important;
+  }
+  .reference-quick-search input {
+    min-height: 60px !important;
+    padding: 16px 14px !important;
+    font-size: 17px !important;
+  }
+  .reference-quick-search button {
+    width: 62px !important;
+    min-width: 62px !important;
+    height: 60px !important;
+    font-size: 38px !important;
+  }
+
+  /* Search Listings stays above Main Categories and no longer overlaps them. */
+  .search-panel:not(.is-open) {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 auto 18px !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    position: relative !important;
+  }
+  .search-panel:not(.is-open) .search-toggle {
+    position: static !important;
+    display: block !important;
+    width: min(100%, 340px) !important;
+    max-width: 340px !important;
+    min-height: 54px !important;
+    margin: 0 auto 18px !important;
+    padding: 14px 22px !important;
+    border: 1px solid rgba(255,190,90,.48) !important;
+    border-radius: 14px !important;
+    font-size: 17px !important;
+    font-weight: 800 !important;
+    box-shadow: 0 8px 24px rgba(255,91,0,.22) !important;
+  }
+
+  /* Keep Personal service subcategory labels readable in the site's palette. */
+  .personals-subcategories .category,
+  .personals-subcategories .category strong {
+    color: #fff2df !important;
+  }
+  .personals-subcategories .category strong {
+    font-weight: 800 !important;
+    text-shadow: 0 1px 8px #000 !important;
+  }
+  .personals-subcategories .category {
+    background: linear-gradient(145deg,#21150d,#0b0907) !important;
+    border: 1px solid rgba(255,153,35,.38) !important;
+  }
+  .personals-subcategories .category.active,
+  .personals-subcategories .category:hover {
+    border-color: #ffad38 !important;
+    color: #ffd08b !important;
+  }
+}
+
+
+
+/* =========================================================
+   24ADZ.COM — CENTER-STAGE SIGNATURE BRAND UPGRADE
+   Visual-only CSS: preserves all existing HTML, IDs, buttons,
+   forms, event handlers, data, and JavaScript functionality.
+   ========================================================= */
+.hero{
+  text-align:center!important;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding-top:clamp(58px,9vw,104px)!important;
+  padding-bottom:clamp(38px,6vw,68px)!important;
+  background:
+    radial-gradient(ellipse at 50% 22%,rgba(255,174,55,.22),transparent 31%),
+    radial-gradient(ellipse at 50% 48%,rgba(235,67,16,.13),transparent 58%),
+    linear-gradient(180deg,#160d07 0%,#090706 72%,#080706 100%)!important;
+}
+.hero h1{
+  position:relative;
+  isolation:isolate;
+  display:inline-block;
+  width:max-content;
+  max-width:100%;
+  margin:0 auto 17px!important;
+  padding:5px 22px 13px;
+  font-size:clamp(54px,11.5vw,112px)!important;
+  line-height:1.04;
+  font-weight:1000!important;
+  letter-spacing:clamp(2px,1vw,10px)!important;
+  text-align:center;
+  background:linear-gradient(180deg,#fffdf5 0%,#ffe0a0 22%,#ffb12e 48%,#ff710b 76%,#d82d12 100%)!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  color:transparent!important;
+  -webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 4px 3px rgba(0,0,0,.75)) drop-shadow(0 0 17px rgba(255,120,12,.55))!important;
+  animation:hmBrandShine 4.8s ease-in-out infinite;
+}
+.hero h1:before{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  left:50%;top:50%;
+  width:115%;height:150%;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:radial-gradient(ellipse,rgba(255,122,15,.17),rgba(255,80,0,.055) 43%,transparent 72%);
+  filter:blur(13px);
+  pointer-events:none;
+}
+.hero h1:after{
+  content:"";
+  position:absolute;
+  left:50%;bottom:0;
+  width:68%;height:2px;
+  transform:translateX(-50%);
+  border-radius:100%;
+  background:linear-gradient(90deg,transparent,#ffdb91 20%,#ff8a13 50%,#ffdb91 80%,transparent);
+  box-shadow:0 0 10px rgba(255,146,32,.8),0 0 24px rgba(255,91,0,.45);
+}
+.hero .reference-headline{
+  max-width:680px;
+  margin:0 auto 22px!important;
+  color:#f5e8d8!important;
+  font-size:clamp(15px,2.4vw,22px)!important;
+  font-weight:650;
+  letter-spacing:clamp(.2px,.35vw,1.3px);
+  text-align:center;
+  text-shadow:0 2px 16px rgba(255,135,28,.18);
+}
+.hero .reference-quick-search{
+  width:min(650px,100%);
+  margin:0 auto 3px!important;
+  border:1px solid rgba(255,183,91,.58)!important;
+  border-radius:18px!important;
+  background:linear-gradient(145deg,rgba(31,19,10,.98),rgba(9,8,7,.98))!important;
+  box-shadow:0 12px 34px rgba(0,0,0,.48),0 0 25px rgba(255,115,12,.13),inset 0 1px rgba(255,226,178,.12)!important;
+  overflow:hidden;
+}
+.hero .reference-quick-search:focus-within{
+  border-color:#ffc15b!important;
+  box-shadow:0 12px 38px rgba(0,0,0,.5),0 0 0 3px rgba(255,153,30,.12),0 0 32px rgba(255,115,12,.2)!important;
+}
+.hero .reference-quick-search input{
+  color:#fff8ef!important;
+  font-weight:550;
+}
+.hero .reference-quick-search button{
+  background:linear-gradient(145deg,#ffc45a,#ff8a13 60%,#e84917)!important;
+  color:#1b0b02!important;
+  border:0!important;
+  transition:filter .2s,transform .2s;
+}
+.hero .reference-quick-search button:hover{
+  filter:brightness(1.12);
+}
+.hero .hero-post-action{
+  justify-content:center!important;
+  width:100%;
+  margin:25px auto 0!important;
+}
+.hero .hero-post-action .btn{
+  min-width:min(270px,90vw);
+  min-height:56px;
+  border:1px solid rgba(255,224,166,.52)!important;
+  border-radius:15px!important;
+  font-size:16px!important;
+  letter-spacing:1px;
+  box-shadow:0 10px 28px rgba(255,89,0,.24),inset 0 1px rgba(255,255,255,.35)!important;
+}
+.hero .scam-alert{
+  width:min(650px,100%)!important;
+  margin:25px auto 0!important;
+}
+@keyframes hmBrandShine{
+  0%,100%{filter:drop-shadow(0 4px 3px rgba(0,0,0,.75)) drop-shadow(0 0 14px rgba(255,120,12,.42))}
+  50%{filter:drop-shadow(0 4px 3px rgba(0,0,0,.75)) drop-shadow(0 0 27px rgba(255,155,35,.72))}
+}
+@media(max-width:600px){
+  .hero{
+    padding:38px 14px 24px!important;
+  }
+  .hero h1{
+    font-size:clamp(45px,13vw,66px)!important;
+    letter-spacing:2px!important;
+    margin-bottom:13px!important;
+    padding:4px 10px 11px;
+  }
+  .hero .reference-headline{
+    max-width:340px;
+    margin-bottom:17px!important;
+    font-size:15px!important;
+    line-height:1.45;
+  }
+  .hero .reference-quick-search{
+    width:100%;
+    border-radius:14px!important;
+  }
+  .hero .hero-post-action{margin-top:18px!important}
+  .hero .hero-post-action .btn{
+    min-width:min(245px,90vw);
+    min-height:52px;
+    padding:14px 22px!important;
+    font-size:14px!important;
+  }
+  .hero .scam-alert{margin-top:17px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .hero h1{animation:none!important}
+}
+
+</style>
+<style id="adz24PromoStyles">
+.cinematic-ad-promo{position:relative;isolation:isolate;overflow:hidden;width:min(900px,100%);min-height:230px;margin:26px auto 0;padding:28px 20px;box-sizing:border-box;border:1px solid rgba(255,166,52,.72);border-radius:22px;background:radial-gradient(ellipse at 15% 20%,rgba(255,130,0,.28),transparent 42%),linear-gradient(115deg,#090706 0%,#241006 48%,#080706 100%);box-shadow:0 18px 55px rgba(0,0,0,.58),0 0 35px rgba(255,102,0,.16);text-align:center}
+.promo-content{position:relative;z-index:2}.promo-kicker{display:block;color:#ffc16d;font-size:11px;font-weight:800;letter-spacing:3px}.promo-content h2{margin:9px 0 4px;color:#fff;font-size:clamp(30px,6vw,54px);font-weight:950;letter-spacing:2px;text-shadow:0 0 24px rgba(255,110,0,.35)}.promo-content h2 em{font-style:normal;color:#ff8b16}.promo-content p{margin:0;color:#f3dfca;font-size:14px}.promo-offer{display:flex;align-items:center;justify-content:center;gap:16px;margin:13px 0}.promo-offer span{padding:7px 13px;border:1px solid #ff9a26;border-radius:30px;color:#ffd29b;font-size:13px;font-weight:900;letter-spacing:2px}.promo-offer strong{color:#ff9b19;font-size:clamp(32px,6vw,44px);font-weight:950;text-shadow:0 0 20px rgba(255,116,0,.55)}.promo-cta{padding:12px 22px;border:0;border-radius:30px;background:linear-gradient(100deg,#ffae19,#ff4b12);color:#160900;font-weight:950;letter-spacing:1px;cursor:pointer;box-shadow:0 7px 24px rgba(255,82,0,.3)}.promo-cta span{margin-left:8px}.promo-orbit{position:absolute;z-index:1;width:190px;height:190px;border:1px solid rgba(255,159,44,.18);border-radius:50%;pointer-events:none}.promo-orbit-one{top:-115px;left:-45px;animation:promoOrbit 14s linear infinite}.promo-orbit-two{right:-65px;bottom:-135px;width:250px;height:250px;animation:promoOrbit 19s linear infinite reverse}.promo-light-sweep{position:absolute;z-index:1;top:-40%;left:-35%;width:22%;height:180%;transform:rotate(22deg);background:linear-gradient(90deg,transparent,rgba(255,214,150,.14),transparent);animation:promoSweep 5.5s ease-in-out infinite;pointer-events:none}@keyframes promoSweep{0%,15%{left:-35%}75%,100%{left:125%}}@keyframes promoOrbit{to{transform:rotate(360deg)}}@media(max-width:600px){.cinematic-ad-promo{min-height:220px;margin-top:18px;padding:25px 12px;border-radius:17px}.promo-kicker{font-size:9px;letter-spacing:2px}.promo-content p{font-size:12px}.promo-offer{gap:10px}.promo-cta{font-size:12px;padding:11px 17px}}
+/* 24Adz: client registration, login, dashboard and ad-post forms are available.
+   Modals remain closed by default and open only through their existing controls. */
+#loginModal,#registerModal,#clientDashboardModal,#postModal{display:none;visibility:visible;pointer-events:auto}
+#loginModal.open,#registerModal.open,#clientDashboardModal.open,#postModal.open{display:flex!important}
+@media(prefers-reduced-motion:reduce){.promo-orbit,.promo-light-sweep{animation:none!important}}
+</style>
+
+<style id="premium-24adz-branding">
+/* 24adz.com premium wordmark — replaces the former image logo only */
+header .premium-24adz-logo{
+  display:flex!important;align-items:center;justify-content:flex-start;
+  width:min(310px,48vw)!important;height:auto!important;min-height:64px;
+  overflow:visible!important;text-decoration:none!important;
+  flex:0 1 auto;
+}
+header .premium-24adz-logo .brand-main{
+  display:inline-block;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:clamp(27px,3.2vw,39px);font-weight:950;letter-spacing:-1.8px;
+  line-height:1;color:#fff;
+  background:linear-gradient(105deg,#fff8e8 0%,#ffd77b 28%,#ff9b21 62%,#fff0c2 100%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 2px 7px rgba(255,153,25,.25));
+  white-space:nowrap;
+}
+header .premium-24adz-logo .brand-dot{
+  -webkit-text-fill-color:#ff7a12;color:#ff7a12;
+  text-shadow:0 0 16px rgba(255,122,18,.65);
+}
+@media(max-width:600px){
+  header .premium-24adz-logo{width:auto!important;min-height:52px;height:auto!important;flex:0 1 auto}
+  header .premium-24adz-logo .brand-main{font-size:clamp(23px,7vw,30px);letter-spacing:-1.2px}
+}
+</style>
+
+</head>
+<body>
+<header>
+  <nav class="nav">
+    <a class="logo premium-24adz-logo" href="/" aria-label="24adz.com Home"><span class="brand-main">24adz<span class="brand-dot">.</span>com</span></a>
+    <div class="nav-actions" id="accountNav">
+      <button class="btn btn-primary" id="navLoginBtn" type="button" onclick="openModal('loginModal')">Login</button><button class="btn btn-outline" id="navRegisterBtn" type="button" onclick="openModal('registerModal')">Register</button>
+    </div>
+  </nav>
+  <nav class="reference-top-links" aria-label="Quick categories">
+    <button type="button" onclick="quickCategory('Cars')">Cars</button>
+    <button type="button" onclick="quickCategory('Bikes')">Bikes</button>
+    <button type="button" onclick="quickCategory('Jobs')">Jobs</button>
+    <button type="button" onclick="quickCategory('Real Estate')">Real Estate</button>
+  </nav>
+</header>
+
+<section class="hero">
+  <h1>24Adz.com</h1>
+  <p class="reference-headline">Discover local listings across Tamil Nadu</p>
+  <form class="reference-quick-search" onsubmit="runQuickSearch(event)" role="search">
+    <input id="quickKeyword" type="search" placeholder="I am looking for..." aria-label="What are you looking for?">
+    <button type="submit" aria-label="Search listings"><span aria-hidden="true">⌕</span></button>
+  </form>
+  <div class="hero-post-action"><button class="btn btn-primary" style="font-size:17px;padding:18px 34px" type="button" onclick="startPostAd()">＋ POST AD</button></div>
+  <div class="scam-alert" role="alert" aria-label="Scam and payment safety alert">
+    <strong>⚠ SCAM ALERT · IMPORTANT DISCLAIMER</strong>
+    <span>This website is an advertising platform only.</span>
+    <span>Meet the advertiser in person and verify the advertisement before making any payment.</span>
+    <span>Do not trust fake or misleading advertisements without meeting the advertiser. 24Adz.com is not responsible for any loss arising from transactions between users.</span>
+  </div>
+  <section class="cinematic-ad-promo" aria-label="Advertise on 24Adz" hidden>
+    <div class="promo-orbit promo-orbit-one"></div><div class="promo-orbit promo-orbit-two"></div>
+    <div class="promo-content">
+      <span class="promo-kicker">GROW YOUR BUSINESS WITH 24ADZ.COM</span>
+      <h2>ADVERTISE <em>HERE</em></h2>
+      <p>Put your business in the spotlight across Tamil Nadu</p>
+      <div class="promo-offer" id="homepagePromoOffer" aria-live="polite" aria-atomic="true"><span id="homepagePromoDays">3 DAYS</span><strong id="homepagePromoPrice">₹300</strong></div>
+      <a class="promo-cta" href="https://wa.me/918870017424?text=Hello%20Admin%2C%20I%20want%20to%20post%20an%20advertisement%20on%20your%2024adz.com%20website.%20Please%20contact%20me%20and%20share%20the%20advertising%20details." id="promoAdminWhatsApp" target="_blank" rel="noopener">CONTACT ADMIN NOW <span>↗</span></a>
+    </div>
+    <div class="promo-light-sweep"></div>
+  </section>
+  <script>
+    (function(){
+      const plans=[{days:"3 DAYS",price:"₹300"},{days:"5 DAYS",price:"₹500"},{days:"7 DAYS",price:"₹700"}];
+      const days=document.getElementById("homepagePromoDays");
+      const price=document.getElementById("homepagePromoPrice");
+      if(!days||!price)return;
+      let current=0;
+      window.setInterval(function(){
+        current=(current+1)%plans.length;
+        days.textContent=plans[current].days;
+        price.textContent=plans[current].price;
+      },3000);
+    })();
+  </script>
+</section>
+
+<main class="wrap">
+  <section class="search-panel" id="searchPanel" aria-label="Search listings">
+    <button type="button" class="btn btn-primary search-toggle" id="searchToggle" aria-expanded="false" aria-controls="searchFields" onclick="toggleSearchForm()">Search Listings</button>
+    <div id="searchFields" class="search-fields" hidden>
+      <input id="keyword" class="field" placeholder="Search listings or business name">
+      <div class="search-grid">
+        <select id="searchCategory" class="field"><option value="">Select Main Category</option><option>Cars</option><option>Bikes</option><option>Mobiles</option><option>Jobs</option><option>Real Estate</option><option>Hotel Rooms</option><option>Fashion &amp; Beauty</option><option>Personals</option></select><select id="searchSubcategory" class="field" disabled><option value="">Select Subcategory</option></select>
+        <select id="searchDistrict" class="field" disabled><option value="">Select District</option></select>
+      </div>
+      <select id="searchArea" class="field" disabled><option value="">Select Area</option></select>
+      <select id="sortListings" class="field" aria-label="Sort listings">
+        <option value="newest">Sort: Newest First</option>
+        <option value="price-low">Price: Low to High</option>
+        <option value="price-high">Price: High to Low</option>
+      </select>
+      <button type="button" class="btn btn-primary" onclick="openSearchResults()">Search Listings</button>
+    </div>
+  </section>
+
+  <section id="homeCategories">
+    <h2 class="section-title">Main <span>Categories</span></h2>
+    <div class="categories main-categories" id="categories">
+      <div class="category" onclick="toggleMainCategory('Cars',this)"><span class="ico">🚗</span><strong>Cars</strong></div>
+      <div class="category" onclick="toggleMainCategory('Bikes',this)"><span class="ico">🏍️</span><strong>Bikes</strong></div>
+      <div class="category" onclick="toggleMainCategory('Mobiles',this)"><span class="ico">📱</span><strong>Mobiles</strong></div>
+      <div class="category" onclick="toggleMainCategory('Jobs',this)"><span class="ico">💼</span><strong>Jobs</strong></div>
+      <div class="category" onclick="toggleMainCategory('Real Estate',this)"><span class="ico">🏘️</span><strong>Real Estate</strong></div>
+      <button type="button" class="category personals-category" id="personalsCategory" aria-expanded="false" aria-controls="personalsSubcategories" onclick="toggleMainCategory('Personals',this)"><span class="ico">❤️</span><strong>Personals</strong></button>
+    </div>
+    <div class="personals-subcategory-panel" id="personalsSubcategories" hidden>
+      <h3 class="personals-subcategory-title">Personals <span>Categories</span></h3>
+      <div class="categories personals-subcategories">
+        <div class="category" onclick="chooseCategory('Massage & Spa',this)"><span class="ico" aria-hidden="true">💆‍♀️</span><strong>Massage & Spa</strong></div>
+        <div class="category" onclick="chooseCategory('Full Body Massage',this)"><span class="ico">🧖</span><strong>Full Body Massage</strong></div>
+        <div class="category" onclick="chooseCategory('Head Massage',this)"><span class="ico">💆‍♀️</span><strong>Head Massage</strong></div>
+        <div class="category" onclick="chooseCategory('Foot Massage',this)"><span class="ico">🦶</span><strong>Foot Massage</strong></div>
+        <div class="category" onclick="chooseCategory('Spa & Wellness',this)"><span class="ico">🌿</span><strong>Spa & Wellness</strong></div>
+        <div class="category" onclick="chooseCategory('Beauty & Wellness',this)"><span class="ico">✨</span><strong>Beauty & Wellness</strong></div>
+        <div class="category" onclick="chooseCategory('Other Services',this)"><span class="ico">⭐</span><strong>Other Services</strong></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="reference-locations" aria-label="Popular locations">
+    <h2 class="section-title">★ <span>Top Locations</span></h2>
+    <div class="reference-location-chips">
+      <button type="button" onclick="openDistrictListings('Tiruppur')">Tiruppur</button>
+      <button type="button" onclick="openDistrictListings('Coimbatore')">Coimbatore</button>
+      <button type="button" onclick="openDistrictListings('Chennai')">Chennai</button>
+      <button type="button" onclick="openDistrictListings('Erode')">Erode</button>
+      <button type="button" onclick="openDistrictListings('Salem')">Salem</button>
+      <button type="button" onclick="openDistrictListings('Madurai')">Madurai</button>
+      <button type="button" onclick="openDistrictListings('Perambalur')">Perambalur</button>
+      <button type="button" onclick="openDistrictListings('Tiruchirappalli')">Trichy</button>
+    </div>
+    <button type="button" class="reference-all-locations" onclick="document.getElementById('districtQuickSearch').scrollIntoView({behavior:'smooth'})">Other Popular Locations → View all 38 districts</button>
+  </section>
+
+  <section class="pricing-section" id="listingPlans">
+    <h2 class="section-title">Listing <span>Plans</span></h2>
+    <div class="price-dropdown-wrap">
+      <label class="price-dropdown-label" for="pricePlanSelect">Choose a Listing Plan</label>
+      <select class="field price-plan-select" id="pricePlanSelect" onchange="showPricePlan()">
+        <option value="">Select Price Plan</option>
+        <option value="free">Free Listing · ₹0 (3/month/mobile)</option>
+        <option value="vip3">VIP Promotion · 3 Days · ₹300</option>
+        <option value="vip5">VIP Promotion · 5 Days · ₹500</option>
+        <option value="vip7">VIP Promotion · 7 Days · ₹700</option>
+      </select>
+      <div class="price-card price-plan-details" id="pricePlanDetails" hidden>
+        <div class="plan-name" id="pricePlanName"></div>
+        <div class="plan-price" id="pricePlanAmount"></div>
+        <p id="pricePlanDescription"></p>
+        <ul id="pricePlanFeatures"></ul>
+      </div>
+    </div>
+    <p class="plan-note">Plan prices are displayed for the website preview. Online payment and automatic VIP activation will be connected through the payment backend later.</p>
+  </section>
+  <section class="district-quick-search" id="districtQuickSearch" aria-label="Search by district">
+    <div class="district-search-heading">
+      <span class="district-search-kicker">EXPLORE TAMIL NADU</span>
+      <h2>Find Ads by <span>District</span></h2>
+      <p>Select a district to view its available advertisements.</p>
+    </div>
+    <div class="district-list" id="districtList" aria-label="Tamil Nadu districts"></div>
+  </section>
+
+  <section id="adsSection">
+    <button type="button" class="results-back" onclick="closeSearchResults()">← Back to Home</button>
+    <div class="listing-head"><h2 class="section-title" id="adsHeading" style="margin:0">Latest <span>Listings</span></h2><span class="muted" id="resultCount">0 listings</span></div>
+    <div class="district-results-filters" id="districtResultsFilters" hidden>
+      <div class="district-filter-drag-handle" id="districtFilterDragHandle" role="separator" aria-orientation="horizontal" aria-label="Single shared drag control for all Tamil Nadu districts">DRAG UP TO EXPAND · DRAG DOWN TO SHRINK</div>
+      <input class="field" id="districtFilterKeyword" placeholder="Search by keyword or ad title" aria-label="Search by keyword">
+      <div class="district-filter-grid">
+        <select class="field" id="districtFilterCategory"><option value="">All Categories</option></select>
+        <select class="field" id="districtFilterSubcategory"><option value="">All Subcategories</option></select>
+        <select class="field" id="districtFilterDistrict"><option value="">All Districts</option></select>
+        <select class="field" id="districtFilterArea"><option value="">All Areas</option></select>
+        <input class="field" id="districtFilterMinPrice" type="number" min="0" placeholder="Minimum Price (₹)">
+        <input class="field" id="districtFilterMaxPrice" type="number" min="0" placeholder="Maximum Price (₹)">
+        <select class="field" id="districtFilterDistance" aria-label="Filter by distance">
+          <option value="">Any Distance</option>
+          <option value="5">Within 5 km</option>
+          <option value="10">Within 10 km</option>
+          <option value="25">Within 25 km</option>
+          <option value="50">Within 50 km</option>
+          <option value="100">Within 100 km</option>
+        </select>
+        <select class="field" id="districtFilterSort">
+          <option value="newest">Newest First</option>
+          <option value="price-low">Price: Low to High</option>
+          <option value="price-high">Price: High to Low</option>
+        </select>
+      </div>
+      <div class="district-distance-actions">
+        <button type="button" class="btn btn-outline" id="useMyLocationForDistance">⌖ Use My Location</button>
+        <span class="district-distance-status" id="districtDistanceStatus" role="status" aria-live="polite">Choose a distance and share your location to find nearby ads.</span>
+      </div>
+      <button type="button" class="btn btn-primary" onclick="applyDistrictListingFilters()">Apply Filters</button>
+      <button type="button" class="btn btn-outline" onclick="resetDistrictListingFilters()">Reset Filters</button>
+    </div>
+    <div class="ads" id="adsList"><div class="empty">No advertisements yet. Contact the Admin if you want to advertise here.</div></div>
+    <div class="ads-pagination" id="adsPagination" aria-label="Advertisement pages"></div>
+  </section>
+</main>
+<nav class="mobile-bottom-nav" aria-label="Main navigation">
+  <button type="button" class="bottom-nav-item active" onclick="goHomeTop()"><span class="bottom-nav-icon">⌂</span><span>Home</span></button>
+  <button type="button" class="bottom-nav-item" onclick="openClientDashboard()"><span class="bottom-nav-icon">▤</span><span>My Ads</span></button>
+  <button type="button" class="bottom-nav-item" onclick="startPostAd()"><span class="bottom-nav-icon">＋</span><span>Post Ad</span></button>
+  <button type="button" class="bottom-nav-item" onclick="openMessages()"><span class="bottom-nav-icon">💬</span><span>Messages</span></button>
+  <button type="button" class="bottom-nav-item" onclick="openClientDashboard()"><span class="bottom-nav-icon">☰</span><span>My 24Adz</span></button>
+</nav>
+<footer>© 2026 24Adz.com · Tamil Nadu Classifieds <br><span style="display:inline-block;margin-top:8px">Use this platform responsibly. Verify service details before making a booking or payment.</span></footer>
+
+<!-- Cross-district payment prompt -->
+<div class="modal" id="districtPaymentModal"><div class="modal-box">
+  <div class="modal-top"><h2>New District – Paid Listing</h2><button class="close" type="button" onclick="closeDistrictPaymentPrompt()">×</button></div>
+  <p class="small-note" style="margin:0 0 14px">This mobile number already has a listing in another district. To publish in a different district, please choose a VIP plan and payment method.</p>
+  <label>VIP Listing Plan *</label>
+  <select class="field" id="districtVipPlan"><option value="VIP 3 Days">3 Days · ₹300</option><option value="VIP 5 Days">5 Days · ₹500</option><option value="VIP 7 Days">7 Days · ₹700</option></select>
+  <label>Payment Method *</label>
+  <select class="field" id="districtPaymentMethod"><option value="">Select Payment Method</option><option value="UPI">UPI</option><option value="Card">Debit / Credit Card</option><option value="Net Banking">Net Banking</option></select>
+  <button class="btn btn-primary" type="button" style="width:100%;margin-top:12px" onclick="confirmDistrictPaymentChoice()">Continue</button>
+  <p class="small-note">Payment is not activated in this HTML preview. Live payment and publishing require verified payment integration.</p>
+</div></div>
+
+<!-- Post Ad -->
+<div class="modal" id="postModal"><div class="modal-box">
+  <div class="modal-top"><h2>Post Your Advertisement</h2><button class="close" onclick="closeModal('postModal')">×</button></div>
+  <form id="postForm" novalidate><input type="hidden" name="editingId" id="editingAdId" value="">
+    <div class="post-step-indicator" id="postStepIndicator">STEP 1 OF 2 · BASIC DETAILS</div>
+    <div class="post-form-step" id="postStep1">
+      <label>Advertisement Title *</label><input class="field" name="title" required placeholder="Enter ad title">
+      <label>Category *</label><select class="field" name="category" id="postCategory" required><option value="">Select Category</option><option>Cars</option><option>Bikes</option><option>Real Estate</option><option>Hotel Rooms</option><option>Fashion &amp; Beauty</option><option>Mobiles</option><option>Jobs</option><option>Personals</option><option>Massage & Spa</option><option>Full Body Massage</option><option>Head Massage</option><option>Foot Massage</option><option>Spa & Wellness</option><option>Beauty & Wellness</option><option>Other Services</option></select>
+      <label>Subcategory</label><select class="field" name="subcategory" id="postSubcategory"><option value="">Select Subcategory</option></select>
+      <div id="categorySpecificFields" class="category-specific-fields" aria-live="polite"></div>
+      <label>Model Year (Cars / Bikes / Mobiles where applicable)</label><input class="field" name="model_year" type="number" min="1900" max="2099" placeholder="e.g. 2022">
+      <label>Description *</label><textarea class="field" name="description" required placeholder="Describe your service"></textarea>
+      <label id="postAgeLabel">Age (Years)</label>
+      <input type="hidden" name="age" id="postAge" value="">
+      <div class="age-picker" id="agePicker">
+        <button type="button" class="field age-picker-trigger" id="agePickerTrigger" aria-expanded="false" onclick="toggleAgePicker()">Select Age <span>▾</span></button>
+        <div class="age-picker-panel" id="agePickerPanel" hidden>
+          <div class="age-picker-options" id="agePickerOptions"></div>
+          <div class="age-picker-nav">
+            <button type="button" class="btn btn-outline" id="agePrev" onclick="changeAgePage(-1)" disabled>Previous</button>
+            <span id="agePageLabel">1 / 3</span>
+            <button type="button" class="btn btn-outline" id="ageNext" onclick="changeAgePage(1)">Next 5</button>
+          </div>
+        </div>
+      </div>
+      <label>District *</label><select class="field" name="district" id="postDistrict" required onchange="updatePostAreas()"><option value="">Select District</option></select>
+      <button class="btn btn-primary post-next-btn" type="button" onclick="goPostStep(2)">Next · Continue</button>
+    </div>
+    <div class="post-form-step" id="postStep2" hidden>
+      <label>Area *</label><select class="field" name="area" id="postArea" required><option value="">Select Area</option></select>
+      <label>Price (₹)</label><input class="field" name="price" type="number" min="0" placeholder="Enter price">
+      <label>Ad Duration / VIP Coins *</label><select class="field" name="days" id="adDuration" required><option value="0">Standard / Free (first 3 ads)</option><option value="3">3 Days · 300 Coins</option><option value="5">5 Days · 500 Coins</option><option value="7">7 Days · 700 Coins</option></select>
+      <label>Contact Name *</label><input class="field" name="contact" required placeholder="Your name">
+      <label>Mobile Number *</label><input class="field" name="phone" type="tel" required pattern="[0-9+ -]{10,15}" placeholder="Mobile number">
+      <label>WhatsApp Number</label><input class="field" name="whatsapp" type="tel" pattern="[0-9+ -]{10,15}" placeholder="WhatsApp number (if different)">
+      <label>Upload Ad Image (JPG, PNG, WEBP, GIF, AVIF · max 5 MB)</label><input class="field" id="clientAdImageFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif"><p class="small-note" id="clientImageStatus">Upload an image for your advertisement.</p><span id="imageSafetyStatus" hidden></span>
+      <input class="field" name="image" type="url" placeholder="Image URL (optional)">
+      <input type="hidden" name="latitude" id="postLatitude">
+      <input type="hidden" name="longitude" id="postLongitude">
+      <button class="btn btn-outline" type="button" id="attachAdLocation" style="width:100%;margin:0 0 9px">⌖ Add Location for Distance Search (Optional)</button>
+      <p class="small-note" id="postLocationStatus">Optional: attach approximate device location so visitors can find this ad by distance.</p>
+      <div class="post-step-actions">
+        <button class="btn btn-outline" type="button" onclick="goPostStep(1)">Previous</button>
+        <button class="btn btn-primary" type="submit">Publish Ad</button>
+      </div>
+    </div>
+    <p class="small-note">First 3 ads are free subject to the monthly mobile-number limit. VIP duration uses Coins from your 24Adz Wallet. Standard categories use Chat; Massage / Spa categories show Call, WhatsApp and Chat.</p>
+  </form>
+</div></div>
+
+<!-- Client Dashboard -->
+<div class="modal" id="clientDashboardModal"><div class="modal-box client-dashboard">
+  <div class="modal-top"><h2>My Dashboard</h2><button class="close" type="button" onclick="closeModal('clientDashboardModal')">×</button></div>
+  <div id="clientDashboardContent"></div>
+</div></div>
+
+<!-- Register -->
+<div class="modal" id="registerModal"><div class="modal-box">
+  <div class="modal-top"><h2>Create Account</h2><button class="close" onclick="closeModal('registerModal')">×</button></div>
+  <form id="registerForm">
+    <label>Full Name *</label><input class="field" name="name" required autocomplete="name" placeholder="Your full name">
+    <label>Email Address *</label><input class="field" name="email" type="email" required autocomplete="email" placeholder="name@example.com">
+    <label>Mobile Number *</label><input class="field" id="registerPhone" name="mobile" type="tel" required inputmode="numeric" pattern="[6-9][0-9]{9}" maxlength="10" placeholder="10-digit mobile number">
+    <label>Password *</label><input class="field" name="password" type="password" minlength="10" pattern="(?=.*[A-Za-z])(?=.*[0-9]).{10,}" required autocomplete="new-password" placeholder="10+ characters, include a number">
+    <button class="btn btn-primary" type="submit">Register</button>
+    <p class="small-note">Your email is your login ID. Verify your email to activate your account. Mobile OTP is not required.</p>
+  </form>
+</div></div>
+
+<!-- Login -->
+<div class="modal" id="loginModal"><div class="modal-box">
+  <div class="modal-top"><h2>Login</h2><button class="close" onclick="closeModal('loginModal')">×</button></div>
+  <form id="loginForm">
+    <label>Email Address *</label><input class="field" name="email" type="email" required autocomplete="email" placeholder="Registered email address">
+    <label>Password *</label><input class="field" name="password" type="password" required autocomplete="current-password" placeholder="Password">
+    <button class="btn btn-primary">Login</button>
+    <p class="small-note">Login with your verified email address and password. <a href="#" onclick="openForgotPassword();return false">Forgot password?</a></p>
+  </form>
+</div></div>
+<div class="modal" id="forgotPasswordModal"><div class="modal-box"><div class="modal-top"><h2>Reset Password</h2><button class="close" type="button" onclick="closeModal('forgotPasswordModal')">×</button></div><form id="forgotPasswordForm"><label>Email Address *</label><input class="field" name="email" type="email" required placeholder="Registered email"><button class="btn btn-primary" type="submit">Send Reset Link</button></form></div></div>
+<div class="modal" id="resetPasswordModal"><div class="modal-box"><div class="modal-top"><h2>Choose New Password</h2></div><form id="resetPasswordForm"><label>New Password *</label><input class="field" name="password" type="password" minlength="10" required><button class="btn btn-primary" type="submit">Update Password</button></form></div></div>
+
+<div class="modal" id="adChatModal"><div class="modal-box"><div class="modal-top"><h2>Chat with Advertiser</h2><button class="close" type="button" onclick="closeModal('adChatModal')">×</button></div><div id="adChatHistory" style="max-height:300px;overflow:auto"></div><form id="adChatForm"><input type="hidden" id="chatAdId"><label>Message</label><textarea class="field" id="chatMessage" required maxlength="2000" placeholder="Write your message"></textarea><button class="btn btn-primary" type="submit">Send Message</button></form></div></div><div class="toast" id="toast"></div>
+
+<script>
+const districtAreas = {
+"Ariyalur":["Andimadam", "Ariyalur", "Gangaikonda Cholapuram", "Jayankondam", "Keezhapazhur", "Melapazhur", "Sendurai", "Suthamalli", "T. Pazhur", "Thirumanur", "Udayarpalayam", "Varadarajanpettai", "Vikramangalam"],
+"Chengalpattu":["Acharapakkam", "Chengalpattu", "Cheyyur", "Chromepet", "Guduvancheri", "Kelambakkam", "Maduranthakam", "Mamallapuram", "Maraimalai Nagar", "Nandivaram", "Pallavaram", "Perungalathur", "Singaperumal Koil", "Tambaram", "Thirukazhukundram", "Thiruporur", "Vandalur"],
+"Chennai":["Adyar", "Ambattur", "Anna Nagar", "Ashok Nagar", "Chennai", "Egmore", "Guindy", "Kodambakkam", "Koyambedu", "Madhavaram", "Madipakkam", "Mylapore", "Nanganallur", "Nungambakkam", "Pallavaram", "Perambur", "Perungudi", "Poonamallee", "Porur", "Purasawalkam", "Royapettah", "Sholinganallur", "T. Nagar", "Teynampet", "Thiruvanmiyur", "Thoraipakkam", "Tiruvottiyur", "Vadapalani", "Velachery", "Washermanpet"],
+"Coimbatore":["Anaimalai", "Annur", "Coimbatore", "Ganapathy", "Gandhipuram", "Kalapatti", "Karamadai", "Karumathampatti", "Kavundampalayam", "Kinathukadavu", "Kovaipudur", "Kovilpalayam", "Kuniyamuthur", "Madukkarai", "Mettupalayam", "Ondipudur", "Peelamedu", "Periyanaickenpalayam", "Perur", "Pollachi", "R.S. Puram", "Ramanathapuram", "Saibaba Colony", "Saravanampatti", "Singanallur", "Sulur", "Thondamuthur", "Thudiyalur", "Town Hall", "Ukkadam", "Vadavalli", "Valparai", "Vellalore"],
+"Cuddalore":["Bhuvanagiri", "Chidambaram", "Cuddalore", "Kammapuram", "Kattumannarkoil", "Killai", "Kurinjipadi", "Mangalur", "Neyveli", "Panruti", "Parangipettai", "Pennadam", "Sethiathoppu", "Srimushnam", "Thittakudi", "Vadalur", "Vriddhachalam"],
+"Dharmapuri":["Dharmapuri", "Harur", "Kambainallur", "Karimangalam", "Morappur", "Nallampalli", "Palacode", "Pappireddipatti", "Pennagaram", "Pommidi", "Thoppur"],
+"Dindigul":["Ammainaickanur", "Ayyampalayam", "Chinnalapatti", "Dindigul", "Gujiliamparai", "Kannivadi", "Kodaikanal", "Natham", "Nilakottai", "Oddanchatram", "Palani", "Batlagundu", "Reddiyarchatram", "Thadikombu", "Vathalagundu", "Vedasandur"],
+"Erode":["Ammapet", "Anthiyur", "Arachalur", "Bhavani", "Chennimalai", "Erode", "Gobichettipalayam", "Kangeyam Surrounding Area", "Kavindapadi", "Kodumudi", "Modakurichi", "Nambiyur", "Periyasemur", "Perundurai", "Punjai Puliampatti", "Sathyamangalam", "Sivagiri", "Solar", "Surampatti", "Thalavadi", "Thindal", "Veerappanchatram", "Vellakkovil"],
+"Kallakurichi":["Chinnasalem", "Elavanasur Kottai", "Kachirayapalayam", "Kallakurichi", "Kalvarayan Hills", "Manalurpet", "Rishivandiyam", "Sankarapuram", "Thiagadurgam", "Tirukoilur", "Ulundurpet", "Vanapuram", "Vadakkanandal"],
+"Kanchipuram":["Kanchipuram", "Kundrathur", "Mangadu", "Manimangalam", "Oragadam", "Padappai", "Poonamallee", "Sriperumbudur", "Sunguvarchatram", "Uthiramerur", "Walajabad"],
+"Kanniyakumari":["Anjugramam", "Arumanai", "Colachel", "Eraniel", "Kaliyakkavilai", "Kanniyakumari", "Karungal", "Kollancode", "Kuzhithurai", "Mandaikadu", "Marthandam", "Nagercoil", "Pudukadai", "Rajakkamangalam", "Suchindram", "Thuckalay", "Villukuri"],
+"Karur":["Aravakurichi", "Kadavur", "Karur", "Krishnarayapuram", "Kulithalai", "Manmangalam", "Nangavaram", "Nerur", "Pallapatti", "Pugalur", "Thanthoni", "Velayuthampalayam", "Vellianai", "Vengamedu"],
+"Krishnagiri":["Anchetty", "Bargur", "Denkanikottai", "Hosur", "Kaveripattinam", "Kelamangalam", "Krishnagiri", "Kurumbarapalli", "Mathur", "Pochampalli", "Rayakottai", "Shoolagiri", "Uthangarai", "Veppanapalli"],
+"Madurai":["Alanganallur", "Anna Nagar", "Arasaradi", "Avaniyapuram", "Chekkanoorani", "Goripalayam", "Kalligudi", "K.K. Nagar", "KK Nagar", "Koodal Nagar", "Madurai", "Melur", "Nagamalai Pudukottai", "Othakadai", "Paravai", "Peraiyur", "Samayanallur", "Sholavandan", "Tallakulam", "Thirumangalam", "Thirunagar", "Thiruparankundram", "Thiruppalai", "Usilampatti", "Vadipatti", "Villapuram"],
+"Mayiladuthurai":["Akkur", "Kollidam", "Kuthalam", "Manalmedu", "Mayiladuthurai", "Moovalur", "Porayar", "Sembanarkoil", "Sirkazhi", "Tharangambadi", "Thirukadaiyur", "Vaitheeswarankoil"],
+"Nagapattinam":["Keelaiyur", "Kilvelur", "Kodiyakkarai", "Nagapattinam", "Nagore", "Thalainாயiru", "Thirukkuvalai", "Thirumarugal", "Thittacheri", "Vaimedu", "Vedaranyam", "Velankanni"],
+"Namakkal":["Erumapatti", "Kolli Hills", "Kumarapalayam", "Mallasamudram", "Mohanur", "Namagiripettai", "Namakkal", "Pallipalayam", "Paramathi Velur", "Puduchatram", "Rasipuram", "Sendamangalam", "Tiruchengode", "Vennandur"],
+"Nilgiris":["Aruvankadu", "Coonoor", "Devala", "Gudalur", "Ketti", "Kotagiri", "Coonoor Mount Road", "Manjoor", "Masinagudi", "Nelliyalam", "Ooty", "Pandalur", "Wellington"],
+"Perambalur":["Agaram Seegoor", "Alathur", "Chettikulam", "Elambalur", "Kunnam", "Kurumbalur", "Labbaikudikadu", "Padalur", "Perambalur", "Siruvachur", "Valikandapuram", "Veppanthattai"],
+"Pudukkottai":["Alangudi", "Annavasal", "Aranthangi", "Aranthangi", "Avudaiyarkoil", "Gandarvakottai", "Iluppur", "Karambakudi", "Keeranur", "Kottaipattinam", "Manamelkudi", "Mimisal", "Ponnamaravathi", "Pudukkottai", "Thirumayam", "Viralimalai"],
+"Ramanathapuram":["Kadaladi", "Kamuthi", "Kilakarai", "Mandapam", "Mudukulathur", "Pamban", "Paramakudi", "R.S. Mangalam", "Ramanathapuram", "Rameswaram", "Sayalgudi", "Thangachimadam", "Thondi", "Tiruvadanai", "Uchipuli"],
+"Ranipet":["Ammur", "Arakkonam", "Arcot", "Kalavai", "Kaveripakkam", "Melvisharam", "Nemili", "Panapakkam", "Ranipet", "Sholinghur", "Timiri", "Walajah"],
+"Salem":["Ammapet", "Asthampatti", "Attur", "Ayothiapattinam", "Edappadi", "Elampillai", "Fairlands", "Gangavalli", "Hasthampatti", "Kadayampatti", "Kannankurichi", "Kolathur", "Kondalampatti", "Mecheri", "Mettur", "Omalur", "Panamarathupatti", "Pethanaickenpalayam", "Salem", "Sankagiri", "Suramangalam", "Tharamangalam", "Vazhapadi", "Yercaud"],
+"Sivaganga":["Devakottai", "Ilayangudi", "Kalaiyarkoil", "Kallal", "Karaikudi", "Kundrakudi", "Manamadurai", "Pallathur", "Sakkottai", "Singampunari", "Sivaganga", "Thiruppuvanam", "Tirupattur"],
+"Tenkasi":["Alangulam", "Near Ambasamudram", "Ayikudi", "Ilanji", "Kadayam", "Kadayanallur", "Melagaram", "Pavoorchatram", "Puliyangudi", "Sankarankovil", "Shenkottai", "Sivagiri", "Surandai", "Tenkasi", "Vasudevanallur"],
+"Thanjavur":["Adirampattinam", "Ayyampettai", "Budalur", "Kumbakonam", "Madukkur", "Medical College Road", "New Bus Stand", "Old Bus Stand", "Orathanadu", "Papanasam", "Patteeswaram", "Pattukkottai", "Peravurani", "Swamimalai", "Thanjavur", "Thiruppanandal", "Thiruvaiyaru", "Thiruvidaimarudur", "Vallam"],
+"Theni":["Andipatti", "Bodinayakanur", "Chinnamanur", "Cumbum", "Devaram", "Gudalur", "Kamayagoundanpatti", "Cumbum Valley", "Mayiladumparai", "Periyakulam", "Theni", "Uthamapalayam", "Veerapandi"],
+"Thoothukudi":["Anna Nagar", "Arumuganeri", "Bryant Nagar", "Eral", "Ettayapuram", "Kayalpattinam", "Kovilpatti", "Kulasekarapattinam", "Millerpuram", "Ottapidaram", "Pudukkottai", "Sankaraperi", "Sathankulam", "Srivaikuntam", "Srivaikuntam", "Thoothukudi", "Tiruchendur", "Vilathikulam"],
+"Tiruchirappalli":["Ariyamangalam", "Cantonment", "K.K. Nagar", "Kallakudi", "Kattur", "Lalgudi", "Manachanallur", "Manapparai", "Marungapuri", "Musiri", "Ponmalai", "Pullambadi", "Samayapuram", "Srirangam", "Thillai Nagar", "Thiruverumbur", "Thottiyam", "Thuraiyur", "Tiruchirappalli", "Uppiliapuram", "Woraiyur"],
+"Tirunelveli":["Alangulam", "Ambasamudram", "Cheranmahadevi", "Kalakad", "Manur", "Melapalayam", "Mukkudal", "Nanguneri", "Palayamkottai", "Pathamadai", "Pettai", "Radhapuram", "Thachanallur", "Thisayanvilai", "Tirunelveli", "Tirunelveli Junction", "Town", "Valliyur", "Vannarpettai", "Vikramasingapuram"],
+"Tirupattur":["Alangayam", "Ambalur", "Ambur", "Jolarpet", "Kandili", "Madhanur", "Natrampalli", "Periyankuppam", "Tirupattur", "Umarabad", "Vaniyambadi"],
+"Tiruppur":["15 Velampalayam", "Anupparpalayam", "Arulpuram", "Avinashi", "Avinashi Road", "Bungalow Stop", "Chettipalayam", "College Road", "Dharapuram", "Dharapuram Road", "Gandhi Nagar", "Kangeyam", "Kangeyam Road", "Kaniyur", "Kongu Main Road", "Kongu Nagar", "Kumar Nagar", "Kundadam", "Kunnathur", "KVR Nagar", "Madathukulam", "Mangalam", "Mangalam Road", "Mulanur", "Muthanampalayam", "Nachipalayam", "Nallur", "Neruperichal", "New Bus Stand", "Old Bus Stand", "Padiyur", "Palladam", "Palladam Road", "Pandian Nagar", "Periyapalayam", "Perumanallur", "Pitchampalayam", "PN Road", "Rakiyapalayam", "Samalapuram", "Sengapalli", "Thirumuruganpoondi", "Tiruppur", "Udumalaipettai", "Uthukuli", "Valipalayam", "Veerapandi", "Velampalayam", "Vellakoil"],
+"Tiruvallur":["Ambattur", "Avadi", "Gummidipoondi", "Kadambathur", "Madhavaram", "Manali", "Minjur", "Pallipattu", "Periyapalayam", "Ponneri", "Poonamallee", "R.K. Pet", "Red Hills", "Thirunindravur", "Thiruvalangadu", "Thiruverkadu", "Tiruttani", "Tiruvallur", "Uthukottai"],
+"Tiruvannamalai":["Arani", "Chengam", "Chetpet", "Cheyyar", "Desur", "Jamunamarathur", "Kalasapakkam", "Kannamangalam", "Kilpennathur", "Mamandur", "Polur", "Thandarampattu", "Tiruvannamalai", "Vandavasi", "Vembakkam"],
+"Tiruvarur":["Kodavasal", "Koradacheri", "Kottur", "Mannargudi", "Muthupet", "Nannilam", "Needamangalam", "Thiruthuraipoondi", "Thiruvidacheri", "Tiruvarur", "Vaduvur", "Valangaiman"],
+"Vellore":["Adukkamparai", "Anaicut", "Bagayam", "Gudiyatham", "Kaniyambadi", "Katpadi", "Katpadi Railway Station", "Odugathur", "Pallikonda", "Pernambut", "Sathuvachari", "Velapadi", "Vellore", "Virinjipuram"],
+"Viluppuram":["Arakandanallur", "Gingee", "Kandachipuram", "Kandamangalam", "Koliyanur", "Mailam", "Marakkanam", "Melmalayanur", "Olakkur", "Thiruvennainallur", "Tindivanam", "Valavanur", "Vanur", "Vikravandi", "Viluppuram"],
+"Virudhunagar":["Aruppukkottai", "Kariapatti", "Mallanginaru", "Mamsapuram", "Narikkudi", "Rajapalayam", "Sattur", "Sethur", "Sivakasi", "Srivilliputhur", "Sundarapandiam", "Tiruchuli", "Vembakottai", "Virudhunagar", "Watrap"]
+};
+const districts = Object.keys(districtAreas);
+const categories = {
+  "Cars":["New Cars","Used Cars","Car Rentals","Car Services"],
+  "Bikes":["New Bikes","Used Bikes","Bike Services"],
+  "Real Estate":["Residential Properties","Commercial Spaces","Houses for Sale","Houses for Rent","Apartments & Flats","Land & Plots","PG & Hostels"],
+  "Hotel Rooms":["Budget Hotel Rooms","Luxury Hotel Rooms","AC Rooms","Non-AC Rooms","Family Rooms","Lodges","Service Apartments"],
+  "Fashion & Beauty":["Beauty Parlour Ads","Dresses","Men's Fashion","Women's Fashion","Men's & Women's Clothing","Beauty Products","Makeup & Cosmetics","Accessories"],
+  "Mobiles":["New Mobiles","Used Mobiles","Mobile Accessories","Mobile Services"],
+  "Jobs":["Full-time Jobs","Part-time Jobs","Work from Home","Temporary Jobs"],
+  "Personals":["Massage & Spa","Full Body Massage","Head Massage","Foot Massage","Spa & Wellness","Beauty & Wellness","Other Services"]
+};
+const sampleAds = [];
+let ads = []; // Public listings are loaded from the 24Adz D1 API; browser-local ads are ignored.
+
+// Remove previously generated demo listings from this browser.
+// Keep all genuine user-created advertisements unchanged.
+{
+  const before = ads.length;
+  ads = ads.filter(a => !a || (!a.demo && !String(a.id || "").startsWith("demo-")));
+  if (ads.length !== before) {
+    
+  }
+  
+}
+
+function fillDistricts(select){
+  select.innerHTML='<option value="">Select District</option>';
+  Object.keys(districtAreas).sort((a,b)=>a.localeCompare(b)).forEach(d=>{
+    const o=document.createElement("option");o.value=d;o.textContent=d;select.appendChild(o);
+  });
+}
+function renderDistrictList(){
+  const root=document.getElementById("districtList");
+  if(!root)return;
+  // Bind district taps explicitly for reliable mobile-browser interaction.
+  root.innerHTML=Object.keys(districtAreas).sort((a,b)=>a.localeCompare(b)).map(district=>
+    `<button type="button" class="district-choice" data-district="${escapeAttr(district)}">${escapeHtml(district)}</button>`
+  ).join("");
+  root.querySelectorAll(".district-choice").forEach(button=>{
+    button.addEventListener("click",()=>openDistrictListings(button.dataset.district));
+  });
+}
+function fillDistrictFilterOptions(){
+  const category=document.getElementById("districtFilterCategory");
+  Object.keys(categories).forEach(name=>{const o=document.createElement("option");o.value=name;o.textContent=name;category.appendChild(o);});
+  fillDistricts(document.getElementById("districtFilterDistrict"));
+}
+function updateDistrictFilterSubcategories(){
+  const cat=document.getElementById("districtFilterCategory").value;
+  const sub=document.getElementById("districtFilterSubcategory");
+  sub.innerHTML='<option value="">All Subcategories</option>';
+  (categories[cat]||[]).forEach(name=>{const o=document.createElement("option");o.value=name;o.textContent=name;sub.appendChild(o);});
+}
+function updateDistrictFilterAreas(){
+  fillAreas(document.getElementById("districtFilterDistrict"),document.getElementById("districtFilterArea"));
+}
+function fillAreas(districtSelect,areaSelect){
+  const district=districtSelect.value;
+  const previous=areaSelect.value;
+  areaSelect.innerHTML='<option value="">Select Area</option>';
+  const list=district && districtAreas[district]
+    ? districtAreas[district]
+    : [...new Set(Object.values(districtAreas).flat())].sort((a,b)=>a.localeCompare(b));
+  list.forEach(name=>{
+    const o=document.createElement("option");o.value=name;o.textContent=name;areaSelect.appendChild(o);
+  });
+  if(previous && list.includes(previous)) areaSelect.value=previous;
+}
+function updateSearchAreas(){
+  fillAreas(document.getElementById("searchDistrict"),document.getElementById("searchArea"));
+}
+function updatePostAreas(){
+  fillAreas(document.getElementById("postDistrict"),document.getElementById("postArea"));
+}
+const searchCategorySelect=document.getElementById("searchCategory");
+const searchDistrictSelect=document.getElementById("searchDistrict");
+const searchAreaSelect=document.getElementById("searchArea");
+const searchSubcategorySelect=document.getElementById("searchSubcategory");
+function populateSearchSubcategories(category){
+  if(!searchSubcategorySelect)return;
+  searchSubcategorySelect.innerHTML='<option value="">All Subcategories</option>';
+  (categories[category]||[]).forEach(value=>{
+    const option=document.createElement("option");option.value=value;option.textContent=value;
+    searchSubcategorySelect.appendChild(option);
+  });
+  searchSubcategorySelect.disabled=!(categories[category]||[]).length;
+}
+
+function updateSearchFilterSteps(){
+  const hasCategory=!!searchCategorySelect.value;
+  searchDistrictSelect.disabled=!hasCategory;
+  if(!hasCategory){
+    searchDistrictSelect.value="";
+    searchAreaSelect.innerHTML='<option value="">Select Area</option>';
+    searchAreaSelect.disabled=true;
+    return;
+  }
+  const hasDistrict=!!searchDistrictSelect.value;
+  searchAreaSelect.disabled=!hasDistrict;
+  if(!hasDistrict) searchAreaSelect.innerHTML='<option value="">Select Area</option>';
+}
+searchCategorySelect.addEventListener("change",()=>{
+  searchDistrictSelect.value="";
+  searchAreaSelect.value="";
+  populateSearchSubcategories(searchCategorySelect.value);
+  if(searchSubcategorySelect)searchSubcategorySelect.value="";
+  updateSearchFilterSteps();
+});
+searchSubcategorySelect?.addEventListener("change",()=>{});
+searchDistrictSelect.addEventListener("change",()=>{
+  updateSearchAreas();
+  updateSearchFilterSteps();
+});
+searchAreaSelect.addEventListener("change",()=>{});
+document.getElementById("postDistrict").addEventListener("change",updatePostAreas);
+fillDistricts(searchDistrictSelect);
+fillDistricts(document.getElementById("postDistrict"));
+fillAreas(document.getElementById("postDistrict"),document.getElementById("postArea"));
+renderDistrictList();
+fillDistrictFilterOptions();
+document.getElementById("districtFilterCategory").addEventListener("change",updateDistrictFilterSubcategories);
+document.getElementById("districtFilterDistrict").addEventListener("change",()=>{
+  activeDistrictListing=document.getElementById("districtFilterDistrict").value;
+  updateDistrictFilterAreas();
+  document.getElementById("districtFilterArea").value="";
+});
+populateSearchSubcategories(searchCategorySelect.value);
+updateSearchFilterSteps();
+
+function populateSubcategories(categorySelect,subSelect){
+  const values=categories[categorySelect.value] || [];
+  subSelect.innerHTML='<option value="">Select Subcategory</option>';
+  values.forEach(value=>{const o=document.createElement("option");o.value=value;o.textContent=value;subSelect.appendChild(o);});
+}
+document.getElementById("postCategory").addEventListener("change",()=>{
+  populateSubcategories(document.getElementById("postCategory"),document.getElementById("postSubcategory"));
+});
+function toggleSearchForm(){
+  const panel=document.getElementById("searchPanel");
+  const fields=document.getElementById("searchFields");
+  const toggle=document.getElementById("searchToggle");
+  const opening=fields.hidden;
+  fields.hidden=!opening;
+  panel.classList.toggle("is-open",opening);
+  toggle.setAttribute("aria-expanded",String(opening));
+  toggle.textContent=opening?"Close Search":"Search Listings";
+  if(opening) fields.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function openModal(id){document.getElementById(id).classList.add("open")}
+function closeModal(id){document.getElementById(id).classList.remove("open")}
+document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)m.classList.remove("open")}));
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.style.display="block";clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.style.display="none",3200)}
+
+function showPricePlan(){
+  const key=document.getElementById("pricePlanSelect").value;
+  const panel=document.getElementById("pricePlanDetails");
+  const plans={
+    free:{name:"FREE LISTING",amount:"₹0",description:"Up to 3 free advertisements per mobile number each calendar month.",features:["Standard listing","Call & WhatsApp contact"]},
+    vip3:{name:"VIP · 3 DAYS",amount:"₹300",description:"Promote your advertisement for 3 days.",features:["VIP placement","More visibility","Call & WhatsApp contact"]},
+    vip5:{name:"VIP · 5 DAYS",amount:"₹500",description:"Promote your advertisement for 5 days.",features:["VIP placement","More visibility","Call & WhatsApp contact"]},
+    vip7:{name:"VIP · 7 DAYS",amount:"₹700",description:"Promote your advertisement for 7 days.",features:["VIP placement","More visibility","Call & WhatsApp contact"]}
+  };
+  if(!key||!plans[key]){panel.hidden=true;return;}
+  const plan=plans[key];
+  document.getElementById("pricePlanName").textContent=plan.name;
+  document.getElementById("pricePlanAmount").textContent=plan.amount;
+  document.getElementById("pricePlanDescription").textContent=plan.description;
+  document.getElementById("pricePlanFeatures").innerHTML=plan.features.map(x=>"<li>"+escapeHtml(x)+"</li>").join("");
+  panel.hidden=false;
+}
+
+
+let agePage=0;
+const ageValues=Array.from({length:13},(_,i)=>i+18);
+function renderAgeChoices(){
+  const start=agePage*5;
+  const shown=ageValues.slice(start,start+5);
+  const selected=document.getElementById("postAge").value;
+  document.getElementById("agePickerOptions").innerHTML=shown.map(age=>
+    `<button type="button" class="age-choice ${String(age)===selected?'selected':''}" onclick="selectAge(${age})">${age}</button>`
+  ).join("");
+  document.getElementById("agePageLabel").textContent=(agePage+1)+" / "+Math.ceil(ageValues.length/5);
+  document.getElementById("agePrev").disabled=agePage===0;
+  document.getElementById("ageNext").disabled=(agePage+1)*5>=ageValues.length;
+  document.getElementById("ageNext").textContent=(agePage+1)*5>=ageValues.length?"End":"Next 5";
+}
+function toggleAgePicker(){
+  const panel=document.getElementById("agePickerPanel");
+  const opening=panel.hidden;
+  panel.hidden=!opening;
+  document.getElementById("agePickerTrigger").setAttribute("aria-expanded",String(opening));
+  if(opening)renderAgeChoices();
+}
+function changeAgePage(delta){
+  agePage=Math.max(0,Math.min(Math.ceil(ageValues.length/5)-1,agePage+delta));
+  renderAgeChoices();
+}
+function selectAge(age){
+  document.getElementById("postAge").value=String(age);
+  document.getElementById("agePickerTrigger").innerHTML=age+" Years <span>▾</span>";
+  document.getElementById("agePickerPanel").hidden=true;
+  document.getElementById("agePickerTrigger").setAttribute("aria-expanded","false");
+}
+let currentPostStep=1;
+function goPostStep(step){
+  const form=document.getElementById("postForm");
+  const firstInvalid=step===2
+    ? [...form.querySelectorAll("#postStep1 [required]")].find(el=>!el.checkValidity())
+    : null;
+  
+  if(firstInvalid){
+    firstInvalid.reportValidity();
+    firstInvalid.focus();
+    return;
+  }
+  currentPostStep=step;
+  document.getElementById("postStep1").hidden=step!==1;
+  document.getElementById("postStep2").hidden=step!==2;
+  document.getElementById("postStepIndicator").textContent=step===1
+    ?"STEP 1 OF 2 · FIRST 6 DETAILS"
+    :"STEP 2 OF 2 · CONTACT & LISTING DETAILS";
+  const box=document.querySelector("#postModal .modal-box");
+  if(box)box.scrollTop=0;
+}
+function toggleCategoryPanel(){
+  const panel=document.getElementById("categories");
+  const trigger=document.getElementById("heartCategoryTrigger");
+  const opening=panel.hidden;
+  panel.hidden=!opening;
+  trigger.setAttribute("aria-expanded",String(opening));
+  trigger.querySelector(".heart-trigger-label").textContent=opening?"CLOSE CATEGORIES":"TOUCH ME TO EXPLORE";
+  if(opening) panel.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function closePersonalsCategories(){
+  const panel=document.getElementById("personalsSubcategories");
+  const trigger=document.getElementById("personalsCategory");
+  if(panel) panel.hidden=true;
+  if(trigger) trigger.setAttribute("aria-expanded","false");
+}
+function togglePersonalsCategories(){
+  const panel=document.getElementById("personalsSubcategories");
+  const trigger=document.getElementById("personalsCategory");
+  if(!panel||!trigger)return;
+  const opening=panel.hidden;
+  // Personals is the only main category that opens this subcategory panel.
+  closePersonalsCategories();
+  if(opening){
+    panel.hidden=false;
+    trigger.setAttribute("aria-expanded","true");
+    document.querySelectorAll("#categories .category").forEach(x=>x.classList.remove("active"));
+    trigger.classList.add("active");
+    panel.scrollIntoView({behavior:"smooth",block:"nearest"});
+  }else{
+    trigger.classList.remove("active");
+  }
+}
+function chooseCategory(cat,el){
+  // Selecting any category (including a Personal subcategory) closes the
+  // Personals panel so unrelated categories are never left open together.
+  closePersonalsCategories();
+  const personalsTrigger=document.getElementById("personalsCategory");
+  if(personalsTrigger && el!==personalsTrigger)personalsTrigger.classList.remove("active");
+  document.getElementById("searchCategory").value=cat;
+  populateSearchSubcategories(cat);
+  if(document.getElementById("searchSubcategory"))document.getElementById("searchSubcategory").value="";
+  updateSearchFilterSteps();
+  document.querySelectorAll(".category").forEach(x=>x.classList.remove("active"));
+  el.classList.add("active");
+  searchAds();
+  document.getElementById("adsSection").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function goHomeTop(){
+  // Home always returns to the main website homepage.
+  if(location.pathname !== "/" && !location.pathname.endsWith("/index.html")){
+    location.href="/";
+    return;
+  }
+  if(document.body.classList.contains("search-results-mode"))closeSearchResults();
+  else window.scrollTo({top:0,behavior:"smooth"});
+}
+function openClientMessages(){
+  if(typeof openClientDashboard==="function")openClientDashboard();
+}
+function quickCategory(category){
+  const select=document.getElementById("searchCategory");
+  if(select && [...select.options].some(option=>option.value===category))select.value=category;
+  populateSearchSubcategories(category);
+  if(document.getElementById("searchSubcategory"))document.getElementById("searchSubcategory").value="";
+  document.getElementById("keyword").value="";
+  document.body.classList.add("search-results-mode");
+  document.getElementById("adsHeading").innerHTML='Listings <span>· '+escapeHtml(category)+'</span>';
+  searchAds();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function runQuickSearch(event){
+  event.preventDefault();
+  let query=document.getElementById("quickKeyword").value.trim();
+  const districtSelect=document.getElementById("searchDistrict");
+  const districtOptions=[...(districtSelect?.options||[])].map(o=>o.value).filter(Boolean);
+  const normalized=query.toLocaleLowerCase("en-IN");
+  const matchedDistrict=districtOptions.find(name=>normalized.includes(String(name).toLocaleLowerCase("en-IN")));
+  if(matchedDistrict){districtSelect.value=matchedDistrict;query=query.replace(new RegExp(matchedDistrict.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"ig"),"").replace(/\s+/g," ").trim();}
+  document.getElementById("keyword").value=query;
+  document.body.classList.add("search-results-mode");
+  document.getElementById("adsHeading").innerHTML='Search <span>Results</span>';
+  searchAds();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function openSearchResults(){
+  const cat=document.getElementById("searchCategory").value;
+  const dist=document.getElementById("searchDistrict").value;
+  const area=document.getElementById("searchArea").value;
+  if(!cat){toast("Please select a category.");return;}
+  if(!dist){toast("Please select a district.");return;}
+  if(!area){toast("Please select an area.");return;}
+  document.body.classList.add("search-results-mode");
+  document.getElementById("adsHeading").innerHTML='Search Results <span>· '+escapeHtml(area)+'</span>';
+  searchAds();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+let activeDistrictListing="";
+// Distance search uses device location plus coordinates saved with an ad.
+let districtViewerLocation=null;
+function distanceKm(lat1,lon1,lat2,lon2){
+  const toRad=value=>value*Math.PI/180;
+  const dLat=toRad(lat2-lat1),dLon=toRad(lon2-lon1);
+  const a=Math.sin(dLat/2)**2+Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+  return 6371*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function requestDeviceLocation(onSuccess,onFailure){
+  if(!navigator.geolocation){onFailure("Location is not supported by this browser.");return;}
+  navigator.geolocation.getCurrentPosition(
+    position=>onSuccess({latitude:position.coords.latitude,longitude:position.coords.longitude}),
+    ()=>onFailure("Location permission was not granted. Enable location access and try again."),
+    {enableHighAccuracy:true,timeout:12000,maximumAge:60000}
+  );
+}
+document.getElementById("useMyLocationForDistance").addEventListener("click",()=>{
+  const status=document.getElementById("districtDistanceStatus");
+  status.textContent="Getting your location...";
+  requestDeviceLocation(location=>{
+    districtViewerLocation=location;
+    status.textContent="Your location is ready. Choose a distance and tap Apply Filters.";
+    if(document.getElementById("districtFilterDistance").value)applyDistrictListingFilters();
+  },message=>{status.textContent=message;});
+});
+document.getElementById("attachAdLocation").addEventListener("click",()=>{
+  const status=document.getElementById("postLocationStatus");
+  status.textContent="Getting device location...";
+  requestDeviceLocation(location=>{
+    document.getElementById("postLatitude").value=String(location.latitude);
+    document.getElementById("postLongitude").value=String(location.longitude);
+    status.textContent="✓ Location attached to this listing.";
+  },message=>{status.textContent=message;});
+});
+
+function openDistrictListings(district){
+  const normalizeDistrict=value=>String(value||"").trim().replace(/\s+/g," ").toLocaleLowerCase("en-IN");
+  const canonicalDistrict=Object.keys(districtAreas).find(name=>normalizeDistrict(name)===normalizeDistrict(district));
+  if(!canonicalDistrict)return;
+  district=canonicalDistrict;
+  activeDistrictListing=district;
+  const districtFilterPanel=document.getElementById("districtResultsFilters");
+  // Apply the same compact, draggable filter panel whenever ANY district is opened.
+  // Reset to the 4-inch starting height for every district selection.
+  districtFilterPanel.hidden=false;
+  districtFilterPanel.style.height="4in";
+  districtFilterPanel.scrollTop=0;
+  document.getElementById("districtFilterDistrict").value=district;
+  updateDistrictFilterAreas();
+  document.getElementById("districtFilterArea").value="";
+  document.getElementById("districtFilterCategory").value="";
+  updateDistrictFilterSubcategories();
+  document.getElementById("districtFilterKeyword").value="";
+  document.getElementById("districtFilterMinPrice").value="";
+  document.getElementById("districtFilterMaxPrice").value="";
+  document.getElementById("districtFilterDistance").value="";
+  document.getElementById("districtFilterSort").value="newest";
+  document.body.classList.add("search-results-mode");
+  document.getElementById("adsHeading").innerHTML='District Listings <span>· '+escapeHtml(district)+'</span>';
+  applyDistrictListingFilters();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function applyDistrictListingFilters(){
+  const keyword=document.getElementById("districtFilterKeyword").value.trim().toLowerCase();
+  const category=document.getElementById("districtFilterCategory").value;
+  const subcategory=document.getElementById("districtFilterSubcategory").value;
+  const district=document.getElementById("districtFilterDistrict").value;
+  const normalizeDistrict=value=>String(value||"").trim().replace(/\s+/g," ").toLocaleLowerCase("en-IN");
+  const area=document.getElementById("districtFilterArea").value;
+  const minValue=document.getElementById("districtFilterMinPrice").value;
+  const maxValue=document.getElementById("districtFilterMaxPrice").value;
+  const min=minValue===""?null:Number(minValue);
+  const max=maxValue===""?null:Number(maxValue);
+  const distanceValue=document.getElementById("districtFilterDistance")?.value||"";
+  const maxDistance=distanceValue===""?null:Number(distanceValue);
+  const sort=document.getElementById("districtFilterSort").value;
+  document.getElementById("sortListings").value=sort;
+  let filtered=ads.filter(a=>{
+    const price=Number(a.price)||0;
+    const text=(String(a.title||"")+" "+String(a.description||"")+" "+String(a.contact||"")+" "+String(a.category||"")).toLowerCase();
+    const hasAdCoords=Number.isFinite(Number(a.latitude)) && Number.isFinite(Number(a.longitude))
+      && a.latitude!=="" && a.longitude!=="";
+    const withinDistance=maxDistance===null || (
+      !!districtViewerLocation && hasAdCoords &&
+      distanceKm(districtViewerLocation.latitude,districtViewerLocation.longitude,Number(a.latitude),Number(a.longitude))<=maxDistance
+    );
+    return (!keyword||text.includes(keyword)) &&
+      (!category||a.category===category) &&
+      (!subcategory||a.subcategory===subcategory) &&
+      (!district||normalizeDistrict(a.district)===normalizeDistrict(district)) &&
+      (!area||String(a.area||"").trim()===area) &&
+      (min===null||price>=min) && (max===null||price<=max) && withinDistance;
+  });
+  if(sort==="price-low")filtered.sort((a,b)=>(Number(a.price)||0)-(Number(b.price)||0));
+  if(sort==="price-high")filtered.sort((a,b)=>(Number(b.price)||0)-(Number(a.price)||0));
+  if(sort==="newest")filtered.sort((a,b)=>getAdStartTime(b)-getAdStartTime(a));
+  const headingDistrict=district ? district : "All Districts";
+  document.getElementById("adsHeading").innerHTML='District Listings <span>· '+escapeHtml(headingDistrict)+'</span>';
+  renderAds(filtered,1);
+}
+function resetDistrictListingFilters(){
+  document.getElementById("districtFilterKeyword").value="";
+  document.getElementById("districtFilterCategory").value="";
+  updateDistrictFilterSubcategories();
+  document.getElementById("districtFilterDistrict").value=activeDistrictListing;
+  updateDistrictFilterAreas();
+  document.getElementById("districtFilterArea").value="";
+  document.getElementById("districtFilterMinPrice").value="";
+  document.getElementById("districtFilterMaxPrice").value="";
+  document.getElementById("districtFilterDistance").value="";
+  document.getElementById("districtFilterSort").value="newest";
+  applyDistrictListingFilters();
+}
+function closeSearchResults(){
+  document.body.classList.remove("search-results-mode");
+  document.getElementById("districtResultsFilters").hidden=true;
+  document.getElementById("adsHeading").innerHTML='Latest <span>Listings</span>';
+  activeDistrictListing="";
+  renderAds(ads,1);
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function searchAds(){
+  const keyword=document.getElementById("keyword").value.trim().toLowerCase();
+  const cat=document.getElementById("searchCategory").value;
+  const sub=document.getElementById("searchSubcategory")?.value||"";
+  const dist=document.getElementById("searchDistrict").value;
+  const area=document.getElementById("searchArea").value;
+  let filtered=ads.filter(a=>
+    (!keyword||(String(a.title||"")+" "+String(a.description||"")+" "+String(a.contact||"")+" "+String(a.category||"")).toLowerCase().includes(keyword)) &&
+    (!cat||a.category===cat) && (!sub||a.subcategory===sub||(()=>{try{return JSON.parse(a.details_json||"{}").subcategory===sub}catch(_){return false}})()) && (!dist||String(a.district||"").trim()===dist) && (!area||String(a.area||"").trim()===area)
+  );
+  const sort=document.getElementById("sortListings")?.value || "newest";
+  if(sort==="price-low") filtered.sort((a,b)=>(Number(a.price)||0)-(Number(b.price)||0));
+  if(sort==="price-high") filtered.sort((a,b)=>(Number(b.price)||0)-(Number(a.price)||0));
+  if(sort==="newest") filtered.sort((a,b)=>(Number(b.id)||0)-(Number(a.id)||0));
+  renderAds(filtered,1);
+}
+let adsCurrentPage=1;
+let adsCurrentItems=ads;
+const ADS_PAGE_SIZE=25;
+const ADS_BATCH_SIZE=3;
+let adsLoadedCount=0;
+let adsScrollObserver=null;
+// Paid placement: newest successfully paid VIP ad leads; older paid ads stay
+// in the VIP group until their own plan expiry.
+function vipDurationDays(plan){
+  const match=String(plan||"").match(/(3|5|7)\s*days?/i);
+  return match?Number(match[1]):7;
+}
+function getAdStartTime(a){
+  const value=Number(a && (a.vipStartedAt || a.createdAt || a.id));
+  return Number.isFinite(value) && value>0 ? value : 0;
+}
+function getAdExpiryTime(a){
+  if(!a)return 0;
+  if(a.vipExpiresAt)return Number(a.vipExpiresAt)||0;
+  const start=getAdStartTime(a);
+  return start ? start+vipDurationDays(a.plan)*24*60*60*1000 : 0;
+}
+function isVipAd(a){
+  if(!a || !a.plan || String(a.plan).toLowerCase()==="free")return false;
+  const expiry=getAdExpiryTime(a);
+  return !expiry || expiry>Date.now();
+}
+
+// Shuffle only today's active, real VIP listings once per visitor page load.
+// This gives each new visitor/page refresh a fresh order without changing the
+// order while the same visitor searches, filters, or moves between pages.
+function isTodayVipAd(a){
+  if(!isVipAd(a))return false;
+  const started=getAdStartTime(a);
+  if(!started)return false;
+  const d=new Date(started),today=new Date();
+  return d.getFullYear()===today.getFullYear()
+    && d.getMonth()===today.getMonth()
+    && d.getDate()===today.getDate();
+}
+// Shuffle active paid and free placements once per page load. The same ranks
+// remain stable while visitors change district/category filters.
+const vipShuffleRank=new Map();
+const freeShuffleRank=new Map();
+function refreshVipShuffleOrder(list){
+  vipShuffleRank.clear();freeShuffleRank.clear();
+  const paid=(list||[]).filter(isVipAd).slice();
+  const free=(list||[]).filter(ad=>!isVipAd(ad)).slice();
+  for(let i=paid.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[paid[i],paid[j]]=[paid[j],paid[i]];}
+  for(let i=free.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[free[i],free[j]]=[free[j],free[i]];}
+  paid.forEach((ad,index)=>vipShuffleRank.set(String(ad.id),index));
+  free.forEach((ad,index)=>freeShuffleRank.set(String(ad.id),index));
+}
+refreshVipShuffleOrder(ads);
+
+function categoryArtwork(category){
+  const art={
+    "Massage & Spa":{icon:"💆‍♀️",label:"MASSAGE & SPA",c1:"#ff9b24",c2:"#8c2d08"},
+    "Full Body Massage":{icon:"🧖",label:"FULL BODY",c1:"#ff7a18",c2:"#6b210d"},
+    "Head Massage":{icon:"💆",label:"HEAD MASSAGE",c1:"#ffc04a",c2:"#71300c"},
+    "Foot Massage":{icon:"🦶",label:"FOOT MASSAGE",c1:"#ffad22",c2:"#5b3108"},
+    "Spa & Wellness":{icon:"🌿",label:"SPA & WELLNESS",c1:"#8fc66b",c2:"#164b2c"},
+    "Beauty & Wellness":{icon:"✨",label:"BEAUTY & CARE",c1:"#f7bd63",c2:"#7a2866"},
+    "Other Services":{icon:"⭐",label:"WELLNESS SERVICES",c1:"#ffad32",c2:"#63310c"}
+  };
+  const a=art[category]||art["Massage & Spa"];
+  return `<svg class="ad-artwork" viewBox="0 0 640 300" role="img" aria-label="${a.label}" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="artbg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${a.c2}"/><stop offset="1" stop-color="#080808"/></linearGradient>
+      <radialGradient id="artglow"><stop stop-color="${a.c1}" stop-opacity=".55"/><stop offset="1" stop-color="${a.c1}" stop-opacity="0"/></radialGradient>
+    </defs>
+    <rect width="640" height="300" fill="url(#artbg)"/>
+    <circle cx="320" cy="135" r="180" fill="url(#artglow)"/>
+    <circle cx="320" cy="135" r="93" fill="none" stroke="${a.c1}" stroke-opacity=".26" stroke-width="2"/>
+    <circle cx="320" cy="135" r="112" fill="none" stroke="${a.c1}" stroke-opacity=".12" stroke-width="1"/>
+    <text x="320" y="166" text-anchor="middle" font-size="104">${a.icon}</text>
+    <path d="M75 252H565" stroke="${a.c1}" stroke-opacity=".38" stroke-width="2"/>
+    <text x="320" y="279" text-anchor="middle" fill="#fff0d8" font-size="18" font-weight="700" letter-spacing="5">${a.label}</text>
+  </svg>`;
+}
+
+function renderAds(items=ads,page=1){
+  if(adsScrollObserver){adsScrollObserver.disconnect();adsScrollObserver=null;}
+  // Active paid ads are pinned above standard ads. Within the paid group,
+  // the latest paid placement is first; each older VIP remains visible until
+  // its own expiry. Price sorting applies only to standard listings.
+  const sort=document.getElementById("sortListings")?.value || "newest";
+  const now=Date.now();
+  const sorted=[...items].filter(a=>{
+    if(String(a.status||"Active").toLowerCase()==="paused")return false;
+    if(!a.plan || String(a.plan).toLowerCase()==="free")return true;
+    const expiry=getAdExpiryTime(a);
+    return !expiry || expiry>now;
+  }).sort((a,b)=>{
+    const av=isVipAd(a),bv=isVipAd(b);
+    if(av!==bv)return Number(bv)-Number(av);
+
+    // Keep the VIP pool newest-first as its base order. Older active VIP ads
+    // remain in the same VIP pool until their own expiry.
+    if(av && bv)return getAdStartTime(b)-getAdStartTime(a);
+
+    if(sort==="price-low")return (Number(a.price)||0)-(Number(b.price)||0);
+    if(sort==="price-high")return (Number(b.price)||0)-(Number(a.price)||0);
+    // Free/standard ads remain below VIP and show newest first by default.
+    return getAdStartTime(b)-getAdStartTime(a);
+  });
+
+  // Rotate the entire active VIP group together every 30 seconds. This lets
+  // newer and older VIP ads take turns at the top without ever moving a VIP
+  // below a Free ad. Rotation is scoped to the already-filtered district/
+  // category result set and expired VIP ads are excluded above.
+  const vipItems=sorted.filter(isVipAd);
+  const freeItems=sorted.filter(ad=>!isVipAd(ad));
+  if(vipItems.length>1){
+    const rotationStep=Math.floor(now/30000)%vipItems.length;
+    const rotatedVip=vipItems.slice(rotationStep).concat(vipItems.slice(0,rotationStep));
+    sorted.splice(0,sorted.length,...rotatedVip,...freeItems);
+  }
+  adsCurrentItems=sorted;
+  const totalPages=Math.max(1,Math.ceil(sorted.length/ADS_PAGE_SIZE));
+  adsCurrentPage=Math.min(Math.max(1,page),totalPages);
+  const root=document.getElementById("adsList");
+  const pagination=document.getElementById("adsPagination");
+  const pageStart=(adsCurrentPage-1)*ADS_PAGE_SIZE;
+  const pageItems=sorted.slice(pageStart,pageStart+ADS_PAGE_SIZE);
+  adsLoadedCount=Math.min(ADS_BATCH_SIZE,pageItems.length);
+  const shownStart=pageItems.length?pageStart+1:0;
+  const shownEnd=pageStart+pageItems.length;
+  document.getElementById("resultCount").textContent=pageItems.length
+    ? "Showing "+shownStart+"–"+shownEnd+" of "+sorted.length
+    : "0 listings";
+  if(!pageItems.length){
+    const selectedArea=document.getElementById("searchArea")?.value||"this area";
+    const selectedDistrict=activeDistrictListing
+      || document.getElementById("districtFilterDistrict")?.value
+      || document.getElementById("searchDistrict")?.value
+      || "";
+    root.innerHTML=document.body.classList.contains("search-results-mode")
+      ? (selectedDistrict
+          ? '<div class="empty"><div style="font-size:38px;margin-bottom:10px">⌕</div><strong style="display:block;color:#ffad3b;font-size:21px;margin-bottom:8px">No Ads Available in This District</strong>There are currently no advertisements in '+escapeHtml(selectedDistrict)+'.<br>Please check another district or come back later.</div>'
+          : '<div class="empty"><div style="font-size:38px;margin-bottom:10px">⌕</div><strong style="display:block;color:#ffad3b;font-size:21px;margin-bottom:8px">No Listings Found</strong>No advertisements are available in '+escapeHtml(selectedArea)+'.<br>Try another area or district.</div>')
+      : '<div class="empty">No matching advertisements found. Contact the Admin if you want to advertise here.</div>';
+    pagination.innerHTML="";
+    return;
+  }
+  root.innerHTML=pageItems.slice(0,adsLoadedCount).map(renderAdCard).join("");
+  updateAdsScrollAndPagination(pageItems,totalPages);
+}
+function renderAdCard(a){
+  const vip=isVipAd(a);
+  return `<article class="ad-card ${vip?"vip-ad-card":"free-ad-card"}">
+    <div class="ad-image">${a.image?`<img loading="lazy" decoding="async" src="${escapeAttr(a.image)}" alt="${escapeHtml(a.title||"Advertisement")}" style="width:100%;height:100%;object-fit:cover">`:categoryArtwork(a.category)}</div>
+    <div class="ad-body">${vip?`<span class="vip-ribbon">♛ VIP PREMIUM · ${escapeHtml(a.plan)} · EXPIRES ${new Date(getAdExpiryTime(a)).toLocaleDateString("en-IN")}</span>`:`<span class="vip-ribbon" style="background:linear-gradient(110deg,#333,#555);color:#eee;border-color:#666;box-shadow:none">STANDARD LISTING</span>`}<h3>${escapeHtml(a.title)}</h3>
+    <div class="ad-meta">${escapeHtml(a.category)}${a.subcategory?" · "+escapeHtml(a.subcategory):""}<br>📍 ${escapeHtml(a.area)}, ${escapeHtml(a.district)}<br>Age: ${escapeHtml(a.age)} years<br>👤 ${escapeHtml(a.contact)}${vip?" · ⭐ "+escapeHtml(a.plan):""}</div>
+    <div class="ad-price">${a.price? "₹"+escapeHtml(a.price):"Contact for price"}</div>
+    <div class="ad-actions">${String(a.category||"").toLowerCase().includes("massage")||String(a.category||"").toLowerCase().includes("spa")?`${a.phone?`<a href="tel:${encodeURIComponent(a.phone)}">☎ Call</a>`:""}${(a.whatsapp||a.phone)?`<a href="https://wa.me/${digits(a.whatsapp||a.phone)}" target="_blank" rel="noopener">WhatsApp</a>`:""}`:""} ${a.can_chat?`<button type="button" onclick="openAdChat('${escapeAttr(a.id)}')">Chat</button>`:""}</div></div></article>`;
+}
+function updateAdsScrollAndPagination(pageItems,totalPages){
+  const root=document.getElementById("adsList");
+  const pagination=document.getElementById("adsPagination");
+  const hasMoreInPage=adsLoadedCount<pageItems.length;
+  if(hasMoreInPage){
+    const sentinel=document.createElement("div");
+    sentinel.className="ads-scroll-sentinel";
+    sentinel.setAttribute("aria-label","Scroll to load more advertisements");
+    root.appendChild(sentinel);
+    if("IntersectionObserver" in window){
+      adsScrollObserver=new IntersectionObserver(entries=>{
+        if(entries.some(entry=>entry.isIntersecting))loadMoreAds();
+      },{root:null,rootMargin:"180px 0px",threshold:0});
+      adsScrollObserver.observe(sentinel);
+    }else{
+      sentinel.textContent="Scroll down to load more";
+      sentinel.addEventListener("click",loadMoreAds,{once:true});
+    }
+    pagination.innerHTML="";
+    return;
+  }
+
+  // Show Back, a moving window of six numbered pages, and Next.
+  const current=adsCurrentPage;
+  const windowSize=6;
+  const start=Math.max(1,Math.min(current-2,totalPages-windowSize+1));
+  const end=Math.min(totalPages,start+windowSize-1);
+  let controls='<button type="button" class="page-nav" '+(current===1?'disabled':'')+
+    ' onclick="changeAdsPage('+Math.max(1,current-1)+')">← Back</button>';
+  for(let page=start;page<=end;page++){
+    controls+='<button type="button" class="page-number '+(page===current?'active':'')+
+      '" '+(page===current?'aria-current="page"':'')+
+      ' onclick="changeAdsPage('+page+')">'+page+'</button>';
+  }
+  controls+='<button type="button" class="page-nav" '+(current===totalPages?'disabled':'')+
+    ' onclick="changeAdsPage('+Math.min(totalPages,current+1)+')">Next →</button>';
+  pagination.innerHTML=controls;
+}
+function loadMoreAds(){
+  const pageStart=(adsCurrentPage-1)*ADS_PAGE_SIZE;
+  const pageItems=adsCurrentItems.slice(pageStart,pageStart+ADS_PAGE_SIZE);
+  const nextCount=Math.min(adsLoadedCount+ADS_BATCH_SIZE,pageItems.length);
+  if(nextCount<=adsLoadedCount)return;
+  if(adsScrollObserver){adsScrollObserver.disconnect();adsScrollObserver=null;}
+  const root=document.getElementById("adsList");
+  root.querySelector(".ads-scroll-sentinel")?.remove();
+  root.insertAdjacentHTML("beforeend",pageItems.slice(adsLoadedCount,nextCount).map(renderAdCard).join(""));
+  adsLoadedCount=nextCount;
+  updateAdsScrollAndPagination(pageItems,Math.max(1,Math.ceil(adsCurrentItems.length/ADS_PAGE_SIZE)));
+}
+function changeAdsPage(page){
+  renderAds(adsCurrentItems,page);
+  document.getElementById("adsSection").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function escapeAttr(s){return escapeHtml(s)}
+function digits(s){return String(s||"").replace(/\D/g,"")}
+function saveAds(){ /* Disabled: only Admin API can create or change public advertisements. */ }
+let pendingDistrictPaymentAd=null;
+function openDistrictPaymentPrompt(ad){
+  pendingDistrictPaymentAd=ad;
+  document.getElementById("districtVipPlan").value="VIP 3 Days";
+  document.getElementById("districtPaymentMethod").value="";
+  openModal("districtPaymentModal");
+}
+function closeDistrictPaymentPrompt(){pendingDistrictPaymentAd=null;closeModal("districtPaymentModal");}
+function confirmDistrictPaymentChoice(){
+  const plan=document.getElementById("districtVipPlan").value;
+  const method=document.getElementById("districtPaymentMethod").value;
+  if(!method){toast("Please select a payment method.");return;}
+  if(pendingDistrictPaymentAd){pendingDistrictPaymentAd.plan=plan;pendingDistrictPaymentAd.paymentMethod=method;}
+  toast("Payment option selected. Secure payment verification must be connected before this ad can be published.");
+  closeDistrictPaymentPrompt();
+}
+
+
+// Browser-side image moderation + OCR. Server-side moderation is still required for production.
+let imageSafetyModels=null;
+async function getImageSafetyModels(){
+ if(imageSafetyModels)return imageSafetyModels;
+ imageSafetyModels=(async()=>{
+  const load=src=>new Promise((ok,bad)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=bad;document.head.appendChild(s);});
+  await load("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js");
+  await load("https://cdn.jsdelivr.net/npm/nsfwjs@2.4.2/dist/nsfwjs.min.js");
+  await load("https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js");
+  return {model:await nsfwjs.load()};
+ })();
+ return imageSafetyModels;
+}
+function imageFileToImage(file){return new Promise((ok,bad)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>ok(im);im.onerror=bad;im.src=r.result;};r.onerror=bad;r.readAsDataURL(file);});}
+async function checkAdImage(file,category=""){
+ if(!file)return {ok:true};
+ if(!/^image\/(jpeg|png|webp)$/.test(file.type)||file.size>5*1024*1024)return {ok:false,reason:"Upload JPG, PNG or WEBP up to 5 MB only."};
+ const moderation=window.__24adzModerationSettings||{};
+ if(moderation.image_enabled===false)return {ok:true};
+ document.getElementById("imageSafetyStatus").textContent="Checking adult content and visible numbers…";
+ try{
+  const libs=await getImageSafetyModels(),img=await imageFileToImage(file);
+  const scores=await libs.model.classify(img);
+  const isMassage=/massage|spa/i.test(String(category||""));
+  const generalThreshold=Number(moderation.general_sexy_threshold??0.35),massageThreshold=Number(moderation.massage_sexy_threshold??0.75);
+  const blockedImage=scores.some(x=>["Porn","Hentai"].includes(x.className)&&x.probability>=0.35)
+   || scores.some(x=>x.className==="Sexy"&&x.probability>=(isMassage?massageThreshold:generalThreshold));
+  if(blockedImage)
+   return {ok:false,reason:isMassage?"Nude or pornographic images are not allowed in Massage / Spa listings.":"Adult / nude image detected. The picture has been removed."};
+  const worker=await Tesseract.createWorker("eng");let result;
+  try{result=await worker.recognize(img);}finally{await worker.terminate();}
+  if(/\d/.test(String(result?.data?.text||"")))
+   return {ok:false,reason:"A number/contact detail was detected in the picture. The picture has been removed."};
+  const canvas=document.createElement("canvas"),scale=Math.min(1,1200/Math.max(img.naturalWidth,img.naturalHeight));
+  canvas.width=Math.round(img.naturalWidth*scale);canvas.height=Math.round(img.naturalHeight*scale);
+  canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);
+  return {ok:true,data:canvas.toDataURL("image/jpeg",0.82)};
+ }catch(err){console.error(err);return {ok:false,reason:"Image safety service could not load. Picture not accepted; try again later."};}
+}
+function clearRejectedImage(){
+ const f=document.getElementById("clientAdImageFile");if(f)f.value="";
+ const u=document.querySelector('#postForm [name="image"]');if(u)u.value="";
+ document.getElementById("imageSafetyStatus").textContent="Rejected picture cleared. You can select another image.";
+}
+
+document.getElementById("postForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+ const client=getCurrentClient();
+ if(!a24Token()){toast("Please login to publish your advertisement.");closeModal("postModal");openModal("loginModal");return;}
+ 
+ const invalid=[...e.target.querySelectorAll("input,select,textarea")].find(el=>!el.checkValidity());
+ if(invalid){const step=invalid.closest("#postStep1")?1:2;if(currentPostStep!==step)goPostStep(step);invalid.reportValidity();invalid.focus();return;}
+ const file=document.getElementById("clientAdImageFile")?.files?.[0];
+ const selectedCategory=String(e.target.elements.category?.value||"");
+ if(/^(Cars|Bikes|Real Estate|Jobs|Mobiles)$/i.test(selectedCategory)){
+  const adText=(String(e.target.elements.title?.value||"")+" "+String(e.target.elements.description?.value||"")).toLowerCase();
+  if(/\b(porn|pornography|xxx|\bsex\b|nude|naked|escort|adult|erotic|sexual|hooker|prostitut\w*|call\s*girl|blowjob|handjob|boobs|breasts|genitals|vagina|penis|anal)\b/i.test(adText)){toast("Adult or sexually explicit words are not allowed in this category.");return;}
+ }
+ const imageCheck=await checkAdImage(file,selectedCategory+" "+String(e.target.elements.subcategory?.value||""));
+ if(!imageCheck.ok){clearRejectedImage();toast(imageCheck.reason);return;}
+ const f=new FormData(e.target),editingId=String(f.get("editingId")||"");
+ const mobile=digits(f.get("phone"));
+ if(client&&mobile!==digits(client.mobile||client.phone)){toast("Contact mobile number must match your logged-in account.");goPostStep(2);return;}
+ try{
+  let imageUrl="";
+  if(file){const fd=new FormData();fd.append("image",file);const up=await fetch("/api/client/images/upload",{method:"POST",headers:{Authorization:"Bearer "+a24Token()},body:fd});const ud=await up.json();if(!up.ok||!ud.success)throw new Error(ud.error||"Image upload failed");imageUrl=ud.url;}
+  else imageUrl=String(f.get("image")||"");
+  const days=Number(f.get("days")||0),plan=days===3?"vip3":days===5?"vip5":days===7?"vip7":"free";
+  const categoryDetails=collectCategoryDetails(document.getElementById("categorySpecificFields")); const payload={title:f.get("title"),description:f.get("description"),category:f.get("category"),subcategory:f.get("subcategory"),model_year:categoryDetails.model_year||f.get("model_year"),category_details:categoryDetails,district:f.get("district"),area:f.get("area"),price:f.get("price"),phone:mobile,whatsapp:f.get("whatsapp")||mobile,image_url:imageUrl,plan};
+  const result=editingId?await a24Call("/api/client/ads/"+encodeURIComponent(editingId),"PATCH",payload):await a24Call("/api/client/ads","POST",payload);
+  e.target.reset();document.getElementById("editingAdId").value="";document.getElementById("postAge").value="";
+  fillAreas(document.getElementById("postDistrict"),document.getElementById("postArea"));populateSubcategories(document.getElementById("postCategory"),document.getElementById("postSubcategory"));goPostStep(1);closeModal("postModal");toast(result.message||(editingId?"Advertisement updated.":"Advertisement published."));
+  if(typeof openClientDashboard==="function")openClientDashboard();
+ }catch(err){toast(err.message||"Unable to save advertisement.");}
+});
+// Show / hide password controls for both Register and Login.
+document.querySelectorAll("[data-password-target]").forEach(button=>{
+  button.addEventListener("click",()=>{
+    const input=document.getElementById(button.dataset.passwordTarget);
+    if(!input)return;
+    const show=input.type==="password";
+    input.type=show?"text":"password";
+    button.textContent=show?"🙈":"👁";
+    button.setAttribute("aria-label",show?"Hide password":"Show password");
+    button.setAttribute("aria-pressed",String(show));
+  });
+});
+
+// Mobile OTP is intentionally disabled. Registration and login use the secure API.
+document.getElementById("registerForm").addEventListener("submit",async e=>{
+ e.preventDefault();const f=new FormData(e.target);
+ try{const d=await a24Call("/api/client/register","POST",{name:f.get("name"),email:f.get("email"),mobile:f.get("mobile"),password:f.get("password")});
+ e.target.reset();closeModal("registerModal");toast(d.message||"Registration received. Verify your email before login.");
+ }catch(x){toast(x.message)}
+});
+document.getElementById("loginForm").addEventListener("submit",async e=>{
+ e.preventDefault();const f=new FormData(e.target);
+ try{const d=await a24Call("/api/client/login","POST",{email:f.get("email"),password:f.get("password")});localStorage.setItem("24adz_client_token",d.token);localStorage.setItem("24adz_client",JSON.stringify(d.client));e.target.reset();closeModal("loginModal");updateAccountNav();toast("Login successful.");}
+ catch(x){toast(x.message)}
+});
+function openForgotPassword(){closeModal("loginModal");openModal("forgotPasswordModal")}
+document.getElementById("forgotPasswordForm").addEventListener("submit",async e=>{e.preventDefault();const f=new FormData(e.target);try{const d=await a24Call("/api/client/forgot-password","POST",{email:f.get("email")});closeModal("forgotPasswordModal");toast(d.message)}catch(x){toast(x.message)}});
+document.getElementById("resetPasswordForm").addEventListener("submit",async e=>{e.preventDefault();const token=new URLSearchParams(location.search).get("reset_password"),f=new FormData(e.target);try{const d=await a24Call("/api/client/reset-password","POST",{token,password:f.get("password")});history.replaceState({},"",location.pathname);closeModal("resetPasswordModal");toast(d.message)}catch(x){toast(x.message)}});
+// Email verification links are processed once when the visitor returns from email.
+(async()=>{const params=new URLSearchParams(location.search),verify=params.get("verify_email"),reset=params.get("reset_password");if(verify){try{const d=await a24Call("/api/client/verify-email","POST",{token:verify});toast(d.message);history.replaceState({},"",location.pathname)}catch(e){toast(e.message)}}if(reset){openModal("resetPasswordModal")}})();
+
+// 24Adz account navigation: client sessions are stored under the current project key.
+function getCurrentClient(){try{return JSON.parse(localStorage.getItem("24adz_client")||"null");}catch(_){return null;}}
+function setCurrentClient(client){localStorage.setItem("24adz_client",JSON.stringify(client||{}));}
+function updateAccountNav(){
+ const login=document.getElementById("navLoginBtn"),register=document.getElementById("navRegisterBtn");
+ if(login)login.style.display="";
+ if(register)register.style.display="";
+}
+function clientLogout(){
+ localStorage.removeItem("24adz_client_token");
+ localStorage.removeItem("24adz_client");
+ location.href="/";
+}
+function startPostAd(){
+ if(!a24Token()){openModal("loginModal");return;}
+ openModal("postModal");
+}
+function resetPostFormForNew(){const form=document.getElementById("postForm");form.reset();document.getElementById("editingAdId").value="";const c=getCurrentClient();if(c){form.elements.contact.value=c.name||"";form.elements.phone.value=c.mobile||c.phone||"";form.elements.whatsapp.value=c.mobile||c.phone||"";}document.getElementById("postAge").value="";document.getElementById("agePickerTrigger").innerHTML='Select Age <span>▾</span>';goPostStep(1);}
+function escapeDashboardText(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function openClientDashboard(){
+ if(!a24Token()){openModal("loginModal");return;}
+ openModal("clientDashboardModal");
+}
+function editClientAd(id){
+ const c=getCurrentClient(),a=ads.find(x=>String(x.id)===String(id)&&digits(x.ownerPhone||x.phone)===digits(c?.phone));if(!a)return;
+ closeModal("clientDashboardModal");const form=document.getElementById("postForm");form.reset();
+ Object.keys(a).forEach(k=>{if(form.elements[k])form.elements[k].value=a[k]??"";});
+ document.getElementById("editingAdId").value=a.id;document.getElementById("postAge").value=a.age||"";
+ document.getElementById("agePickerTrigger").textContent=a.age?`Age ${a.age}`:"Select Age ▾";
+ const district=document.getElementById("postDistrict");district.value=a.district||"";updatePostAreas();document.getElementById("postArea").value=a.area||"";
+ populateSubcategories(document.getElementById("postCategory"),document.getElementById("postSubcategory"));document.getElementById("postSubcategory").value=a.subcategory||"";
+ goPostStep(1);openModal("postModal");
+}
+function toggleClientAd(id){const c=getCurrentClient(),a=ads.find(x=>String(x.id)===String(id)&&digits(x.ownerPhone||x.phone)===digits(c?.phone));if(!a)return;a.status=String(a.status||"Active").toLowerCase()==="paused"?"Active":"Paused";saveAds();renderAds();openClientDashboard();toast("Advertisement status updated.");}
+function deleteClientAd(id){const c=getCurrentClient(),a=ads.find(x=>String(x.id)===String(id)&&digits(x.ownerPhone||x.phone)===digits(c?.phone));if(!a)return;if(!confirm("Delete this advertisement permanently?"))return;ads=ads.filter(x=>x!==a);saveAds();renderAds();openClientDashboard();toast("Advertisement deleted.");}
+updateAccountNav();
+document.getElementById("sortListings").addEventListener("change",searchAds);
+document.getElementById("keyword").addEventListener("keydown",e=>{if(e.key==="Enter")openSearchResults();});
+// ONE shared district filter panel and ONE drag handle for all 38 Tamil Nadu districts.
+// The same control is reused whenever any district is selected.
+(function(){
+  const panel=document.getElementById("districtResultsFilters");
+  const handle=document.getElementById("districtFilterDragHandle");
+  if(!panel||!handle)return;
+  panel.style.height="2.5in";
+  panel.style.boxSizing="border-box";
+  panel.style.overflowY="auto";
+  panel.dataset.sharedDistrictPanel="true";
+  handle.dataset.sharedDistrictDragHandle="true";
+  let startY=0,startHeight=0,activePointer=null;
+  handle.addEventListener("pointerdown",event=>{
+    if(event.button!==undefined && event.button!==0)return;
+    activePointer=event.pointerId;startY=event.clientY;startHeight=panel.getBoundingClientRect().height;
+    panel.classList.add("is-dragging");
+    handle.setPointerCapture?.(event.pointerId);
+    event.preventDefault();
+  });
+  handle.addEventListener("pointermove",event=>{
+    if(activePointer!==event.pointerId)return;
+    const delta=event.clientY-startY;
+    // One shared handle: drag UP to expand, DOWN to make the filter panel compact.
+    const next=Math.max(150,Math.min(window.innerHeight*.75,startHeight-delta));
+    panel.style.height=next+"px";
+    panel.style.maxHeight="75vh";
+  });
+  const finish=event=>{
+    if(activePointer!==event.pointerId)return;
+    activePointer=null;panel.classList.remove("is-dragging");
+  };
+  handle.addEventListener("pointerup",finish);
+  handle.addEventListener("pointercancel",finish);
+})();
+renderAds();
+// Repaint the current results as the VIP rotation advances; no page reload needed.
+setInterval(()=>{
+  if(document.visibilityState==="visible" && adsCurrentItems.length>1){
+    renderAds(adsCurrentItems,adsCurrentPage);
+  }
+},30000);
+
+
+window.ADZ24_MAIN_CATEGORY_ICONS={Cars:'🚗',Bikes:'🏍️',Mobiles:'📱',Jobs:'💼','Real Estate':'🏘️',Personals:'❤️','Hotel Rooms':'🏨','Fashion & Beauty':'💄'};
+
+/* 24Adz Admin-to-Website integration. Public contact methods are Call + WhatsApp only.
+   Existing homepage markup/styles and browser-side listing behaviour remain as fallback.
+   Active admin categories, contact settings, VIP pricing and form fields are loaded from D1. */
+(function(){
+  const ADZ24={categories:[],settings:{contact_buttons:{call:true,whatsapp:true},vip_pricing:{"3":300,"5":500,"7":700}},fields:[]};
+  window.ADZ24_ADMIN_CONFIG=ADZ24;
+  const adz24Escape=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  async function adz24Get(path){
+    const r=await fetch(path,{headers:{"Accept":"application/json"},cache:"no-store"});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok||d.success===false)throw new Error(d.error||"Could not load website settings");
+    return d;
+  }
+  function adz24ApplyCategoryData(rows){
+    // If the D1 categories table is empty, keep the homepage usable with its
+    // built-in category directory. Admin-managed D1 categories take priority
+    // whenever at least one active category exists.
+    const fallbackMap=Object.fromEntries(Object.entries(categories).map(([k,v])=>[k,[...v]]));
+    let sourceRows=Array.isArray(rows)?rows.filter(x=>x&&String(x.name||'').trim()):[];
+    if(!sourceRows.length){
+      sourceRows=[];let id=1;
+      Object.entries(fallbackMap).forEach(([name,children])=>{
+        const parentId=id++;
+        sourceRows.push({id:parentId,name,parent_id:null,icon:'◆',sort_order:parentId,active:1});
+        children.forEach(child=>sourceRows.push({id:id++,name:child,parent_id:parentId,icon:'◆',sort_order:id,active:1}));
+      });
+    }
+    ADZ24.categories=sourceRows;
+    Object.keys(categories).forEach(k=>delete categories[k]);
+    const isPersonalService=name=>/^personals$/i.test(String(name||'').trim());
+    const roots=ADZ24.categories.filter(x=>x.parent_id===null||x.parent_id===undefined);
+    const personalRoot=roots.find(x=>String(x.name||'').trim().toLowerCase()==='personals');
+    // Subcategories must be direct children of their main category. In particular,
+    // never include the Personals parent itself as one of its own subcategories.
+    roots.forEach(parent=>{
+      categories[parent.name]=ADZ24.categories.filter(x=>String(x.parent_id)===String(parent.id)).map(x=>x.name);
+    });
+    const serviceRows=personalRoot
+      ? ADZ24.categories.filter(x=>String(x.parent_id)===String(personalRoot.id))
+      : [];
+
+    const grid=document.getElementById('categories');
+    if(grid){
+      const mainRows=roots.filter(x=>!isPersonalService(x.name));
+      const hasPluralHouses=mainRows.some(x=>String(x.name).trim().toLowerCase()==='houses');
+      const visibleMainNames=new Set(mainRows
+        .filter(x=>!(hasPluralHouses&&String(x.name).trim().toLowerCase()==='house'))
+        .map(x=>String(x.name).trim()));
+      const existing=[...grid.querySelectorAll('.category:not(#personalsCategory)')];
+      existing.forEach(card=>{
+        const label=card.querySelector('strong')?.textContent?.trim();
+        if(label){
+          card.hidden=!visibleMainNames.has(label);
+          const row=mainRows.find(x=>String(x.name||'').trim()===label);
+          const icon=card.querySelector('.ico');
+          if(icon)icon.textContent=window.ADZ24_MAIN_CATEGORY_ICONS[label]||row?.icon||'📁';
+        }
+      });
+      const known=new Set(existing.map(card=>card.querySelector('strong')?.textContent?.trim()).filter(Boolean));
+      mainRows.forEach(x=>{
+        const name=String(x.name||'').trim();
+        if(!name||(hasPluralHouses&&name.toLowerCase()==='house')||known.has(name))return;
+        const card=document.createElement('button');
+        card.type='button';card.className='category';
+        const mainIcon=window.ADZ24_MAIN_CATEGORY_ICONS[name]||x.icon||'📁';
+        card.innerHTML='<span class="ico">'+adz24Escape(mainIcon)+'</span><strong>'+adz24Escape(name)+'</strong>';
+        card.addEventListener('click',()=>window.toggleMainCategory(name,card));
+        grid.appendChild(card);known.add(name);
+      });
+      const personals=document.getElementById('personalsCategory');
+      if(personals)personals.hidden=!(serviceRows.length||roots.some(x=>/person/i.test(x.name||'')));
+      const subPanel=document.getElementById('personalsSubcategories');
+      const subGrid=subPanel?.querySelector('.personals-subcategories');
+      if(subGrid){
+        const serviceNames=new Set(serviceRows.map(x=>String(x.name||'').trim()));
+        const existingSub=[...subGrid.querySelectorAll('.category')];
+        const knownSub=new Set(existingSub.map(card=>card.querySelector('strong')?.textContent?.trim()).filter(Boolean));
+        existingSub.forEach(card=>{
+          const label=card.querySelector('strong')?.textContent?.trim();
+          if(label)card.hidden=!serviceNames.has(label);
+        });
+        serviceRows.forEach(x=>{
+          const name=String(x.name||'').trim();
+          if(!name||knownSub.has(name))return;
+          const card=document.createElement('button');
+          card.type='button';card.className='category';
+          card.innerHTML='<span class="ico">'+adz24Escape(x.icon||'◆')+'</span><strong>'+adz24Escape(name)+'</strong>';
+          card.addEventListener('click',()=>chooseCategory(name,card));
+          subGrid.appendChild(card);knownSub.add(name);
+        });
+      }
+    }
+    // Main-category selectors contain all active parent categories from D1.
+    // The selected main category controls its own subcategory selector.
+    const selectableRows=roots;
+    ['searchCategory','districtFilterCategory','postCategory'].forEach(id=>{
+      const sel=document.getElementById(id);if(!sel)return;
+      const old=sel.value;sel.innerHTML='<option value="">Select Category</option>';
+      selectableRows.forEach(x=>{
+        const name=String(x.name||'').trim();if(!name||[...sel.options].some(o=>o.value===name))return;
+        const o=document.createElement('option');o.value=name;o.textContent=name;sel.appendChild(o);
+      });
+      if(old&&[...sel.options].some(o=>o.value===old))sel.value=old;
+    });
+    const sub=document.getElementById('districtFilterSubcategory');
+    if(sub){const current=document.getElementById('districtFilterCategory')?.value||'';sub.innerHTML='<option value="">All Subcategories</option>';(categories[current]||[]).forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;sub.appendChild(o)})}
+    const post=document.getElementById('postCategory'),postSub=document.getElementById('postSubcategory');
+    if(post&&postSub)populateSubcategories(post,postSub);
+  }
+  function hmApplySettings(settings){
+    ADZ24.settings={...ADZ24.settings,...(settings||{})};
+    window.__24adzModerationSettings=ADZ24.settings.moderation||{enabled:true,image_enabled:true};
+    const site=ADZ24.settings.site||{},scam=ADZ24.settings.scam_alert||{},promoCfg=ADZ24.settings.homepage_promo||{},seo=ADZ24.settings.seo||{},maintenance=ADZ24.settings.maintenance||{};
+    if(site.name){const heroTitle=document.querySelector('.hero h1');if(heroTitle)heroTitle.textContent=site.name;document.title=seo.title||site.name+' | Tamil Nadu Classifieds';}
+    if(site.tagline){const tagline=document.querySelector('.reference-headline');if(tagline)tagline.textContent=site.tagline;}
+    if(site.logo_url){const heroTitle=document.querySelector('.hero h1');if(heroTitle){heroTitle.textContent='';const logo=document.createElement('img');logo.src=site.logo_url;logo.alt=site.name||'24Adz';logo.style.cssText='max-width:80%;max-height:90px;object-fit:contain';heroTitle.appendChild(logo);}}
+    if(site.footer_message){const footer=document.querySelector('footer span');if(footer)footer.textContent=site.footer_message;}
+    const contact=ADZ24.settings.contact||{};let support=document.getElementById('24adzSupportContacts');
+    if(contact.phone||contact.email){if(!support){support=document.createElement('div');support.id='24adzSupportContacts';support.style.cssText='margin-top:8px;font-size:13px';document.querySelector('footer')?.appendChild(support);}support.textContent='';if(contact.phone){const p=document.createElement('a');p.href='tel:'+String(contact.phone).replace(/[^0-9+]/g,'');p.textContent='Support: '+contact.phone;p.style.cssText='color:inherit;margin:0 8px';support.appendChild(p);}if(contact.email){const e=document.createElement('a');e.href='mailto:'+contact.email;e.textContent=contact.email;e.style.cssText='color:inherit;margin:0 8px';support.appendChild(e);}}else if(support)support.remove();
+    const scamBox=document.querySelector('.scam-alert');
+    if(scamBox){scamBox.hidden=scam.enabled===false;if(scam.title){const t=scamBox.querySelector('strong');if(t)t.textContent=scam.title;}if(scam.message){const lines=String(scam.message).split(/\r?\n/).filter(Boolean);scamBox.querySelectorAll('span').forEach((el,i)=>{if(lines[i]!==undefined)el.textContent=lines[i];else el.remove();});if(lines.length>scamBox.querySelectorAll('span').length){lines.slice(scamBox.querySelectorAll('span').length).forEach(line=>{const s=document.createElement('span');s.textContent=line;scamBox.appendChild(s);});}}}
+    const promo=document.querySelector('.cinematic-ad-promo');
+    if(promo){promo.hidden=promoCfg.enabled!==true;const set=(sel,val)=>{const el=promo.querySelector(sel);if(el&&val)el.textContent=val;};set('.promo-kicker',promoCfg.kicker);set('.promo-content h2',promoCfg.title);set('.promo-content p',promoCfg.description);const cta=promo.querySelector('.promo-cta');if(cta&&promoCfg.button_text){cta.textContent=promoCfg.button_text+' ';const arrow=document.createElement('span');arrow.textContent='↗';cta.appendChild(arrow);}const prices=ADZ24.settings.vip_pricing||{};const price=document.getElementById('homepagePromoPrice');if(price)price.textContent='₹'+Number(prices['3']??300);const days=document.getElementById('homepagePromoDays');if(days)days.textContent='3 DAYS';}
+    if(seo.title){document.title=seo.title;let m=document.querySelector('meta[name="description"]');if(!m){m=document.createElement('meta');m.name='description';document.head.appendChild(m);}m.content=seo.description||'';let k=document.querySelector('meta[name="keywords"]');if(!k){k=document.createElement('meta');k.name='keywords';document.head.appendChild(k);}k.content=seo.keywords||'';}
+    if(maintenance.enabled===true&&!location.pathname.endsWith('/admin.html')){let cover=document.getElementById('24adzMaintenanceCover');if(!cover){cover=document.createElement('div');cover.id='24adzMaintenanceCover';cover.style.cssText='position:fixed;inset:0;z-index:999999;background:#090604;color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font:600 20px Arial';document.body.appendChild(cover);}cover.textContent=maintenance.message||'24Adz.com is under maintenance. Please visit again soon.';}
+
+    const c=ADZ24.settings.contact_buttons||{};
+    document.documentElement.dataset.hmCall=c.call===false?"off":"on";
+    document.documentElement.dataset.hmWhatsapp=c.whatsapp===false?"off":"on";
+
+    const p=ADZ24.settings.vip_pricing||{};
+    const select=document.getElementById("pricePlanSelect");
+    if(select){
+      const current=select.value;
+      const free=ADZ24.settings.free_ads||{};const freeLimit=Number(free.limit??3),freePeriod=Number(free.period_days??30);
+      select.innerHTML='<option value="">Select Price Plan</option><option value="free">Free Listing · ₹0 ('+freeLimit+'/'+freePeriod+' days/mobile)</option>'+
+        '<option value="vip3">VIP Promotion · 3 Days · ₹'+Number(p["3"]??300)+'</option>'+
+        '<option value="vip5">VIP Promotion · 5 Days · ₹'+Number(p["5"]??500)+'</option>'+
+        '<option value="vip7">VIP Promotion · 7 Days · ₹'+Number(p["7"]??700)+'</option>';
+      select.value=current;
+    }
+  }
+  // Apply admin-controlled visibility to the existing card renderer without replacing its design.
+  if(typeof renderAdCard==="function"){
+    const originalRenderAdCard=renderAdCard;
+    renderAdCard=function(ad){
+      let markup=originalRenderAdCard(ad);
+      const c=ADZ24.settings.contact_buttons||{};
+      if(c.call===false)markup=markup.replace(/<a href="tel:[\s\S]*?<\/a>/g,"");
+      if(c.whatsapp===false)markup=markup.replace(/<a href="https:\/\/wa\.me\/[\s\S]*?<\/a>/g,"");
+      return markup;
+    };
+  }
+  // Make the price-plan detail card use the prices saved by the Admin panel.
+  window.showPricePlan=function(){
+    const key=document.getElementById("pricePlanSelect")?.value,p=ADZ24.settings.vip_pricing||{};
+    const days=key==="vip3"?"3":key==="vip5"?"5":key==="vip7"?"7":null;
+    const panel=document.getElementById("pricePlanDetails");if(!panel)return;
+    if(key==="free"){
+      document.getElementById("pricePlanName").textContent="FREE LISTING";
+      document.getElementById("pricePlanAmount").textContent="₹0";
+      const free=ADZ24.settings.free_ads||{};document.getElementById("pricePlanDescription").textContent="Standard listing. Maximum "+Number(free.limit??3)+" free ads per mobile number every "+Number(free.period_days??30)+" days.";
+      document.getElementById("pricePlanFeatures").innerHTML="<li>Standard listing</li><li>Contact options controlled by website settings</li>";
+      panel.hidden=false;return;
+    }
+    if(!days){panel.hidden=true;return;}
+    document.getElementById("pricePlanName").textContent="VIP · "+days+" DAYS";
+    document.getElementById("pricePlanAmount").textContent="₹"+Number(p[days]??({"3":300,"5":500,"7":700}[days]));
+    document.getElementById("pricePlanDescription").textContent="Promote your advertisement for "+days+" days.";
+    document.getElementById("pricePlanFeatures").innerHTML="<li>VIP placement</li><li>More visibility</li><li>Contact options controlled by website settings</li>";
+    panel.hidden=false;
+  };
+  function hmApplyFields(rows){
+    ADZ24.fields=(rows||[]).filter(x=>Number(x.active??1)!==0);
+    const form=document.getElementById("postForm"),sub=document.getElementById("postSubcategory");
+    if(!form||!sub)return;
+    let wrap=document.getElementById("adminCustomFields");
+    if(!wrap){wrap=document.createElement("div");wrap.id="adminCustomFields";wrap.className="admin-custom-fields";sub.insertAdjacentElement("afterend",wrap)}
+    wrap.innerHTML="";
+    ADZ24.fields.forEach((field,i)=>{
+      const id="adminField_"+field.id,label=document.createElement("label");
+      label.htmlFor=id;label.textContent=field.label+(Number(field.required)?" *":"");
+      let input;
+      const type=String(field.field_type||"text").toLowerCase();
+      if(type==="textarea"){input=document.createElement("textarea");input.className="field"}
+      else if(type==="select"){
+        input=document.createElement("select");input.className="field";
+        const first=document.createElement("option");first.value="";first.textContent="Select "+field.label;input.appendChild(first);
+        let opts=[];try{opts=JSON.parse(field.options_json||"[]")}catch{}
+        opts.forEach(v=>{const o=document.createElement("option");o.value=String(v);o.textContent=String(v);input.appendChild(o)});
+      }else{input=document.createElement("input");input.className="field";input.type=["number","date","tel"].includes(type)?type:"text"}
+      input.id=id;input.name="custom_"+field.id;input.dataset.adminField="1";input.required=Number(field.required)===1;
+      input.maxLength=type==="textarea"?2000:300;
+      wrap.appendChild(label);wrap.appendChild(input);
+    });
+  }
+  async function hmLoadPublicAds(){
+    const remote=[];
+    for(let page=1;page<=20;page++){
+      const d=await adz24Get("/api/public/ads?page="+page+"&limit=100");
+      const batch=d.ads||[];
+      batch.forEach(x=>remote.push({
+        id:String(x.id),title:x.title||"",description:x.description||"",category:x.category||"",
+        subcategory:x.subcategory||"",district:x.district||"",area:x.area||"",price:x.price||"",
+        phone:x.phone||"",whatsapp:x.whatsapp||x.phone||"",contact:x.contact||x.phone||"",
+        image:x.image_url||x.image||"",age:x.age||"",plan:x.plan||"Free",status:"Active",
+        createdAt:x.created_at?Date.parse(String(x.created_at).replace(" ","T")+"Z"):Date.now(),
+        vipStartedAt:Number(x.vipStartedAt)||0,vipExpiresAt:Number(x.vipExpiresAt)||0,
+        ownerPhone:x.phone||"",_fromD1:true
+      }));
+      if(batch.length<100||remote.length>=(Number(d.total)||0))break;
+    }
+    ads=remote; // D1 is the sole source of public advertisements.
+    refreshVipShuffleOrder(ads);
+    if(typeof renderAds==="function")renderAds(ads,1);
+  }
+  // Admin settings and dynamic categories are optional enhancements: on API failure,
+  // all original homepage controls and local fallback remain available.
+  async function hmSync(){
+    try{
+      const [cat,settings,fields]=await Promise.all([
+        adz24Get("/api/public/categories"),adz24Get("/api/public/settings"),adz24Get("/api/public/form-fields")
+      ]);
+      adz24ApplyCategoryData(cat.categories||[]);
+      hmApplySettings(settings.settings||{});
+      hmApplyFields(fields.fields||[]);
+      await hmLoadPublicAds().catch(e=>console.warn("24Adz.com public ads fallback:",e.message));
+      document.dispatchEvent(new CustomEvent("24adz:admin-settings-loaded",{detail:ADZ24}));
+    }catch(e){console.warn("24Adz.com admin integration fallback:",e.message)}
+  }
+  window.addEventListener("DOMContentLoaded",hmSync);
+  if(document.readyState!=="loading")hmSync();
+})();
+
+
+/* 24Adz client posting uses the authenticated homepage modal. */
+
+</script>
+
+
+
+<script id="24adz-client-bridge">
+const A24_API="";let a24Client=null;
+function a24Token(){return localStorage.getItem("24adz_client_token")||""}
+async function a24Call(path,method="GET",body){const r=await fetch(A24_API+path,{method,headers:{...(body?{"Content-Type":"application/json"}:{}),...(a24Token()?{Authorization:"Bearer "+a24Token()}:{})},body:body?JSON.stringify(body):undefined});const d=await r.json().catch(()=>({}));if(!r.ok||d.success===false){const e=new Error(d.error||"Request failed");e.status=r.status;throw e}return d}
+function updateAccountNav(){const logged=!!a24Token();for(const id of ["navLoginBtn","navRegisterBtn"])document.getElementById(id).hidden=logged;for(const id of ["navDashboardBtn","navLogoutBtn"])document.getElementById(id).hidden=!logged;}
+function clientLogout(){localStorage.removeItem("24adz_client_token");localStorage.removeItem("24adz_client");a24Client=null;updateAccountNav();toast("Logged out.");}
+function getCurrentClient(){try{return JSON.parse(localStorage.getItem("24adz_client")||"null")}catch{return null}}
+function startPostAd(){if(!a24Token()){openModal("loginModal");toast("Login or register to post an ad.");return}resetPostFormForNew();openModal("postModal")}
+function resetPostFormForNew(){const f=document.getElementById("postForm");f.reset();document.getElementById("editingAdId").value="";goPostStep(1);}
+async function openClientDashboard(){if(!a24Token()){openModal("loginModal");return}try{const [me,own]=await Promise.all([a24Call("/api/client/me"),a24Call("/api/client/ads")]);const c=me.client,w=me.wallet,limits=me.freeAds;document.getElementById("clientDashboardContent").innerHTML=`<p><b>Account ID:</b> ${c.account_id}</p><p><b>Email:</b> ${c.email}</p><p><b>Coin Balance:</b> ${w.balance}</p><p><b>Free Ads:</b> ${limits.emailUsed}/${limits.emailLimit} · This month mobile: ${limits.phoneUsedThisMonth}/${limits.phoneMonthlyLimit}</p><button class="btn btn-primary" onclick="showCoinPackages()">Purchase Coins</button><h3>My Ads</h3>${own.ads.map(a=>`<article class="ad-card"><b>${escapeDashboardText(a.title)}</b><p>${escapeDashboardText(a.category)} · ${escapeDashboardText(a.district)} / ${escapeDashboardText(a.area)}</p><small>${a.is_vip?"VIP":"Standard"} · ${escapeDashboardText(a.status)}</small><div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-outline" onclick="editServerAd('${String(a.id).replace(/'/g,"\'")}')">Edit</button><button class="btn btn-outline" onclick="deleteServerAd('${String(a.id).replace(/'/g,"\'")}')">Delete</button></div></article>`).join("")||"No ads yet."}`;window.__24adzOwnAds=own.ads;openModal("clientDashboardModal")}catch(e){toast(e.message)}}
+function editServerAd(id){const a=(window.__24adzOwnAds||[]).find(x=>String(x.id)===String(id));if(!a)return;closeModal("clientDashboardModal");resetPostFormForNew();const f=document.getElementById("postForm");for(const k of ["title","description","category","district","area","price","phone","whatsapp"])if(f.elements[k])f.elements[k].value=a[k]||"";document.getElementById("editingAdId").value=a.id;updatePostAreas();document.getElementById("postArea").value=a.area||"";goPostStep(1);openModal("postModal");}
+async function deleteServerAd(id){if(!confirm("Delete this advertisement permanently?"))return;try{await a24Call("/api/client/ads/"+encodeURIComponent(id),"DELETE");toast("Advertisement deleted.");openClientDashboard();}catch(e){toast(e.message)}}
+async function getAdminWhatsApp(){try{const r=await fetch("/api/public/settings"),d=await r.json();return String(d.settings?.contact?.whatsapp_number||"8870017424").replace(/\D/g,"")}catch{return "8870017424"}}
+async function syncAdminWhatsAppLinks(){const n=await getAdminWhatsApp(),link=document.getElementById("promoAdminWhatsApp");if(link)link.href="https://wa.me/91"+n+"?text="+encodeURIComponent("Hello Admin, I want to advertise on 24Adz.com. Please share the details.");}
+syncAdminWhatsAppLinks();
+async function showCoinPackages(){try{const data=await a24Call("/api/client/coin-packages"),packages=data.packages||[];const promptText="24Adz Coin Packages\n"+packages.map(x=>Number(x.coins).toLocaleString("en-IN")+" Coins – ₹"+Number(x.amount).toLocaleString("en-IN")).join("\n")+"\n\nEnter coin amount to purchase:";const coins=Number(prompt(promptText));if(!packages.some(x=>Number(x.coins)===coins))return;const r=await a24Call("/api/client/coin-requests","POST",{coins});const number=await getAdminWhatsApp();const message=`Hello 24Adz Admin, I want to purchase ${coins} Coins. Request ID: ${r.request_id}. Please share the official payment details.`;window.open("https://wa.me/91"+number+"?text="+encodeURIComponent(message),"_blank");toast("WhatsApp opened. Admin will credit coins after payment confirmation.")}catch(e){toast(e.message)}}
+function openMessages(){if(!a24Token()){openModal("loginModal");return}openClientDashboard();}
+function openAdChat(adId){if(!a24Token()){openModal("loginModal");toast("Login to chat with the advertiser.");return}document.getElementById("chatAdId").value=adId;document.getElementById("adChatHistory").textContent="Send a message to start this conversation.";openModal("adChatModal");}
+document.getElementById("adChatForm").addEventListener("submit",async e=>{e.preventDefault();try{await a24Call("/api/client/chat","POST",{ad_id:document.getElementById("chatAdId").value,message:document.getElementById("chatMessage").value});document.getElementById("chatMessage").value="";document.getElementById("adChatHistory").textContent="Message sent. Check Messages in My 24Adz for replies.";toast("Message sent.")}catch(x){toast(x.message)}});
+updateAccountNav();
+</script>
+
+
+<script id="24adz-category-form-controller">
+(function(){
+ const categoryMap={
+  Cars:["New Cars","Used Cars","Car Rentals","Car Services"],
+  Bikes:["New Bikes","Used Bikes","Bike Services"],
+  Mobiles:["New Mobiles","Used Mobiles","Mobile Accessories","Mobile Services"],
+  Jobs:["Full-time Jobs","Part-time Jobs","Work from Home","Temporary Jobs"],
+  Personals:["Massage & Spa","Full Body Massage","Head Massage","Foot Massage","Spa & Wellness","Beauty & Wellness","Other Services"],
+  "Hotel Rooms":["Budget Hotel Rooms","Luxury Hotel Rooms","AC Rooms","Non-AC Rooms","Family Rooms","Lodges","Service Apartments"],
+  "Real Estate":["Residential Properties","Commercial Spaces","Houses for Sale","Houses for Rent","Apartments & Flats","Land & Plots","PG & Hostels"],
+  "Fashion & Beauty":["Beauty Parlour Ads","Dresses","Men's Fashion","Women's Fashion","Men's & Women's Clothing","Beauty Products","Makeup & Cosmetics","Accessories"]
+ };
+ const icons={
+  'New Cars':'🚘','Used Cars':'🚗','Car Rentals':'🚕','Car Services':'🛠️',
+  'New Bikes':'🏍️','Used Bikes':'🛵','Bike Services':'🔧',
+  'New Mobiles':'📱','Used Mobiles':'📲','Mobile Accessories':'🎧','Mobile Services':'🛠️',
+  'Full-time Jobs':'💼','Part-time Jobs':'🕒','Work from Home':'🏡','Temporary Jobs':'📋',
+  'Residential Properties':'🏠','Commercial Spaces':'🏬','Houses for Sale':'🏡','Houses for Rent':'🔑','Apartments & Flats':'🏢','Land & Plots':'🌳','PG & Hostels':'🏘️',
+  'Massage & Spa':'💆','Full Body Massage':'🧖','Head Massage':'💆‍♀️','Foot Massage':'🦶','Spa & Wellness':'🌿','Beauty & Wellness':'✨','Other Services':'⭐',
+  'Budget Hotel Rooms':'🛏️','Luxury Hotel Rooms':'🏨','AC Rooms':'❄️','Non-AC Rooms':'🛌','Family Rooms':'👨‍👩‍👧','Lodges':'🏩','Service Apartments':'🏢',
+  'Beauty Parlour Ads':'💇','Dresses':'👗',"Men's Fashion":'👔',"Women's Fashion":'👚',"Men's & Women's Clothing":'👕','Beauty Products':'💄','Makeup & Cosmetics':'💅','Accessories':'👜'
+ };
+ const $=id=>document.getElementById(id);
+ function ensurePanels(){
+  const root=$("categories"), personal=$("personalsSubcategories"); if(!root||!personal)return;
+  personal.innerHTML='<h3 class="personals-subcategory-title">Categories <span id="activeSubcategoryHeading">Personals</span></h3><div class="categories personals-subcategories" id="dynamicSubcategoryGrid"></div>';
+  const search=$("searchCategory"),post=$("postCategory");
+  if(search){const keep=search.value;const values=Object.keys(categoryMap);search.innerHTML='<option value="">Select Main Category</option>'+values.map(v=>`<option value="${v}">${v}</option>`).join('');if(values.includes(keep))search.value=keep;}if(post){const keep=post.value;const values=Object.keys(categoryMap);post.innerHTML='<option value="">Select Category</option>'+values.map(v=>`<option value="${v}">${v}</option>`).join('');if(values.includes(keep))post.value=keep;}
+ }
+ window.toggleMainCategory=function(name,el){
+  const panel=$("personalsSubcategories"),trigger=$("personalsCategory"); if(!panel)return;
+  const opening=panel.hidden||panel.dataset.category!==name;
+  panel.hidden=!opening; panel.dataset.category=opening?name:"";
+  if(trigger)trigger.setAttribute('aria-expanded',String(opening&&name==='Personals'));
+  document.querySelectorAll('#categories .category').forEach(x=>x.classList.remove('active'));
+  if(opening&&el)el.classList.add('active');
+  if(opening){$('activeSubcategoryHeading').textContent=name;const grid=$('dynamicSubcategoryGrid');grid.innerHTML='';const allRows=window.ADZ24_ADMIN_CONFIG?.categories||[];const parent=allRows.find(x=>String(x.name||'').trim()===name&&(x.parent_id===null||x.parent_id===undefined));const childRows=parent?allRows.filter(x=>String(x.parent_id)===String(parent.id)):[];const subs=childRows.length?childRows.map(x=>({name:x.name,icon:x.icon})):((categoryMap[name]||[]).map(sub=>({name:sub,icon:icons[sub]})));subs.forEach(item=>{const sub=item.name;const card=document.createElement('button');card.type='button';card.className='category';card.innerHTML='<span class="ico"></span><strong></strong>';card.querySelector('.ico').textContent=icons[sub]||item.icon||'📁';card.querySelector('strong').textContent=sub;card.addEventListener('click',()=>{const search=$('searchCategory'),subSearch=$('searchSubcategory');if(search)search.value=name;if(subSearch){populateSearchSubcategories(name);subSearch.value=sub;} if(typeof updateSearchFilterSteps==='function')updateSearchFilterSteps();if(typeof searchAds==='function')searchAds();$('adsSection')?.scrollIntoView({behavior:'smooth',block:'start'});});grid.appendChild(card)});panel.scrollIntoView({behavior:'smooth',block:'nearest'});}
+ };
+ window.collectCategoryDetails=function(root){const data={};if(!root)return data;root.querySelectorAll('[data-detail-key]').forEach(el=>{if(el.value)data[el.dataset.detailKey]=el.value.trim()});return data;};
+ function field(label,key,type='text',opts){let html='<label>'+label+'</label>';if(type==='select'){html+='<select class="field" data-detail-key="'+key+'"><option value="">Select '+label+'</option>'+opts.map(x=>'<option>'+x+'</option>').join('')+'</select>';}else html+='<input class="field" data-detail-key="'+key+'" type="'+type+'" placeholder="'+label+'">';return html;}
+ function renderFields(){const cat=$('postCategory')?.value,sub=$('postSubcategory')?.value,box=$('categorySpecificFields');if(!box)return;let h='';
+  if(cat==='Cars'||cat==='Bikes'){
+   h+=field('Brand','brand','select',cat==='Cars'?['Maruti Suzuki','Hyundai','Tata','Mahindra','Toyota','Honda','Kia','Renault','Volkswagen','Skoda','Other']:['Hero','Honda','TVS','Bajaj','Royal Enfield','Yamaha','Suzuki','KTM','Ola Electric','Ather','Other']);
+   h+=field('Model','model');h+=field('Model Year','model_year','number');h+=field('Condition','condition','select',['New','Used']);
+   if(cat==='Cars'){h+=field('Fuel Type','fuel_type','select',['Petrol','Diesel','CNG','Electric','Hybrid']);h+=field('Transmission','transmission','select',['Manual','Automatic']);h+=field('Kilometres Driven','kilometres','number');}
+   else {h+=field('Engine CC','engine_cc','number');h+=field('Kilometres Driven','kilometres','number');}
+  }else if(cat==='Mobiles'){
+   h+=field('Brand','brand','select',['Apple','Samsung','OnePlus','Xiaomi','Redmi','Realme','Vivo','Oppo','Motorola','Nothing','Other']);h+=field('Model','model');h+=field('Storage','storage','select',['32 GB','64 GB','128 GB','256 GB','512 GB','1 TB']);h+=field('RAM','ram','select',['2 GB','3 GB','4 GB','6 GB','8 GB','12 GB','16 GB']);h+=field('Condition','condition','select',['New','Used']);h+=field('Warranty','warranty','select',['Yes','No']);
+  }else if(cat==='Houses'){
+   h+=field('Property Type','property_type','select',['Independent House','Apartment / Flat','Villa','PG / Hostel','Commercial Building','Land / Plot']);h+=field('Listing Type','listing_type','select',['For Sale','For Rent','Lease']);h+=field('Bedrooms','bedrooms','select',['1 BHK','2 BHK','3 BHK','4 BHK','5+ BHK']);h+=field('Bathrooms','bathrooms','select',['1','2','3','4','5+']);h+=field('Built-up Area (sq.ft.)','builtup_area','number');h+=field('Furnishing','furnishing','select',['Unfurnished','Semi-furnished','Fully furnished']);
+  }else if(cat==='Jobs'){
+   h+=field('Job Type','job_type','select',['Full-time','Part-time','Work from Home','Temporary']);h+=field('Salary','salary');h+=field('Experience','experience','select',['Fresher','1-2 Years','3-5 Years','5+ Years']);h+=field('Education','education');
+  }else if(cat==='Personals'){
+   h+=field('Service Type','service_type','select',[sub||'Massage & Spa','Home Service','At Centre']);h+=field('Provider Type','provider_type','select',['Individual','Business / Centre']);h+=field('Availability','availability','select',['Full-time','Part-time','By Appointment']);
+  }
+  box.innerHTML=h;
+  const year=document.querySelector('#postForm [name="model_year"]');if(year)year.hidden=!(cat==='Cars'||cat==='Bikes'||cat==='Mobiles');
+  const ageLabel=$('postAgeLabel'),agePicker=$('agePicker');if(ageLabel)ageLabel.hidden=cat!=='Personals';if(agePicker)agePicker.hidden=cat!=='Personals';
+ }
+ function init(){ensurePanels();const c=$('postCategory'),sub=$('postSubcategory');if(c){c.addEventListener('change',()=>{if(typeof populateSubcategories==='function')populateSubcategories(c,sub);renderFields()});}if(sub)sub.addEventListener('change',renderFields);renderFields();}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
+
+</body>
+</html>
