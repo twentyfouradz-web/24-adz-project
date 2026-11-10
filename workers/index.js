@@ -46,19 +46,21 @@ function safeAd(b,mobile,status="approved"){
  if(b.subcategory)details.subcategory=str(b.subcategory,100);
  return {id:uid(),title:str(b.title,160),description:str(b.description,5000),category:str(b.category,100),district:str(b.district,100),area:str(b.area,120),price:str(b.price,40),phone:mobile||digits(b.phone),whatsapp:digits(b.whatsapp||mobile||b.phone),image_url:str(b.image_url||b.image,2048),details_json:JSON.stringify(details),status};
 }
-function validateAdContent(a){
+async function validateAdContent(db,a){
  const category=String(a.category||"").toLowerCase();
- if(["cars","bikes","houses","jobs","mobiles"].includes(category)){
-  const text=(String(a.title||"")+" "+String(a.description||"")+" "+String(a.details_json||"")).toLowerCase();
-  const blocked=/\b(porn|pornography|xxx|sex|nude|naked|escort|adult|erotic|sexual|hooker|prostitut\w*|call\s*girl|blowjob|handjob|boobs|breasts|genitals|vagina|penis|anal)\b/i;
-  if(blocked.test(text))return "Adult or sexually explicit words are not allowed in this category.";
- }
+ if(!["cars","bikes","jobs","mobiles","hotel rooms","real estate","fashion & beauty"].includes(category))return "";
+ let moderation={enabled:true,blocked_words:"porn,pornography,xxx,sex,nude,naked,escort,adult,erotic,sexual,hooker,prostitute,call girl,blowjob,handjob,boobs,breasts,genitals,vagina,penis,anal"};
+ try{const row=await first(db,"SELECT value FROM settings WHERE key='moderation'");if(row?.value)moderation={...moderation,...JSON.parse(row.value)}}catch{}
+ if(moderation.enabled===false)return "";
+ const text=(String(a.title||"")+" "+String(a.description||"")+" "+String(a.details_json||"")).toLowerCase();
+ const words=String(moderation.blocked_words||"").split(/[\n,;]+/).map(x=>x.trim().toLowerCase()).filter(x=>x.length>=2);
+ for(const word of words){const escaped=word.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");const pattern=new RegExp("(?:^|[^a-z0-9])"+escaped+"(?:$|[^a-z0-9])","i");if(pattern.test(text))return "Adult or prohibited words are not allowed in this category.";}
  return "";
 }
 async function saveAd(db,a){await run(db,"INSERT INTO ads(id,title,description,category,district,area,price,phone,whatsapp,image_url,status,details_json,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,datetime('now'))",a.id,a.title,a.description,a.category,a.district,a.area,a.price,a.phone,a.whatsapp,a.image_url,a.status,a.details_json||"{}");}
-const MAIN_CATEGORIES=["Cars","Bikes","Houses","Mobiles","Jobs","Personals"];
+const MAIN_CATEGORIES=["Cars","Bikes","Mobiles","Jobs","Personals","Hotel Rooms","Real Estate","Fashion & Beauty"];
 async function validateAdCategory(db,category,detailsJson){
- if(!MAIN_CATEGORIES.includes(category))return "Choose one of the six available main categories.";
+ if(!MAIN_CATEGORIES.includes(category))return "Choose one of the active main categories.";
  let details={};try{details=JSON.parse(detailsJson||"{}")}catch{return "Invalid category details."}
  const available=await first(db,"SELECT COUNT(*) AS n FROM categories c JOIN categories p ON p.id=c.parent_id WHERE p.name=? AND p.active=1 AND c.active=1",category);if(Number(available?.n)>0&&!details.subcategory)return "Please select a subcategory.";
  if(details.subcategory){const sub=await first(db,"SELECT c.id FROM categories c JOIN categories p ON p.id=c.parent_id WHERE c.name=? AND p.name=? AND c.active=1 AND p.active=1",str(details.subcategory,100),category);if(!sub)return "Selected subcategory does not belong to this main category or is inactive.";}
@@ -160,11 +162,13 @@ export default {async fetch(req,env){
   if(p==="/api/client/me"&&req.method==="GET"){
    const client=await clientAuth(req,env,env.DB);if(!client)return bad("Client login required",401);
    const wallet=await first(env.DB,"SELECT balance FROM client_coin_wallets WHERE client_id=?",client.id);
+   const freeCfg=await first(env.DB,"SELECT value FROM settings WHERE key='free_ads'");let free={limit:3,period_days:30};try{if(freeCfg?.value)free={...free,...JSON.parse(freeCfg.value)}}catch{}
+   const period=Math.max(1,Math.min(365,Number(free.period_days)||30)),limit=Math.max(0,Math.min(1000,Number(free.limit)||0));
    const [emailCount,phoneCount]=await Promise.all([
-    first(env.DB,"SELECT COUNT(*) n FROM ads WHERE owner_client_id=? AND created_at>=datetime('now','start of month')",client.id),
-    first(env.DB,"SELECT COUNT(*) n FROM ads a LEFT JOIN client_accounts c ON c.id=a.owner_client_id WHERE (c.mobile=? OR a.phone=?) AND a.created_at>=datetime('now','start of month')",client.mobile,client.mobile)
+    first(env.DB,"SELECT COUNT(*) n FROM ads WHERE owner_client_id=? AND created_at>=datetime('now','-'||?||' days')",client.id,period),
+    first(env.DB,"SELECT COUNT(*) n FROM ads a LEFT JOIN client_accounts c ON c.id=a.owner_client_id WHERE (c.mobile=? OR a.phone=?) AND a.created_at>=datetime('now','-'||?||' days')",client.mobile,client.mobile,period)
    ]);
-   return out({success:true,client,wallet:{balance:Number(wallet?.balance)||0},freeAds:{emailUsed:Number(emailCount?.n)||0,emailLimit:3,phoneUsedThisMonth:Number(phoneCount?.n)||0,phoneMonthlyLimit:3}});
+   return out({success:true,client,wallet:{balance:Number(wallet?.balance)||0},freeAds:{emailUsed:Number(emailCount?.n)||0,emailLimit:limit,phoneUsedThisMonth:Number(phoneCount?.n)||0,phoneMonthlyLimit:limit,periodDays:period}});
   }
   if(p==="/api/client/ads"&&req.method==="GET"){
    const client=await clientAuth(req,env,env.DB);if(!client)return bad("Client login required",401);
@@ -181,7 +185,7 @@ export default {async fetch(req,env){
   }
   const clientAd=p.match(/^\/api\/client\/ads\/([^/]+)$/);
   if(clientAd&&req.method==="PATCH"){
-   const client=await clientAuth(req,env,env.DB);if(!client)return bad("Client login required",401);const b=await readBody(req)||{},a=safeAd(b,client.mobile);const owned=await first(env.DB,"SELECT id,image_url FROM ads WHERE id=? AND owner_client_id=?",clientAd[1],client.id);if(!owned)return bad("You can only edit ads assigned to your account",403);if(!a.title||!a.description||!a.category||!a.district||!a.area)return bad("Title, description, category, district and area are required");const categoryError=await validateAdCategory(env.DB,a.category,a.details_json);if(categoryError)return bad(categoryError);const contentError=validateAdContent(a);if(contentError)return bad(contentError);const image=a.image_url||owned.image_url;await run(env.DB,"UPDATE ads SET title=?,description=?,category=?,district=?,area=?,price=?,phone=?,whatsapp=?,image_url=?,details_json=? WHERE id=? AND owner_client_id=?",a.title,a.description,a.category,a.district,a.area,a.price,a.phone,a.whatsapp,image,a.details_json,clientAd[1],client.id);return out({success:true});
+   const client=await clientAuth(req,env,env.DB);if(!client)return bad("Client login required",401);const b=await readBody(req)||{},a=safeAd(b,client.mobile);const owned=await first(env.DB,"SELECT id,image_url FROM ads WHERE id=? AND owner_client_id=?",clientAd[1],client.id);if(!owned)return bad("You can only edit ads assigned to your account",403);if(!a.title||!a.description||!a.category||!a.district||!a.area)return bad("Title, description, category, district and area are required");const categoryError=await validateAdCategory(env.DB,a.category,a.details_json);if(categoryError)return bad(categoryError);const contentError=await validateAdContent(env.DB,a);if(contentError)return bad(contentError);const image=a.image_url||owned.image_url;await run(env.DB,"UPDATE ads SET title=?,description=?,category=?,district=?,area=?,price=?,phone=?,whatsapp=?,image_url=?,details_json=? WHERE id=? AND owner_client_id=?",a.title,a.description,a.category,a.district,a.area,a.price,a.phone,a.whatsapp,image,a.details_json,clientAd[1],client.id);return out({success:true});
   }
   if(clientAd&&req.method==="DELETE"){
    const client=await clientAuth(req,env,env.DB);if(!client)return bad("Client login required",401);const owned=await first(env.DB,"SELECT id,image_url FROM ads WHERE id=? AND owner_client_id=?",clientAd[1],client.id);if(!owned)return bad("You can only delete ads assigned to your account",403);await run(env.DB,"DELETE FROM ads WHERE id=? AND owner_client_id=?",clientAd[1],client.id);return out({success:true});
@@ -192,14 +196,17 @@ export default {async fetch(req,env){
    if(!await rateLimit(env.DB,await sha256(`client-ad:${client.id}:${ip}`),10,3600000))return bad("Ad posting limit reached. Try again later.",429);
    const b=await readBody(req)||{},a=safeAd(b,client.mobile,"approved");
    if(!a.title||!a.description||!a.category||!a.district||!a.area)return bad("Title, description, category, district and area are required");
-   const categoryError=await validateAdCategory(env.DB,a.category,a.details_json);if(categoryError)return bad(categoryError);const contentError=validateAdContent(a);if(contentError)return bad(contentError);
+   const categoryError=await validateAdCategory(env.DB,a.category,a.details_json);if(categoryError)return bad(categoryError);const contentError=await validateAdContent(env.DB,a);if(contentError)return bad(contentError);
+   const freeCfgRow=await first(env.DB,"SELECT value FROM settings WHERE key='free_ads'");let freeCfg={limit:3,period_days:30};try{if(freeCfgRow?.value)freeCfg={...freeCfg,...JSON.parse(freeCfgRow.value)}}catch{}
+   const freeLimit=Math.max(0,Math.min(1000,Number(freeCfg.limit)||0)),period=Math.max(1,Math.min(365,Number(freeCfg.period_days)||30));
    const [emailCount,phoneCount]=await Promise.all([
-    first(env.DB,"SELECT COUNT(*) n FROM ads WHERE owner_client_id=? AND created_at>=datetime('now','start of month')",client.id),
-    first(env.DB,"SELECT COUNT(*) n FROM ads a LEFT JOIN client_accounts c ON c.id=a.owner_client_id WHERE (c.mobile=? OR a.phone=?) AND a.created_at>=datetime('now','start of month')",client.mobile,client.mobile)
+    first(env.DB,"SELECT COUNT(*) n FROM ads WHERE owner_client_id=? AND created_at>=datetime('now','-'||?||' days')",client.id,period),
+    first(env.DB,"SELECT COUNT(*) n FROM ads a LEFT JOIN client_accounts c ON c.id=a.owner_client_id WHERE (c.mobile=? OR a.phone=?) AND a.created_at>=datetime('now','-'||?||' days')",client.mobile,client.mobile,period)
    ]);
-   const freeAllowed=Number(phoneCount?.n||0)<3;
+   const freeAllowed=Number(phoneCount?.n||0)<freeLimit;
    const plan=str(b.plan||"free",20),days=plan==="vip3"?3:plan==="vip5"?5:plan==="vip7"?7:0;
-   const cost=days===3?300:days===5?500:days===7?700:0;
+   let pricing={"3":300,"5":500,"7":700};try{const pr=await first(env.DB,"SELECT value FROM settings WHERE key='vip_pricing'");if(pr?.value)pricing={...pricing,...JSON.parse(pr.value)}}catch{}
+   const cost=days?Math.max(0,Number(pricing[String(days)])||0):0;
    if(!freeAllowed&&(!days))return bad("Your free limit of "+freeLimit+" ads per mobile number for "+period+" days has been reached. Contact 24Adz Admin on WhatsApp to purchase Coins and continue posting.",402);
    if(days){
     const wallet=await first(env.DB,"SELECT balance FROM client_coin_wallets WHERE client_id=?",client.id);
@@ -227,9 +234,16 @@ export default {async fetch(req,env){
   if(adminReply&&req.method==="POST"){
    if(!await isAdmin(req,env))return bad("Admin login required",401);const b=await readBody(req)||{},original=await first(env.DB,"SELECT * FROM chat_messages WHERE id=?",adminReply[1]);if(!original)return bad("Message not found",404);const message=str(b.message,2000);if(!message)return bad("Reply message required");await run(env.DB,"INSERT INTO chat_messages(ad_id,sender_mobile,receiver_mobile,message,sender_client_id,receiver_client_id) VALUES(?,?,?,?, 'ADMIN',?)",original.ad_id,"ADMIN",original.sender_mobile,message,original.sender_client_id);return out({success:true},201);
   }
-  if(p==="/api/client/coin-packages"&&req.method==="GET")return out({success:true,packages:[1000,2000,3000,4000,5000].map(coins=>({coins,amount:coins}))});
+  if(p==="/api/client/coin-packages"&&req.method==="GET"){
+   let packages=[1000,2000,3000,4000,5000].map(coins=>({coins,amount:coins}));
+   try{const row=await first(env.DB,"SELECT value FROM settings WHERE key='coin_packages'");if(row?.value){const parsed=JSON.parse(row.value);if(Array.isArray(parsed)&&parsed.length)packages=parsed;}}catch{}
+   return out({success:true,packages});
+  }
   if(p==="/api/client/coin-requests"&&req.method==="POST"){
-   const client=await clientAuth(req,env,env.DB);if(!client)return bad("Client login required",401);const b=await readBody(req)||{},coins=Number(b.coins);if(![1000,2000,3000,4000,5000].includes(coins))return bad("Choose a valid coin package");const id=uid();await run(env.DB,"INSERT INTO coin_purchase_requests(id,client_id,email,coins,amount,status) VALUES(?,?,?,?,?,'pending')",id,client.id,client.email,coins,coins);return out({success:true,request_id:id,coins,amount:coins,message:"Contact Admin on WhatsApp and share this request ID after payment."},201);
+   const client=await clientAuth(req,env,env.DB);if(!client)return bad("Client login required",401);const b=await readBody(req)||{},coins=Number(b.coins);
+   let packages=[1000,2000,3000,4000,5000].map(n=>({coins:n,amount:n}));try{const row=await first(env.DB,"SELECT value FROM settings WHERE key='coin_packages'");if(row?.value){const parsed=JSON.parse(row.value);if(Array.isArray(parsed)&&parsed.length)packages=parsed;}}catch{}
+   const selected=packages.find(x=>Number(x.coins)===coins);if(!selected)return bad("Choose a valid coin package");const amount=Number(selected.amount);if(!Number.isFinite(amount)||amount<0)return bad("Invalid coin package amount");
+   const id=uid();await run(env.DB,"INSERT INTO coin_purchase_requests(id,client_id,email,coins,amount,status) VALUES(?,?,?,?,?,'pending')",id,client.id,client.email,coins,amount);return out({success:true,request_id:id,coins,amount,message:"Contact Admin on WhatsApp and share this request ID after payment."},201);
   }
   if(p==="/api/admin/clients"&&req.method==="GET"){
    if(!await isAdmin(req,env))return bad("Admin login required",401);return out({success:true,clients:await all(env.DB,"SELECT c.id,c.account_id,c.name,c.email,c.mobile,COALESCE(w.balance,0) balance,c.created_at FROM client_accounts c LEFT JOIN client_coin_wallets w ON w.client_id=c.id ORDER BY c.created_at DESC LIMIT 500")});
@@ -374,18 +388,49 @@ export default {async fetch(req,env){
    await run(env.DB,"DELETE FROM districts WHERE id=?",districtMatch[1]);
    return out({success:true});
   }
+  if(p==="/api/admin/areas"&&req.method==="GET"){
+   if(!await table(env.DB,"areas"))return bad("Areas table is not available in D1",404);
+   const district=str(url.searchParams.get("district"),100),ac=await cols(env.DB,"areas");
+   if(!ac.includes("district_id")||!ac.includes("name"))return bad("Area table must contain district_id and name columns",500);
+   let districtId=Number(district);
+   if(district&&!districtId&&await table(env.DB,"districts")){
+    const dc=await cols(env.DB,"districts"),dn=dc.includes("name")?"name":dc.includes("district_name")?"district_name":null;
+    if(dn){const d=await first(env.DB,`SELECT id FROM districts WHERE LOWER(${dn})=LOWER(?)`,district);districtId=Number(d?.id)||0;}
+   }
+   const rows=district?await all(env.DB,"SELECT * FROM areas WHERE district_id=? ORDER BY name",districtId):await all(env.DB,"SELECT * FROM areas ORDER BY district_id,name");
+   return out({success:true,areas:rows});
+  }
+  if(p==="/api/admin/areas"&&req.method==="POST"){
+   if(!await table(env.DB,"areas"))return bad("Areas table is not available in D1",404);
+   const b=await readBody(req)||{},ac=await cols(env.DB,"areas"),name=str(b.name,120),districtId=Number(b.district_id);
+   if(!name||!Number.isInteger(districtId)||districtId<1)return bad("Area name and district are required");
+   if(!ac.includes("district_id")||!ac.includes("name"))return bad("Area table must contain district_id and name columns",500);
+   if(await first(env.DB,"SELECT id FROM areas WHERE district_id=? AND LOWER(name)=LOWER(?)",districtId,name))return bad("Area already exists in this district",409);
+   await run(env.DB,"INSERT INTO areas(district_id,name) VALUES(?,?)",districtId,name);return out({success:true});
+  }
+  const areaMatch=p.match(/^\/api\/admin\/areas\/(\d+)$/);
+  if(areaMatch&&req.method==="PUT"){
+   if(!await table(env.DB,"areas"))return bad("Areas table is not available in D1",404);
+   const b=await readBody(req)||{},name=str(b.name,120),districtId=Number(b.district_id),ac=await cols(env.DB,"areas");
+   if(!name||!Number.isInteger(districtId)||districtId<1||!ac.includes("district_id")||!ac.includes("name"))return bad("Valid area name and district are required");
+   await run(env.DB,"UPDATE areas SET name=?,district_id=? WHERE id=?",name,districtId,areaMatch[1]);return out({success:true});
+  }
+  if(areaMatch&&req.method==="DELETE"){
+   if(!await table(env.DB,"areas"))return bad("Areas table is not available in D1",404);
+   await run(env.DB,"DELETE FROM areas WHERE id=?",areaMatch[1]);return out({success:true});
+  }
   if(p==="/api/admin/dashboard"&&req.method==="GET"){
    const [a,k]=await Promise.all([first(env.DB,"SELECT COUNT(*) n FROM ads"),first(env.DB,"SELECT COUNT(*) n FROM categories")]);
    return out({success:true,stats:{ads:a.n,categories:k.n}});
   }
-  if(p==="/api/admin/categories"&&req.method==="GET")return out({success:true,categories:await all(env.DB,"SELECT * FROM categories WHERE name IN ('Cars','Bikes','Houses','Mobiles','Jobs','Personals') AND parent_id IS NULL OR parent_id IN (SELECT id FROM categories WHERE name IN ('Cars','Bikes','Houses','Mobiles','Jobs','Personals') AND parent_id IS NULL) ORDER BY sort_order,id")});
+  if(p==="/api/admin/categories"&&req.method==="GET")return out({success:true,categories:await all(env.DB,"SELECT * FROM categories WHERE parent_id IS NULL OR parent_id IN (SELECT id FROM categories WHERE parent_id IS NULL) ORDER BY sort_order,id")});
   if(p==="/api/admin/categories"&&req.method==="POST"){
    const b=await readBody(req)||{},name=str(b.name,80),slug=str(b.slug||name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""),100),parentId=Number(b.parent_id);
    if(!name||!slug)return bad("Subcategory name and slug are required.");
-   if(!Number.isInteger(parentId)||parentId<=0)return bad("Only subcategories can be created. Select one of the six main categories.");
+   if(!Number.isInteger(parentId)||parentId<=0)return bad("Select a valid main category for this subcategory.");
    const parent=await first(env.DB,"SELECT id,name,parent_id,active FROM categories WHERE id=?",parentId);
    if(!parent||parent.parent_id!==null&&parent.parent_id!==undefined)return bad("Invalid parent. Subcategories must be directly under a main category.");
-   if(!MAIN_CATEGORIES.includes(parent.name))return bad("Only Cars, Bikes, Houses, Mobiles, Jobs and Personals are allowed as main categories.");
+   if(!MAIN_CATEGORIES.includes(parent.name))return bad("This parent is not an enabled main category.");
    if(Number(parent.active)!==1)return bad("Cannot add a subcategory under an inactive main category.");
    if(await first(env.DB,"SELECT id FROM categories WHERE LOWER(name)=LOWER(?) AND parent_id=?",name,parentId))return bad("This subcategory already exists under the selected category.",409);
    if(await first(env.DB,"SELECT id FROM categories WHERE slug=?",slug))return bad("This category URL slug is already in use.",409);
@@ -399,7 +444,7 @@ export default {async fetch(req,env){
    const name=str(b.name,80),slug=str(b.slug||name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""),100),parentId=Number(b.parent_id||current.parent_id);
    if(!name||!slug)return bad("Subcategory name and slug are required.");
    const parent=await first(env.DB,"SELECT * FROM categories WHERE id=?",parentId);
-   if(!parent||parent.parent_id!==null&&parent.parent_id!==undefined||!MAIN_CATEGORIES.includes(parent.name)||Number(parent.active)!==1)return bad("Subcategory must belong directly to an active one of the six main categories.");
+   if(!parent||parent.parent_id!==null&&parent.parent_id!==undefined||!MAIN_CATEGORIES.includes(parent.name)||Number(parent.active)!==1)return bad("Subcategory must belong directly to an active main category.");
    if(await first(env.DB,"SELECT id FROM categories WHERE slug=? AND id<>?",slug,id))return bad("This URL slug is already in use.",409);
    if(await first(env.DB,"SELECT id FROM categories WHERE LOWER(name)=LOWER(?) AND parent_id=? AND id<>?",name,parentId,id))return bad("This subcategory already exists under the selected main category.",409);
    await run(env.DB,"UPDATE categories SET name=?,slug=?,parent_id=?,icon=?,sort_order=?,active=? WHERE id=?",name,slug,parentId,str(b.icon||"◆",20),Math.max(0,Number(b.sort_order)||0),b.active===false?0:1,id);return out({success:true});
@@ -417,9 +462,10 @@ export default {async fetch(req,env){
   if(p==="/api/admin/ads"&&req.method==="POST"){
     const b=await readBody(req)||{},a=safeAd(b,null,"approved");
     if(!a.title||!a.category||!a.district)return bad("Ad title, category and district are required");
-    const categoryError=await validateAdCategory(env.DB,a.category,a.details_json);if(categoryError)return bad(categoryError);const contentError=validateAdContent(a);if(contentError)return bad(contentError);
+    const categoryError=await validateAdCategory(env.DB,a.category,a.details_json);if(categoryError)return bad(categoryError);const contentError=await validateAdContent(env.DB,a);if(contentError)return bad(contentError);
     await saveAd(env.DB,a);
-    const vipAmount=700;
+    let pricing={"3":300,"5":500,"7":700};try{const pr=await first(env.DB,"SELECT value FROM settings WHERE key='vip_pricing'");if(pr?.value)pricing={...pricing,...JSON.parse(pr.value)}}catch{}
+    const vipAmount=Number(pricing["7"])||0;
     await run(env.DB,"INSERT INTO vip_promotions(ad_id,days,amount,status,reference,created_at) VALUES(?,?,?,?,?,datetime('now'))",a.id,7,vipAmount,"active","ADMIN_AUTO_VIP");
     return out({success:true,id:a.id,status:"approved",plan:"VIP 7 Days",message:"Advertisement published with VIP card for 7 days"})
    }
@@ -431,9 +477,10 @@ export default {async fetch(req,env){
     for(const item of items){
      const a=safeAd(item,null,"approved");
      if(!a.title||!a.category||!a.district)return bad("Every ad requires title, category and district");
-     const categoryError=await validateAdCategory(env.DB,a.category,a.details_json);if(categoryError)return bad(categoryError);const contentError=validateAdContent(a);if(contentError)return bad(contentError);
+     const categoryError=await validateAdCategory(env.DB,a.category,a.details_json);if(categoryError)return bad(categoryError);const contentError=await validateAdContent(env.DB,a);if(contentError)return bad(contentError);
      await saveAd(env.DB,a);
-     const amount=700;
+     let pricing={"3":300,"5":500,"7":700};try{const pr=await first(env.DB,"SELECT value FROM settings WHERE key='vip_pricing'");if(pr?.value)pricing={...pricing,...JSON.parse(pr.value)}}catch{}
+     const amount=Number(pricing["7"])||0;
      await run(env.DB,"INSERT INTO vip_promotions(ad_id,days,amount,status,reference,created_at) VALUES(?,?,?,?,?,datetime('now'))",a.id,7,amount,"active","ADMIN_BULK_VIP");
      created.push(a.id);
     }
@@ -453,14 +500,42 @@ export default {async fetch(req,env){
    return bad("Bulk action must be create, delete or status");
   }
   const ad=p.match(/^\/api\/admin\/ads\/([^/]+)$/);
-  if(ad&&req.method==="PATCH"){const b=await readBody(req)||{};if(b.status){if(!["pending","approved","rejected","paused"].includes(b.status))return bad("Invalid ad status");await run(env.DB,"UPDATE ads SET status=? WHERE id=?",b.status,ad[1])}else{const a=safeAd(b,null);const categoryError=await validateAdCategory(env.DB,a.category,a.details_json);if(categoryError)return bad(categoryError);const contentError=validateAdContent(a);if(contentError)return bad(contentError);await run(env.DB,"UPDATE ads SET title=?,description=?,category=?,district=?,area=?,price=?,phone=?,whatsapp=?,image_url=?,details_json=? WHERE id=?",a.title,a.description,a.category,a.district,a.area,a.price,a.phone,a.whatsapp,a.image_url,a.details_json,ad[1])}return out({success:true})}
+  if(ad&&req.method==="PATCH"){const b=await readBody(req)||{};if(b.status){if(!["pending","approved","rejected","paused"].includes(b.status))return bad("Invalid ad status");await run(env.DB,"UPDATE ads SET status=? WHERE id=?",b.status,ad[1])}else{const a=safeAd(b,null);const categoryError=await validateAdCategory(env.DB,a.category,a.details_json);if(categoryError)return bad(categoryError);const contentError=await validateAdContent(env.DB,a);if(contentError)return bad(contentError);await run(env.DB,"UPDATE ads SET title=?,description=?,category=?,district=?,area=?,price=?,phone=?,whatsapp=?,image_url=?,details_json=? WHERE id=?",a.title,a.description,a.category,a.district,a.area,a.price,a.phone,a.whatsapp,a.image_url,a.details_json,ad[1])}return out({success:true})}
   if(ad&&req.method==="DELETE"){
    const adRow=await first(env.DB,"SELECT image_url FROM ads WHERE id=?",ad[1]);
    if(adRow?.image_url&&env.IMAGES){const m=String(adRow.image_url).match(/\/api\/images\/(.+)$/);if(m)await env.IMAGES.delete(m[1]).catch(()=>{});}
    await run(env.DB,"DELETE FROM ads WHERE id=?",ad[1]);return out({success:true})
   }
   if(p==="/api/admin/settings"&&req.method==="GET"){if(!await isAdmin(req,env))return bad("Admin login required",401);const rows=await all(env.DB,"SELECT key,value FROM settings"),settings={};for(const r of rows){try{settings[r.key]=JSON.parse(r.value)}catch{settings[r.key]=r.value}}return out({success:true,settings})}
-  if(p==="/api/admin/settings"&&req.method==="PUT"){if(!await isAdmin(req,env))return bad("Admin login required",401);const b=await readBody(req)||{};for(const [k,v] of Object.entries(b)){if(k==="contact"){const n=digits(v?.whatsapp_number);if(!validMobile(n))return bad("Enter a valid 10-digit WhatsApp number.");await run(env.DB,"INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",k,JSON.stringify({whatsapp_number:n}));continue;}if(k==="free_ads"){const limit=Number(v?.limit),period=Number(v?.period_days);if(!Number.isInteger(limit)||limit<0||limit>1000||![7,15,30,60,90].includes(period))return bad("Invalid free-ad settings.");}await run(env.DB,"INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",str(k,80),JSON.stringify(v));}return out({success:true,message:"Settings saved."})}
+  if(p==="/api/admin/settings"&&req.method==="PUT"){
+   if(!await isAdmin(req,env))return bad("Admin login required",401);
+   const b=await readBody(req)||{};
+   for(const [k,v] of Object.entries(b)){
+    if(!/^[a-z][a-z0-9_]{0,39}$/i.test(k))return bad("Invalid settings key");
+    if(k==="contact"){
+     const n=digits(v?.whatsapp_number);if(!validMobile(n))return bad("Enter a valid 10-digit WhatsApp number.");
+     await run(env.DB,"INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",k,JSON.stringify({whatsapp_number:n,phone:str(v?.phone,20),email:str(v?.email,254)}));continue;
+    }
+    if(k==="free_ads"){
+     const limit=Number(v?.limit),period=Number(v?.period_days);if(!Number.isInteger(limit)||limit<0||limit>1000||![1,7,15,30,60,90,180,365].includes(period))return bad("Invalid free-ad settings.");
+    }
+    if(k==="vip_pricing"){
+     for(const d of ["3","5","7"]){const n=Number(v?.[d]);if(!Number.isFinite(n)||n<0||n>1000000)return bad("VIP prices must be valid non-negative amounts.");}
+    }
+    if(k==="site"&&v?.logo_url){if(!/^https?:\/\//i.test(String(v.logo_url)))return bad("Logo URL must begin with http:// or https://.");}
+    if(k==="moderation"){
+     if(typeof v?.enabled!=="boolean"||typeof v?.image_enabled!=="boolean")return bad("Invalid moderation settings.");
+     if(String(v?.blocked_words||"").length>5000)return bad("Blocked word list is too long.");
+     for(const n of [v?.general_sexy_threshold,v?.massage_sexy_threshold])if(n!==undefined&&(!Number.isFinite(Number(n))||Number(n)<0||Number(n)>1))return bad("Image safety thresholds must be between 0 and 1.");
+    }
+    if(k==="coin_packages"){
+     if(!Array.isArray(v)||v.length<1||v.length>10)return bad("Provide 1 to 10 coin packages.");
+     for(const x of v){if(![1000,2000,3000,4000,5000].includes(Number(x.coins))||!Number.isFinite(Number(x.amount))||Number(x.amount)<0||Number(x.amount)>10000000)return bad("Coin packages must use the supported 1000, 2000, 3000, 4000 or 5000 coin levels with valid rupee amounts.");}
+    }
+    await run(env.DB,"INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",str(k,80),JSON.stringify(v));
+   }
+   return out({success:true,message:"Settings saved."});
+  }
   if(p==="/api/admin/contact-settings"&&req.method==="GET"){
    const row=await first(env.DB,"SELECT value FROM settings WHERE key='contact_buttons'");
    let settings={call:true,whatsapp:true};
@@ -488,7 +563,11 @@ export default {async fetch(req,env){
    return out({success:true,status:"active",message:"VIP placement activated. Confirm payment before using this action."});
   }
   if(p==="/api/admin/vip"&&req.method==="GET")return out({success:true,promotions:await all(env.DB,"SELECT * FROM vip_promotions ORDER BY created_at DESC LIMIT 200")});
-  if(p==="/api/admin/vip"&&req.method==="POST"){const b=await readBody(req)||{},days=Number(b.days)||3,prices={3:300,5:500,7:700},amount=prices[days];if(!prices[days]||!str(b.ad_id,100))return bad("Invalid VIP promotion plan or Ad ID");await run(env.DB,"INSERT INTO vip_promotions(ad_id,days,amount,status,reference,created_at) VALUES(?,?,?,?,?,datetime('now'))",str(b.ad_id,100),days,amount,"pending",str(b.reference,120));return out({success:true,amount})}
+  if(p==="/api/admin/vip"&&req.method==="POST"){
+   const b=await readBody(req)||{},days=Number(b.days)||3;let prices={"3":300,"5":500,"7":700};try{const pr=await first(env.DB,"SELECT value FROM settings WHERE key='vip_pricing'");if(pr?.value)prices={...prices,...JSON.parse(pr.value)}}catch{}
+   const amount=Number(prices[String(days)]);if(![3,5,7].includes(days)||!Number.isFinite(amount)||!str(b.ad_id,100))return bad("Invalid VIP promotion plan or Ad ID");
+   await run(env.DB,"INSERT INTO vip_promotions(ad_id,days,amount,status,reference,created_at) VALUES(?,?,?,?,?,datetime('now'))",str(b.ad_id,100),days,amount,"pending",str(b.reference,120));return out({success:true,amount});
+  }
   return bad("API route not found",404);
  }catch(e){console.error("24Adz.com API error",e);return bad("Internal server error. Check Worker logs.",500)}
 }};
