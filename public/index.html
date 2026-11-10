@@ -1372,7 +1372,7 @@ header .premium-24adz-logo .brand-dot{
     <div id="searchFields" class="search-fields" hidden>
       <input id="keyword" class="field" placeholder="Search listings or business name">
       <div class="search-grid">
-        <select id="searchCategory" class="field"><option value="">Select Main Category</option><option>Cars</option><option>Bikes</option><option>Mobiles</option><option>Jobs</option><option>Real Estate</option><option>Personals</option></select><select id="searchSubcategory" class="field" disabled><option value="">Select Subcategory</option></select>
+        <select id="searchCategory" class="field"><option value="">Select Main Category</option><option>Cars</option><option>Bikes</option><option>Mobiles</option><option>Jobs</option><option>Real Estate</option><option>Hotel Rooms</option><option>Fashion &amp; Beauty</option><option>Personals</option></select><select id="searchSubcategory" class="field" disabled><option value="">Select Subcategory</option></select>
         <select id="searchDistrict" class="field" disabled><option value="">Select District</option></select>
       </div>
       <select id="searchArea" class="field" disabled><option value="">Select Area</option></select>
@@ -1519,9 +1519,10 @@ header .premium-24adz-logo .brand-dot{
     <div class="post-step-indicator" id="postStepIndicator">STEP 1 OF 2 · BASIC DETAILS</div>
     <div class="post-form-step" id="postStep1">
       <label>Advertisement Title *</label><input class="field" name="title" required placeholder="Enter ad title">
-      <label>Category *</label><select class="field" name="category" id="postCategory" required><option value="">Select Category</option><option>Cars</option><option>Bikes</option><option>Mobiles</option><option>Jobs</option><option>Real Estate</option><option>Personals</option></select>
-      <label>Subcategory *</label><select class="field" name="subcategory" id="postSubcategory" required><option value="">Select Subcategory</option></select>
+      <label>Category *</label><select class="field" name="category" id="postCategory" required><option value="">Select Category</option><option>Cars</option><option>Bikes</option><option>Real Estate</option><option>Hotel Rooms</option><option>Fashion &amp; Beauty</option><option>Mobiles</option><option>Jobs</option><option>Personals</option><option>Massage & Spa</option><option>Full Body Massage</option><option>Head Massage</option><option>Foot Massage</option><option>Spa & Wellness</option><option>Beauty & Wellness</option><option>Other Services</option></select>
+      <label>Subcategory</label><select class="field" name="subcategory" id="postSubcategory"><option value="">Select Subcategory</option></select>
       <div id="categorySpecificFields" class="category-specific-fields" aria-live="polite"></div>
+      <label>Model Year (Cars / Bikes / Mobiles where applicable)</label><input class="field" name="model_year" type="number" min="1900" max="2099" placeholder="e.g. 2022">
       <label>Description *</label><textarea class="field" name="description" required placeholder="Describe your service"></textarea>
       <label id="postAgeLabel">Age (Years)</label>
       <input type="hidden" name="age" id="postAge" value="">
@@ -1638,47 +1639,14 @@ const districtAreas = {
 };
 const districts = Object.keys(districtAreas);
 const categories = {
-  "Cars": [
-    "New Cars",
-    "Used Cars",
-    "Car Rentals",
-    "Car Services"
-  ],
-  "Bikes": [
-    "New Bikes",
-    "Used Bikes",
-    "Bike Services"
-  ],
-  "Mobiles": [
-    "New Mobiles",
-    "Used Mobiles",
-    "Mobile Accessories",
-    "Mobile Services"
-  ],
-  "Jobs": [
-    "Full-time Jobs",
-    "Part-time Jobs",
-    "Work from Home",
-    "Temporary Jobs"
-  ],
-  "Real Estate": [
-    "Residential Properties",
-    "Commercial Spaces",
-    "Houses for Sale",
-    "Houses for Rent",
-    "Apartments & Flats",
-    "Land & Plots",
-    "PG & Hostels"
-  ],
-  "Personals": [
-    "Massage & Spa",
-    "Full Body Massage",
-    "Head Massage",
-    "Foot Massage",
-    "Spa & Wellness",
-    "Beauty & Wellness",
-    "Other Services"
-  ]
+  "Cars":["New Cars","Used Cars","Car Rentals","Car Services"],
+  "Bikes":["New Bikes","Used Bikes","Bike Services"],
+  "Real Estate":["Residential Properties","Commercial Spaces","Houses for Sale","Houses for Rent","Apartments & Flats","Land & Plots","PG & Hostels"],
+  "Hotel Rooms":["Budget Hotel Rooms","Luxury Hotel Rooms","AC Rooms","Non-AC Rooms","Family Rooms","Lodges","Service Apartments"],
+  "Fashion & Beauty":["Beauty Parlour Ads","Dresses","Men's Fashion","Women's Fashion","Men's & Women's Clothing","Beauty Products","Makeup & Cosmetics","Accessories"],
+  "Mobiles":["New Mobiles","Used Mobiles","Mobile Accessories","Mobile Services"],
+  "Jobs":["Full-time Jobs","Part-time Jobs","Work from Home","Temporary Jobs"],
+  "Personals":["Massage & Spa","Full Body Massage","Head Massage","Foot Massage","Spa & Wellness","Beauty & Wellness","Other Services"]
 };
 const sampleAds = [];
 let ads = []; // Public listings are loaded from the 24Adz D1 API; browser-local ads are ignored.
@@ -2428,7 +2396,7 @@ document.getElementById("postForm").addEventListener("submit",async e=>{
   if(file){const fd=new FormData();fd.append("image",file);const up=await fetch("/api/client/images/upload",{method:"POST",headers:{Authorization:"Bearer "+a24Token()},body:fd});const ud=await up.json();if(!up.ok||!ud.success)throw new Error(ud.error||"Image upload failed");imageUrl=ud.url;}
   else imageUrl=String(f.get("image")||"");
   const days=Number(f.get("days")||0),plan=days===3?"vip3":days===5?"vip5":days===7?"vip7":"free";
-  const categoryDetails=collectCategoryDetails(document.getElementById("categorySpecificFields")); categoryDetails.contact_name=String(f.get("contact")||"").trim(); if(f.get("age"))categoryDetails.age=String(f.get("age")); const payload={title:f.get("title"),description:f.get("description"),category:f.get("category"),subcategory:f.get("subcategory"),model_year:categoryDetails.model_year||"",category_details:categoryDetails,district:f.get("district"),area:f.get("area"),price:f.get("price"),phone:mobile,whatsapp:f.get("whatsapp")||mobile,image_url:imageUrl,plan};
+  const categoryDetails=collectCategoryDetails(document.getElementById("categorySpecificFields")); const payload={title:f.get("title"),description:f.get("description"),category:f.get("category"),subcategory:f.get("subcategory"),model_year:categoryDetails.model_year||f.get("model_year"),category_details:categoryDetails,district:f.get("district"),area:f.get("area"),price:f.get("price"),phone:mobile,whatsapp:f.get("whatsapp")||mobile,image_url:imageUrl,plan};
   const result=editingId?await a24Call("/api/client/ads/"+encodeURIComponent(editingId),"PATCH",payload):await a24Call("/api/client/ads","POST",payload);
   e.target.reset();document.getElementById("editingAdId").value="";document.getElementById("postAge").value="";
   fillAreas(document.getElementById("postDistrict"),document.getElementById("postArea"));populateSubcategories(document.getElementById("postCategory"),document.getElementById("postSubcategory"));goPostStep(1);closeModal("postModal");toast(result.message||(editingId?"Advertisement updated.":"Advertisement published."));
@@ -2493,17 +2461,10 @@ function editClientAd(id){
  const c=getCurrentClient(),a=ads.find(x=>String(x.id)===String(id)&&digits(x.ownerPhone||x.phone)===digits(c?.phone));if(!a)return;
  closeModal("clientDashboardModal");const form=document.getElementById("postForm");form.reset();
  Object.keys(a).forEach(k=>{if(form.elements[k])form.elements[k].value=a[k]??"";});
- let details={};try{details=typeof a.details_json==="string"?JSON.parse(a.details_json||"{}"):(a.details_json||{});}catch(_){}
- document.getElementById("editingAdId").value=a.id;
- const age=details.age||a.age||"";document.getElementById("postAge").value=age;
- document.getElementById("agePickerTrigger").textContent=age?`Age ${age}`:"Select Age ▾";
+ document.getElementById("editingAdId").value=a.id;document.getElementById("postAge").value=a.age||"";
+ document.getElementById("agePickerTrigger").textContent=a.age?`Age ${a.age}`:"Select Age ▾";
  const district=document.getElementById("postDistrict");district.value=a.district||"";updatePostAreas();document.getElementById("postArea").value=a.area||"";
- const category=document.getElementById("postCategory");category.value=a.category||"";
- category.dispatchEvent(new Event("change",{bubbles:true}));
- populateSubcategories(category,document.getElementById("postSubcategory"));
- document.getElementById("postSubcategory").value=a.subcategory||details.subcategory||"";
- document.querySelector('#postForm [name="contact"]').value=details.contact_name||a.contact_name||"";
- document.querySelectorAll("#categorySpecificFields [data-detail-key]").forEach(el=>{if(details[el.dataset.detailKey]!==undefined)el.value=details[el.dataset.detailKey];});
+ populateSubcategories(document.getElementById("postCategory"),document.getElementById("postSubcategory"));document.getElementById("postSubcategory").value=a.subcategory||"";
  goPostStep(1);openModal("postModal");
 }
 function toggleClientAd(id){const c=getCurrentClient(),a=ads.find(x=>String(x.id)===String(id)&&digits(x.ownerPhone||x.phone)===digits(c?.phone));if(!a)return;a.status=String(a.status||"Active").toLowerCase()==="paused"?"Active":"Paused";saveAds();renderAds();openClientDashboard();toast("Advertisement status updated.");}
@@ -2554,7 +2515,7 @@ setInterval(()=>{
 },30000);
 
 
-window.ADZ24_MAIN_CATEGORY_ICONS={Cars:'🚗',Bikes:'🏍️',Mobiles:'📱',Jobs:'💼','Real Estate':'🏘️',Personals:'❤️'};
+window.ADZ24_MAIN_CATEGORY_ICONS={Cars:'🚗',Bikes:'🏍️',Mobiles:'📱',Jobs:'💼','Real Estate':'🏘️',Personals:'❤️','Hotel Rooms':'🏨','Fashion & Beauty':'💄'};
 
 /* 24Adz Admin-to-Website integration. Public contact methods are Call + WhatsApp only.
    Existing homepage markup/styles and browser-side listing behaviour remain as fallback.
@@ -2583,12 +2544,6 @@ window.ADZ24_MAIN_CATEGORY_ICONS={Cars:'🚗',Bikes:'🏍️',Mobiles:'📱',Job
         children.forEach(child=>sourceRows.push({id:id++,name:child,parent_id:parentId,icon:'◆',sort_order:id,active:1}));
       });
     }
-    const allowedMainNames=new Set(["Cars","Bikes","Mobiles","Jobs","Real Estate","Personals"]);
-    const allowedParentIds=new Set(sourceRows.filter(x=>(x.parent_id===null||x.parent_id===undefined)&&allowedMainNames.has(String(x.name||"").trim())).map(x=>String(x.id)));
-    sourceRows=sourceRows.filter(x=>{
-      const isRoot=x.parent_id===null||x.parent_id===undefined;
-      return isRoot?allowedMainNames.has(String(x.name||"").trim()):allowedParentIds.has(String(x.parent_id));
-    });
     ADZ24.categories=sourceRows;
     Object.keys(categories).forEach(k=>delete categories[k]);
     const isPersonalService=name=>/^personals$/i.test(String(name||'').trim());
@@ -2606,7 +2561,10 @@ window.ADZ24_MAIN_CATEGORY_ICONS={Cars:'🚗',Bikes:'🏍️',Mobiles:'📱',Job
     const grid=document.getElementById('categories');
     if(grid){
       const mainRows=roots.filter(x=>!isPersonalService(x.name));
-      const visibleMainNames=new Set(mainRows.map(x=>String(x.name).trim()));
+      const hasPluralHouses=mainRows.some(x=>String(x.name).trim().toLowerCase()==='houses');
+      const visibleMainNames=new Set(mainRows
+        .filter(x=>!(hasPluralHouses&&String(x.name).trim().toLowerCase()==='house'))
+        .map(x=>String(x.name).trim()));
       const existing=[...grid.querySelectorAll('.category:not(#personalsCategory)')];
       existing.forEach(card=>{
         const label=card.querySelector('strong')?.textContent?.trim();
@@ -2620,7 +2578,7 @@ window.ADZ24_MAIN_CATEGORY_ICONS={Cars:'🚗',Bikes:'🏍️',Mobiles:'📱',Job
       const known=new Set(existing.map(card=>card.querySelector('strong')?.textContent?.trim()).filter(Boolean));
       mainRows.forEach(x=>{
         const name=String(x.name||'').trim();
-        if(!name||known.has(name))return;
+        if(!name||(hasPluralHouses&&name.toLowerCase()==='house')||known.has(name))return;
         const card=document.createElement('button');
         card.type='button';card.className='category';
         const mainIcon=window.ADZ24_MAIN_CATEGORY_ICONS[name]||x.icon||'📁';
@@ -2826,48 +2784,15 @@ updateAccountNav();
 <script id="24adz-category-form-controller">
 (function(){
  const categoryMap={
-  "Cars": [
-    "New Cars",
-    "Used Cars",
-    "Car Rentals",
-    "Car Services"
-  ],
-  "Bikes": [
-    "New Bikes",
-    "Used Bikes",
-    "Bike Services"
-  ],
-  "Mobiles": [
-    "New Mobiles",
-    "Used Mobiles",
-    "Mobile Accessories",
-    "Mobile Services"
-  ],
-  "Jobs": [
-    "Full-time Jobs",
-    "Part-time Jobs",
-    "Work from Home",
-    "Temporary Jobs"
-  ],
-  "Real Estate": [
-    "Residential Properties",
-    "Commercial Spaces",
-    "Houses for Sale",
-    "Houses for Rent",
-    "Apartments & Flats",
-    "Land & Plots",
-    "PG & Hostels"
-  ],
-  "Personals": [
-    "Massage & Spa",
-    "Full Body Massage",
-    "Head Massage",
-    "Foot Massage",
-    "Spa & Wellness",
-    "Beauty & Wellness",
-    "Other Services"
-  ]
-};
+  Cars:["New Cars","Used Cars","Car Rentals","Car Services"],
+  Bikes:["New Bikes","Used Bikes","Bike Services"],
+  Mobiles:["New Mobiles","Used Mobiles","Mobile Accessories","Mobile Services"],
+  Jobs:["Full-time Jobs","Part-time Jobs","Work from Home","Temporary Jobs"],
+  Personals:["Massage & Spa","Full Body Massage","Head Massage","Foot Massage","Spa & Wellness","Beauty & Wellness","Other Services"],
+  "Hotel Rooms":["Budget Hotel Rooms","Luxury Hotel Rooms","AC Rooms","Non-AC Rooms","Family Rooms","Lodges","Service Apartments"],
+  "Real Estate":["Residential Properties","Commercial Spaces","Houses for Sale","Houses for Rent","Apartments & Flats","Land & Plots","PG & Hostels"],
+  "Fashion & Beauty":["Beauty Parlour Ads","Dresses","Men's Fashion","Women's Fashion","Men's & Women's Clothing","Beauty Products","Makeup & Cosmetics","Accessories"]
+ };
  const icons={
   'New Cars':'🚘','Used Cars':'🚗','Car Rentals':'🚕','Car Services':'🛠️',
   'New Bikes':'🏍️','Used Bikes':'🛵','Bike Services':'🔧',
@@ -2875,6 +2800,8 @@ updateAccountNav();
   'Full-time Jobs':'💼','Part-time Jobs':'🕒','Work from Home':'🏡','Temporary Jobs':'📋',
   'Residential Properties':'🏠','Commercial Spaces':'🏬','Houses for Sale':'🏡','Houses for Rent':'🔑','Apartments & Flats':'🏢','Land & Plots':'🌳','PG & Hostels':'🏘️',
   'Massage & Spa':'💆','Full Body Massage':'🧖','Head Massage':'💆‍♀️','Foot Massage':'🦶','Spa & Wellness':'🌿','Beauty & Wellness':'✨','Other Services':'⭐',
+  'Budget Hotel Rooms':'🛏️','Luxury Hotel Rooms':'🏨','AC Rooms':'❄️','Non-AC Rooms':'🛌','Family Rooms':'👨‍👩‍👧','Lodges':'🏩','Service Apartments':'🏢',
+  'Beauty Parlour Ads':'💇','Dresses':'👗',"Men's Fashion":'👔',"Women's Fashion":'👚',"Men's & Women's Clothing":'👕','Beauty Products':'💄','Makeup & Cosmetics':'💅','Accessories':'👜'
  };
  const $=id=>document.getElementById(id);
  function ensurePanels(){
@@ -2902,7 +2829,7 @@ updateAccountNav();
    else {h+=field('Engine CC','engine_cc','number');h+=field('Kilometres Driven','kilometres','number');}
   }else if(cat==='Mobiles'){
    h+=field('Brand','brand','select',['Apple','Samsung','OnePlus','Xiaomi','Redmi','Realme','Vivo','Oppo','Motorola','Nothing','Other']);h+=field('Model','model');h+=field('Storage','storage','select',['32 GB','64 GB','128 GB','256 GB','512 GB','1 TB']);h+=field('RAM','ram','select',['2 GB','3 GB','4 GB','6 GB','8 GB','12 GB','16 GB']);h+=field('Condition','condition','select',['New','Used']);h+=field('Warranty','warranty','select',['Yes','No']);
-  }else if(cat==='Real Estate'){
+  }else if(cat==='Houses'){
    h+=field('Property Type','property_type','select',['Independent House','Apartment / Flat','Villa','PG / Hostel','Commercial Building','Land / Plot']);h+=field('Listing Type','listing_type','select',['For Sale','For Rent','Lease']);h+=field('Bedrooms','bedrooms','select',['1 BHK','2 BHK','3 BHK','4 BHK','5+ BHK']);h+=field('Bathrooms','bathrooms','select',['1','2','3','4','5+']);h+=field('Built-up Area (sq.ft.)','builtup_area','number');h+=field('Furnishing','furnishing','select',['Unfurnished','Semi-furnished','Fully furnished']);
   }else if(cat==='Jobs'){
    h+=field('Job Type','job_type','select',['Full-time','Part-time','Work from Home','Temporary']);h+=field('Salary','salary');h+=field('Experience','experience','select',['Fresher','1-2 Years','3-5 Years','5+ Years']);h+=field('Education','education');
