@@ -44,11 +44,14 @@ async function cols(db,t){return (await all(db,`PRAGMA table_info(${t})`)).map(x
 function safeAd(b,mobile,status="approved"){
  const details=b.category_details&&typeof b.category_details==="object"&&!Array.isArray(b.category_details)?{...b.category_details}:{};
  if(b.subcategory)details.subcategory=str(b.subcategory,100);
+ if(b.contact_name)details.contact_name=str(b.contact_name,100);
+ if(b.age)details.age=str(b.age,3);
+ if(b.model_year)details.model_year=str(b.model_year,4);
  return {id:uid(),title:str(b.title,160),description:str(b.description,5000),category:str(b.category,100),district:str(b.district,100),area:str(b.area,120),price:str(b.price,40),phone:mobile||digits(b.phone),whatsapp:digits(b.whatsapp||mobile||b.phone),image_url:str(b.image_url||b.image,2048),details_json:JSON.stringify(details),status};
 }
 async function validateAdContent(db,a){
  const category=String(a.category||"").toLowerCase();
- if(!["cars","bikes","jobs","mobiles","hotel rooms","real estate","fashion & beauty"].includes(category))return "";
+ if(!["cars","bikes","jobs","mobiles","real estate","personals"].includes(category))return "";
  let moderation={enabled:true,blocked_words:"porn,pornography,xxx,sex,nude,naked,escort,adult,erotic,sexual,hooker,prostitute,call girl,blowjob,handjob,boobs,breasts,genitals,vagina,penis,anal"};
  try{const row=await first(db,"SELECT value FROM settings WHERE key='moderation'");if(row?.value)moderation={...moderation,...JSON.parse(row.value)}}catch{}
  if(moderation.enabled===false)return "";
@@ -58,7 +61,7 @@ async function validateAdContent(db,a){
  return "";
 }
 async function saveAd(db,a){await run(db,"INSERT INTO ads(id,title,description,category,district,area,price,phone,whatsapp,image_url,status,details_json,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,datetime('now'))",a.id,a.title,a.description,a.category,a.district,a.area,a.price,a.phone,a.whatsapp,a.image_url,a.status,a.details_json||"{}");}
-const MAIN_CATEGORIES=["Cars","Bikes","Mobiles","Jobs","Personals","Hotel Rooms","Real Estate","Fashion & Beauty"];
+const MAIN_CATEGORIES=["Cars","Bikes","Mobiles","Jobs","Real Estate","Personals"];
 async function validateAdCategory(db,category,detailsJson){
  if(!MAIN_CATEGORIES.includes(category))return "Choose one of the active main categories.";
  let details={};try{details=JSON.parse(detailsJson||"{}")}catch{return "Invalid category details."}
