@@ -1392,7 +1392,7 @@ header .premium-24adz-logo .brand-dot{
       <div class="category" onclick="toggleMainCategory('Bikes',this)"><span class="ico">🏍️</span><strong>Bikes</strong></div>
       <div class="category" onclick="toggleMainCategory('Mobiles',this)"><span class="ico">📱</span><strong>Mobiles</strong></div>
       <div class="category" onclick="toggleMainCategory('Jobs',this)"><span class="ico">💼</span><strong>Jobs</strong></div>
-      <div class="category" onclick="toggleMainCategory('Real Estate',this)"><span class="ico">🏡</span><strong>Real Estate</strong></div>
+      <div class="category" onclick="toggleMainCategory('Real Estate',this)"><span class="ico">🏘️</span><strong>Real Estate</strong></div>
       <button type="button" class="category personals-category" id="personalsCategory" aria-expanded="false" aria-controls="personalsSubcategories" onclick="toggleMainCategory('Personals',this)"><span class="ico">❤️</span><strong>Personals</strong></button>
     </div>
     <div class="personals-subcategory-panel" id="personalsSubcategories" hidden>
@@ -2566,7 +2566,14 @@ setInterval(()=>{
       const existing=[...grid.querySelectorAll('.category:not(#personalsCategory)')];
       existing.forEach(card=>{
         const label=card.querySelector('strong')?.textContent?.trim();
-        if(label)card.hidden=!visibleMainNames.has(label);
+        if(label){
+          card.hidden=!visibleMainNames.has(label);
+          const row=mainRows.find(x=>String(x.name||'').trim()===label);
+          const icon=card.querySelector('.ico');
+          if(icon&&row?.icon)icon.textContent=row.icon;
+          else if(icon&&label==='Real Estate')icon.textContent='🏘️';
+          else if(icon&&label==='Fashion & Beauty')icon.textContent='💄';
+        }
       });
       const known=new Set(existing.map(card=>card.querySelector('strong')?.textContent?.trim()).filter(Boolean));
       mainRows.forEach(x=>{
@@ -2574,8 +2581,9 @@ setInterval(()=>{
         if(!name||(hasPluralHouses&&name.toLowerCase()==='house')||known.has(name))return;
         const card=document.createElement('button');
         card.type='button';card.className='category';
-        card.innerHTML='<span class="ico">'+adz24Escape(x.icon||'◆')+'</span><strong>'+adz24Escape(name)+'</strong>';
-        card.addEventListener('click',()=>chooseCategory(name,card));
+        const mainIcon=x.icon||(name==='Fashion & Beauty'?'💄':name==='Real Estate'?'🏘️':'◆');
+        card.innerHTML='<span class="ico">'+adz24Escape(mainIcon)+'</span><strong>'+adz24Escape(name)+'</strong>';
+        card.addEventListener('click',()=>window.toggleMainCategory(name,card));
         grid.appendChild(card);known.add(name);
       });
       const personals=document.getElementById('personalsCategory');
@@ -2800,7 +2808,7 @@ updateAccountNav();
   if(trigger)trigger.setAttribute('aria-expanded',String(opening&&name==='Personals'));
   document.querySelectorAll('#categories .category').forEach(x=>x.classList.remove('active'));
   if(opening&&el)el.classList.add('active');
-  if(opening){$('activeSubcategoryHeading').textContent=name;const grid=$('dynamicSubcategoryGrid');grid.innerHTML='';(categoryMap[name]||[]).forEach(sub=>{const card=document.createElement('button');card.type='button';card.className='category';card.innerHTML='<span class="ico"></span><strong></strong>';card.querySelector('.ico').textContent=icons[sub]||'◆';card.querySelector('strong').textContent=sub;card.addEventListener('click',()=>{const search=$('searchCategory'),subSearch=$('searchSubcategory');if(search)search.value=name;if(subSearch){populateSearchSubcategories(name);subSearch.value=sub;} if(typeof updateSearchFilterSteps==='function')updateSearchFilterSteps();if(typeof searchAds==='function')searchAds();$('adsSection')?.scrollIntoView({behavior:'smooth',block:'start'});});grid.appendChild(card)});panel.scrollIntoView({behavior:'smooth',block:'nearest'});}
+  if(opening){$('activeSubcategoryHeading').textContent=name;const grid=$('dynamicSubcategoryGrid');grid.innerHTML='';const allRows=window.ADZ24_ADMIN_CONFIG?.categories||[];const parent=allRows.find(x=>String(x.name||'').trim()===name&&(x.parent_id===null||x.parent_id===undefined));const childRows=parent?allRows.filter(x=>String(x.parent_id)===String(parent.id)):[];const subs=childRows.length?childRows.map(x=>({name:x.name,icon:x.icon})):((categoryMap[name]||[]).map(sub=>({name:sub,icon:icons[sub]})));subs.forEach(item=>{const sub=item.name;const card=document.createElement('button');card.type='button';card.className='category';card.innerHTML='<span class="ico"></span><strong></strong>';card.querySelector('.ico').textContent=item.icon||icons[sub]||'◆';card.querySelector('strong').textContent=sub;card.addEventListener('click',()=>{const search=$('searchCategory'),subSearch=$('searchSubcategory');if(search)search.value=name;if(subSearch){populateSearchSubcategories(name);subSearch.value=sub;} if(typeof updateSearchFilterSteps==='function')updateSearchFilterSteps();if(typeof searchAds==='function')searchAds();$('adsSection')?.scrollIntoView({behavior:'smooth',block:'start'});});grid.appendChild(card)});panel.scrollIntoView({behavior:'smooth',block:'nearest'});}
  };
  window.collectCategoryDetails=function(root){const data={};if(!root)return data;root.querySelectorAll('[data-detail-key]').forEach(el=>{if(el.value)data[el.dataset.detailKey]=el.value.trim()});return data;};
  function field(label,key,type='text',opts){let html='<label>'+label+'</label>';if(type==='select'){html+='<select class="field" data-detail-key="'+key+'"><option value="">Select '+label+'</option>'+opts.map(x=>'<option>'+x+'</option>').join('')+'</select>';}else html+='<input class="field" data-detail-key="'+key+'" type="'+type+'" placeholder="'+label+'">';return html;}
