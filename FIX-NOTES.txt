@@ -1,0 +1,35 @@
+24Adz.com homepage and category form cleanup
+Date: 10 November 2026
+
+Included runtime files only:
+- public/index.html — homepage, registration/login, search and Post Ad forms
+- public/admin.html — admin panel used by the site
+- workers/index.js — API/backend
+- migrations/*.sql — database schema/history required by the Worker
+- wrangler.toml and package.json — deployment configuration
+
+Cleanup and fixes:
+- Homepage's six main categories are the only categories exposed to users:
+  Cars, Bikes, Mobiles, Jobs, Real Estate, Personals.
+- Removed legacy Hotel Rooms and Fashion & Beauty categories from homepage
+  category fallback, search options, and Worker category allow-list.
+- All six categories use their own homepage subcategory lists.
+- Post Ad requires a valid main category and subcategory.
+- Category-specific fields are shown for Cars, Bikes, Mobiles, Real Estate,
+  Jobs and Personals.
+- Contact name, age and category-specific details are sent to the API and
+  saved in D1 details_json.
+- Editing an ad restores its category, subcategory and saved detail fields.
+- Admin category data is filtered so only the six homepage categories and
+  their direct subcategories can appear on the homepage.
+- Existing homepage design/layout/styles were retained.
+
+Checks:
+- All four inline homepage JavaScript blocks pass `node --check`.
+- Worker JavaScript passes `node --check`.
+
+Deployment note:
+Upload/replace public/index.html and workers/index.js in the existing project,
+then deploy the Worker. No new D1 migration is required for these code changes.
+Keep the existing D1 and R2 bindings in wrangler.toml; verify they match the
+resources in your Cloudflare account before deploying.
