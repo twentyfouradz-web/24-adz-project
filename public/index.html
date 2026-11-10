@@ -2515,6 +2515,8 @@ setInterval(()=>{
 },30000);
 
 
+window.ADZ24_MAIN_CATEGORY_ICONS={Cars:'🚗',Bikes:'🏍️',Mobiles:'📱',Jobs:'💼','Real Estate':'🏘️',Personals:'❤️','Hotel Rooms':'🏨','Fashion & Beauty':'💄'};
+
 /* 24Adz Admin-to-Website integration. Public contact methods are Call + WhatsApp only.
    Existing homepage markup/styles and browser-side listing behaviour remain as fallback.
    Active admin categories, contact settings, VIP pricing and form fields are loaded from D1. */
@@ -2570,9 +2572,7 @@ setInterval(()=>{
           card.hidden=!visibleMainNames.has(label);
           const row=mainRows.find(x=>String(x.name||'').trim()===label);
           const icon=card.querySelector('.ico');
-          if(icon&&row?.icon)icon.textContent=row.icon;
-          else if(icon&&label==='Real Estate')icon.textContent='🏘️';
-          else if(icon&&label==='Fashion & Beauty')icon.textContent='💄';
+          if(icon)icon.textContent=window.ADZ24_MAIN_CATEGORY_ICONS[label]||row?.icon||'📁';
         }
       });
       const known=new Set(existing.map(card=>card.querySelector('strong')?.textContent?.trim()).filter(Boolean));
@@ -2581,7 +2581,7 @@ setInterval(()=>{
         if(!name||(hasPluralHouses&&name.toLowerCase()==='house')||known.has(name))return;
         const card=document.createElement('button');
         card.type='button';card.className='category';
-        const mainIcon=x.icon||(name==='Fashion & Beauty'?'💄':name==='Real Estate'?'🏘️':'◆');
+        const mainIcon=window.ADZ24_MAIN_CATEGORY_ICONS[name]||x.icon||'📁';
         card.innerHTML='<span class="ico">'+adz24Escape(mainIcon)+'</span><strong>'+adz24Escape(name)+'</strong>';
         card.addEventListener('click',()=>window.toggleMainCategory(name,card));
         grid.appendChild(card);known.add(name);
@@ -2793,7 +2793,16 @@ updateAccountNav();
   "Real Estate":["Residential Properties","Commercial Spaces","Houses for Sale","Houses for Rent","Apartments & Flats","Land & Plots","PG & Hostels"],
   "Fashion & Beauty":["Beauty Parlour Ads","Dresses","Men's Fashion","Women's Fashion","Men's & Women's Clothing","Beauty Products","Makeup & Cosmetics","Accessories"]
  };
- const icons={"New Cars":"🚘","Used Cars":"🚗","Car Rentals":"🚕","Car Services":"🛠️","New Bikes":"🏍️","Used Bikes":"🏍️","Bike Services":"🔧","Houses for Rent":"🏠","Houses for Sale":"🏡","PG & Shared Accommodation":"🏘️","Commercial Properties":"🏢","Land & Plots":"🌳","New Mobiles":"📱","Used Mobiles":"📲","Mobile Accessories":"🎧","Mobile Services":"🛠️","Full-time Jobs":"💼","Part-time Jobs":"🕒","Work from Home":"🏡","Temporary Jobs":"📋","Massage & Spa":"💆","Full Body Massage":"🧖","Head Massage":"💆‍♀️","Foot Massage":"🦶","Spa & Wellness":"🌿","Beauty & Wellness":"✨","Other Services":"⭐","Budget Hotel Rooms":"🛏️","Luxury Hotel Rooms":"🏨","AC Rooms":"❄️","Non-AC Rooms":"🛌","Family Rooms":"👨‍👩‍👧","Lodges":"🏩","Service Apartments":"🏢","Residential Properties":"🏠","Commercial Spaces":"🏬","Apartments & Flats":"🏢","PG & Hostels":"🏘️","Beauty Parlour Ads":"💇","Dresses":"👗","Men's Fashion":"👔","Women's Fashion":"👚","Men's & Women's Clothing":"👕","Beauty Products":"💄","Makeup & Cosmetics":"💅","Accessories":"👜"};
+ const icons={
+  'New Cars':'🚘','Used Cars':'🚗','Car Rentals':'🚕','Car Services':'🛠️',
+  'New Bikes':'🏍️','Used Bikes':'🛵','Bike Services':'🔧',
+  'New Mobiles':'📱','Used Mobiles':'📲','Mobile Accessories':'🎧','Mobile Services':'🛠️',
+  'Full-time Jobs':'💼','Part-time Jobs':'🕒','Work from Home':'🏡','Temporary Jobs':'📋',
+  'Residential Properties':'🏠','Commercial Spaces':'🏬','Houses for Sale':'🏡','Houses for Rent':'🔑','Apartments & Flats':'🏢','Land & Plots':'🌳','PG & Hostels':'🏘️',
+  'Massage & Spa':'💆','Full Body Massage':'🧖','Head Massage':'💆‍♀️','Foot Massage':'🦶','Spa & Wellness':'🌿','Beauty & Wellness':'✨','Other Services':'⭐',
+  'Budget Hotel Rooms':'🛏️','Luxury Hotel Rooms':'🏨','AC Rooms':'❄️','Non-AC Rooms':'🛌','Family Rooms':'👨‍👩‍👧','Lodges':'🏩','Service Apartments':'🏢',
+  'Beauty Parlour Ads':'💇','Dresses':'👗',"Men's Fashion":'👔',"Women's Fashion":'👚',"Men's & Women's Clothing":'👕','Beauty Products':'💄','Makeup & Cosmetics':'💅','Accessories':'👜'
+ };
  const $=id=>document.getElementById(id);
  function ensurePanels(){
   const root=$("categories"), personal=$("personalsSubcategories"); if(!root||!personal)return;
@@ -2808,7 +2817,7 @@ updateAccountNav();
   if(trigger)trigger.setAttribute('aria-expanded',String(opening&&name==='Personals'));
   document.querySelectorAll('#categories .category').forEach(x=>x.classList.remove('active'));
   if(opening&&el)el.classList.add('active');
-  if(opening){$('activeSubcategoryHeading').textContent=name;const grid=$('dynamicSubcategoryGrid');grid.innerHTML='';const allRows=window.ADZ24_ADMIN_CONFIG?.categories||[];const parent=allRows.find(x=>String(x.name||'').trim()===name&&(x.parent_id===null||x.parent_id===undefined));const childRows=parent?allRows.filter(x=>String(x.parent_id)===String(parent.id)):[];const subs=childRows.length?childRows.map(x=>({name:x.name,icon:x.icon})):((categoryMap[name]||[]).map(sub=>({name:sub,icon:icons[sub]})));subs.forEach(item=>{const sub=item.name;const card=document.createElement('button');card.type='button';card.className='category';card.innerHTML='<span class="ico"></span><strong></strong>';card.querySelector('.ico').textContent=item.icon||icons[sub]||'◆';card.querySelector('strong').textContent=sub;card.addEventListener('click',()=>{const search=$('searchCategory'),subSearch=$('searchSubcategory');if(search)search.value=name;if(subSearch){populateSearchSubcategories(name);subSearch.value=sub;} if(typeof updateSearchFilterSteps==='function')updateSearchFilterSteps();if(typeof searchAds==='function')searchAds();$('adsSection')?.scrollIntoView({behavior:'smooth',block:'start'});});grid.appendChild(card)});panel.scrollIntoView({behavior:'smooth',block:'nearest'});}
+  if(opening){$('activeSubcategoryHeading').textContent=name;const grid=$('dynamicSubcategoryGrid');grid.innerHTML='';const allRows=window.ADZ24_ADMIN_CONFIG?.categories||[];const parent=allRows.find(x=>String(x.name||'').trim()===name&&(x.parent_id===null||x.parent_id===undefined));const childRows=parent?allRows.filter(x=>String(x.parent_id)===String(parent.id)):[];const subs=childRows.length?childRows.map(x=>({name:x.name,icon:x.icon})):((categoryMap[name]||[]).map(sub=>({name:sub,icon:icons[sub]})));subs.forEach(item=>{const sub=item.name;const card=document.createElement('button');card.type='button';card.className='category';card.innerHTML='<span class="ico"></span><strong></strong>';card.querySelector('.ico').textContent=icons[sub]||item.icon||'📁';card.querySelector('strong').textContent=sub;card.addEventListener('click',()=>{const search=$('searchCategory'),subSearch=$('searchSubcategory');if(search)search.value=name;if(subSearch){populateSearchSubcategories(name);subSearch.value=sub;} if(typeof updateSearchFilterSteps==='function')updateSearchFilterSteps();if(typeof searchAds==='function')searchAds();$('adsSection')?.scrollIntoView({behavior:'smooth',block:'start'});});grid.appendChild(card)});panel.scrollIntoView({behavior:'smooth',block:'nearest'});}
  };
  window.collectCategoryDetails=function(root){const data={};if(!root)return data;root.querySelectorAll('[data-detail-key]').forEach(el=>{if(el.value)data[el.dataset.detailKey]=el.value.trim()});return data;};
  function field(label,key,type='text',opts){let html='<label>'+label+'</label>';if(type==='select'){html+='<select class="field" data-detail-key="'+key+'"><option value="">Select '+label+'</option>'+opts.map(x=>'<option>'+x+'</option>').join('')+'</select>';}else html+='<input class="field" data-detail-key="'+key+'" type="'+type+'" placeholder="'+label+'">';return html;}
