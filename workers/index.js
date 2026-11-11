@@ -251,10 +251,12 @@ var index_default = { async fetch(req, env) {
       } catch {
       }
       const period = Math.max(1, Math.min(365, Number(free.period_days) || 30)), limit = Math.max(0, Math.min(1e3, Number(free.limit) || 0));
-      // The free quota is shared by mobile number across every email/account.
-      const phoneCount = await first(env.DB, "SELECT COUNT(*) n FROM ads a LEFT JOIN client_accounts ca ON ca.id=a.owner_client_id WHERE (a.phone=? OR ca.mobile=?) AND COALESCE(a.is_vip,0)=0 AND a.created_at>=datetime('now','-'||?||' days')", digits(client.mobile), digits(client.mobile), period);
-      const used = Number(phoneCount?.n) || 0;
-      return out({ success: true, client, wallet: { balance: Number(wallet?.balance) || 0 }, freeAds: { emailUsed: used, emailLimit: limit, phoneUsedThisMonth: used, phoneMonthlyLimit: limit, periodDays: period } });
+      // Shared free quota: count all client ads for this registered mobile number,
+      // regardless of which verified email account was used to post them.
+      const mobile = digits(client.mobile);
+      const mobileCount = await first(env.DB, "SELECT COUNT(*) n FROM ads a LEFT JOIN client_accounts ca ON ca.id=a.owner_client_id WHERE (a.owner_client_id IS NOT NULL OR a.owner_email IS NOT NULL) AND (a.phone=? OR ca.mobile=?) AND COALESCE(a.is_vip,0)=0 AND a.created_at>=datetime('now','-'||?||' days')", mobile, mobile, period);
+      const used = Number(mobileCount?.n) || 0;
+      return out({ success: true, client, wallet: { balance: Number(wallet?.balance) || 0 }, freeAds: { mobileUsed: used, mobileLimit: limit, periodDays: period } });
     }
     if (p === "/api/client/ads" && req.method === "GET") {
       const client = await clientAuth(req, env, env.DB);
@@ -325,10 +327,12 @@ var index_default = { async fetch(req, env) {
       } catch {
       }
       const freeLimit = Math.max(0, Math.min(1e3, Number(freeCfg.limit) || 0)), period = Math.max(1, Math.min(365, Number(freeCfg.period_days) || 30));
-      // Count all free ads posted with this mobile, including other email accounts.
-      // Client-created free ads always store the verified account mobile in ads.phone.
-      const phoneCount = await first(env.DB, "SELECT COUNT(*) n FROM ads a LEFT JOIN client_accounts ca ON ca.id=a.owner_client_id WHERE (a.phone=? OR ca.mobile=?) AND COALESCE(a.is_vip,0)=0 AND a.created_at>=datetime('now','-'||?||' days')", digits(client.mobile), digits(client.mobile), period);
-      const freeAllowed = Number(phoneCount?.n || 0) < freeLimit;
+      // All verified email accounts using this mobile number share one rolling quota.
+      const mobile = digits(client.mobile);
+      if (!validMobile(mobile)) return bad("A valid registered mobile number is required to post an ad.");
+      const mobileCount = await first(env.DB, "SELECT COUNT(*) n FROM ads a LEFT JOIN client_accounts ca ON ca.id=a.owner_client_id WHERE (a.owner_client_id IS NOT NULL OR a.owner_email IS NOT NULL) AND (a.phone=? OR ca.mobile=?) AND COALESCE(a.is_vip,0)=0 AND a.created_at>=datetime('now','-'||?||' days')", mobile, mobile, period);
+      const freeUsed = Number(mobileCount?.n || 0);
+      const freeAllowed = freeUsed < freeLimit;
       const plan = str(b.plan || "free", 20), days = plan === "vip3" ? 3 : plan === "vip5" ? 5 : plan === "vip7" ? 7 : 0;
       let pricing = { "3": 300, "5": 500, "7": 700 };
       try {
@@ -337,7 +341,7 @@ var index_default = { async fetch(req, env) {
       } catch {
       }
       const cost = days ? Math.max(0, Number(pricing[String(days)]) || 0) : 0;
-      if (!freeAllowed && !days) return bad("Your free limit of " + freeLimit + " ads per mobile number (shared across email accounts) for " + period + " days has been reached. Contact 24Adz Admin on WhatsApp to purchase Coins and continue posting.", 402);
+      if (!freeAllowed && !days) return bad("This mobile number has used all " + freeLimit + " free ads in the last " + period + " days, including ads posted through other email accounts. Please purchase Coins through 24Adz Admin WhatsApp Chat to continue posting.", 402);
       if (days) {
         const wallet = await first(env.DB, "SELECT balance FROM client_coin_wallets WHERE client_id=?", client.id);
         if (Number(wallet?.balance || 0) < cost) return bad(`Insufficient coins. ${cost} coins required for this VIP plan.`, 402);
@@ -350,7 +354,14 @@ var index_default = { async fetch(req, env) {
         a.is_vip = 0;
         a.expires_at = new Date(Date.now() + 30 * 864e5).toISOString();
       }
-      await run(env.DB, "INSERT INTO ads(id,title,description,category,district,area,price,phone,whatsapp,image_url,status,details_json,created_at,owner_email,owner_client_id,is_vip,expires_at) VALUES(?,?,?,?,?,?,?,?,?,?, 'approved',?,datetime('now'),?,?,?,?)", a.id, a.title, a.description, a.category, a.district, a.area, a.price, a.phone, a.whatsapp, a.image_url, a.details_json || "{}", client.email, client.id, a.is_vip, a.expires_at);
+      if (days) {
+        await run(env.DB, "INSERT INTO ads(id,title,description,category,district,area,price,phone,whatsapp,image_url,status,details_json,created_at,owner_email,owner_client_id,is_vip,expires_at) VALUES(?,?,?,?,?,?,?,?,?,?, 'approved',?,datetime('now'),?,?,?,?)", a.id, a.title, a.description, a.category, a.district, a.area, a.price, a.phone, a.whatsapp, a.image_url, a.details_json || "{}", client.email, client.id, a.is_vip, a.expires_at);
+      } else {
+        // Enforce the quota in the INSERT itself as well, so simultaneous requests
+        // cannot both pass a stale pre-check and exceed the mobile-number limit.
+        const inserted = await run(env.DB, "INSERT INTO ads(id,title,description,category,district,area,price,phone,whatsapp,image_url,status,details_json,created_at,owner_email,owner_client_id,is_vip,expires_at) SELECT ?,?,?,?,?,?,?,?,?,?, 'approved',?,datetime('now'),?,?,0,? WHERE (SELECT COUNT(*) FROM ads a LEFT JOIN client_accounts ca ON ca.id=a.owner_client_id WHERE (a.owner_client_id IS NOT NULL OR a.owner_email IS NOT NULL) AND (a.phone=? OR ca.mobile=?) AND COALESCE(a.is_vip,0)=0 AND a.created_at>=datetime('now','-'||?||' days')) < ?", a.id, a.title, a.description, a.category, a.district, a.area, a.price, a.phone, a.whatsapp, a.image_url, a.details_json || "{}", client.email, client.id, a.expires_at, mobile, mobile, period, freeLimit);
+        if (!inserted?.meta?.changes) return bad("This mobile number has used all " + freeLimit + " free ads in the last " + period + " days, including ads posted through other email accounts. Please purchase Coins through 24Adz Admin WhatsApp Chat to continue posting.", 402);
+      }
       return out({ success: true, ad: { ...a, owner_client_id: client.id, owner_email: client.email }, message: "Your advertisement has been published." }, 201);
     }
     if (p === "/api/client/chat" && req.method === "POST") {
