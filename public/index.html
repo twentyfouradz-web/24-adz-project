@@ -1308,6 +1308,7 @@ header .premium-24adz-logo .brand-dot{
 }
 </style>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <header>
@@ -1393,6 +1394,8 @@ header .premium-24adz-logo .brand-dot{
       <div class="category" onclick="toggleMainCategory('Mobiles',this)"><span class="ico">📱</span><strong>Mobiles</strong></div>
       <div class="category" onclick="toggleMainCategory('Jobs',this)"><span class="ico">💼</span><strong>Jobs</strong></div>
       <div class="category" onclick="toggleMainCategory('Real Estate',this)"><span class="ico">🏘️</span><strong>Real Estate</strong></div>
+      <div class="category" onclick="toggleMainCategory('Hotel Rooms',this)"><span class="ico">🏨</span><strong>Hotel Rooms</strong></div>
+      <div class="category" onclick="toggleMainCategory('Fashion &amp; Beauty',this)"><span class="ico">💄</span><strong>Fashion &amp; Beauty</strong></div>
       <button type="button" class="category personals-category" id="personalsCategory" aria-expanded="false" aria-controls="personalsSubcategories" onclick="toggleMainCategory('Personals',this)"><span class="ico">❤️</span><strong>Personals</strong></button>
     </div>
     <div class="personals-subcategory-panel" id="personalsSubcategories" hidden>
@@ -1558,7 +1561,7 @@ header .premium-24adz-logo .brand-dot{
         <button class="btn btn-primary" type="submit">Publish Ad</button>
       </div>
     </div>
-    <p class="small-note">First 3 ads are free subject to the monthly mobile-number limit. VIP duration uses Coins from your 24Adz Wallet. Standard categories use Chat; Massage / Spa categories show Call, WhatsApp and Chat.</p>
+    <p class="small-note">First 3 ads are free per email every 30 days. VIP duration uses Coins from your 24Adz Wallet. Standard categories use Chat; Massage / Spa categories show Call, WhatsApp and Chat.</p>
   </form>
 </div></div>
 
@@ -1794,7 +1797,7 @@ function showPricePlan(){
   const key=document.getElementById("pricePlanSelect").value;
   const panel=document.getElementById("pricePlanDetails");
   const plans={
-    free:{name:"FREE LISTING",amount:"₹0",description:"Up to 3 free advertisements per mobile number each calendar month.",features:["Standard listing","Call & WhatsApp contact"]},
+    free:{name:"FREE LISTING",amount:"₹0",description:"Up to 3 free advertisements per email every 30 days.",features:["Standard listing","Call & WhatsApp contact"]},
     vip3:{name:"VIP · 3 DAYS",amount:"₹300",description:"Promote your advertisement for 3 days.",features:["VIP placement","More visibility","Call & WhatsApp contact"]},
     vip5:{name:"VIP · 5 DAYS",amount:"₹500",description:"Promote your advertisement for 5 days.",features:["VIP placement","More visibility","Call & WhatsApp contact"]},
     vip7:{name:"VIP · 7 DAYS",amount:"₹700",description:"Promote your advertisement for 7 days.",features:["VIP placement","More visibility","Call & WhatsApp contact"]}
@@ -1894,17 +1897,21 @@ function togglePersonalsCategories(){
   }
 }
 function chooseCategory(cat,el){
-  // Selecting any category (including a Personal subcategory) closes the
-  // Personals panel so unrelated categories are never left open together.
+  // A clicked directory item is a subcategory. Resolve its active parent so
+  // filtering always sends the main category plus the selected subcategory.
   closePersonalsCategories();
   const personalsTrigger=document.getElementById("personalsCategory");
   if(personalsTrigger && el!==personalsTrigger)personalsTrigger.classList.remove("active");
-  document.getElementById("searchCategory").value=cat;
-  populateSearchSubcategories(cat);
-  if(document.getElementById("searchSubcategory"))document.getElementById("searchSubcategory").value="";
+  const parent=Object.entries(categories).find(([,subs])=>Array.isArray(subs)&&subs.includes(cat));
+  const mainCategory=parent?parent[0]:cat;
+  const mainSelect=document.getElementById("searchCategory");
+  if(mainSelect)mainSelect.value=mainCategory;
+  populateSearchSubcategories(mainCategory);
+  const subSelect=document.getElementById("searchSubcategory");
+  if(subSelect)subSelect.value=parent?cat:"";
   updateSearchFilterSteps();
   document.querySelectorAll(".category").forEach(x=>x.classList.remove("active"));
-  el.classList.add("active");
+  if(el)el.classList.add("active");
   searchAds();
   document.getElementById("adsSection").scrollIntoView({behavior:"smooth",block:"start"});
 }
@@ -2092,7 +2099,7 @@ function searchAds(){
   const sort=document.getElementById("sortListings")?.value || "newest";
   if(sort==="price-low") filtered.sort((a,b)=>(Number(a.price)||0)-(Number(b.price)||0));
   if(sort==="price-high") filtered.sort((a,b)=>(Number(b.price)||0)-(Number(a.price)||0));
-  if(sort==="newest") filtered.sort((a,b)=>(Number(b.id)||0)-(Number(a.id)||0));
+  if(sort==="newest") filtered.sort((a,b)=>getAdStartTime(b)-getAdStartTime(a));
   renderAds(filtered,1);
 }
 let adsCurrentPage=1;
@@ -2396,7 +2403,9 @@ document.getElementById("postForm").addEventListener("submit",async e=>{
   if(file){const fd=new FormData();fd.append("image",file);const up=await fetch("/api/client/images/upload",{method:"POST",headers:{Authorization:"Bearer "+a24Token()},body:fd});const ud=await up.json();if(!up.ok||!ud.success)throw new Error(ud.error||"Image upload failed");imageUrl=ud.url;}
   else imageUrl=String(f.get("image")||"");
   const days=Number(f.get("days")||0),plan=days===3?"vip3":days===5?"vip5":days===7?"vip7":"free";
-  const categoryDetails=collectCategoryDetails(document.getElementById("categorySpecificFields")); const payload={title:f.get("title"),description:f.get("description"),category:f.get("category"),subcategory:f.get("subcategory"),model_year:categoryDetails.model_year||f.get("model_year"),category_details:categoryDetails,district:f.get("district"),area:f.get("area"),price:f.get("price"),phone:mobile,whatsapp:f.get("whatsapp")||mobile,image_url:imageUrl,plan};
+  const categoryDetails=collectCategoryDetails(document.getElementById("categorySpecificFields"));
+  const customFields={};document.querySelectorAll('#adminCustomFields [data-admin-field="1"]').forEach(input=>{const id=String(input.name||'').replace(/^custom_/, '');if(/^\d+$/.test(id)&&String(input.value||'').trim())customFields[id]=String(input.value).trim();});
+  const payload={title:f.get("title"),description:f.get("description"),category:f.get("category"),subcategory:f.get("subcategory"),model_year:categoryDetails.model_year||f.get("model_year"),category_details:categoryDetails,custom_fields:customFields,district:f.get("district"),area:f.get("area"),price:f.get("price"),phone:mobile,whatsapp:f.get("whatsapp")||mobile,image_url:imageUrl,plan};
   const result=editingId?await a24Call("/api/client/ads/"+encodeURIComponent(editingId),"PATCH",payload):await a24Call("/api/client/ads","POST",payload);
   e.target.reset();document.getElementById("editingAdId").value="";document.getElementById("postAge").value="";
   fillAreas(document.getElementById("postDistrict"),document.getElementById("postArea"));populateSubcategories(document.getElementById("postCategory"),document.getElementById("postSubcategory"));goPostStep(1);closeModal("postModal");toast(result.message||(editingId?"Advertisement updated.":"Advertisement published."));
@@ -2416,23 +2425,43 @@ document.querySelectorAll("[data-password-target]").forEach(button=>{
   });
 });
 
-// Mobile OTP is intentionally disabled. Registration and login use the secure API.
+// Supabase Auth: registration, email confirmation, login and password recovery.
 document.getElementById("registerForm").addEventListener("submit",async e=>{
  e.preventDefault();const f=new FormData(e.target);
- try{const d=await a24Call("/api/client/register","POST",{name:f.get("name"),email:f.get("email"),mobile:f.get("mobile"),password:f.get("password")});
- e.target.reset();closeModal("registerModal");toast(d.message||"Registration received. Verify your email before login.");
- }catch(x){toast(x.message)}
+ try{
+  if(!window.a24Supabase)throw new Error("Authentication is initializing. Please try again.");
+  const name=String(f.get("name")||"").trim(),email=String(f.get("email")||"").trim().toLowerCase(),mobile=String(f.get("mobile")||"").replace(/\D/g,""),password=String(f.get("password")||"");
+  if(!name||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||!/^[6-9]\d{9}$/.test(mobile)||password.length<10||!/[A-Za-z]/.test(password)||!/[0-9]/.test(password))throw new Error("Enter name, valid email, 10-digit mobile and password (10+ characters with a number).");
+  const {data,error}=await window.a24Supabase.auth.signUp({email,password,options:{data:{full_name:name,mobile},emailRedirectTo:location.origin+"/"}});
+  if(error)throw error;
+  e.target.reset();closeModal("registerModal");
+  if(data.session){localStorage.setItem("24adz_client_token",data.session.access_token);const sync=await a24Call("/api/client/sync","POST",{name,mobile});localStorage.setItem("24adz_client",JSON.stringify(sync.client));updateAccountNav();toast("Account created and signed in.");}
+  else toast("Registration successful. Check your email and click the Supabase verification link before logging in.");
+ }catch(x){toast(x.message||"Registration failed")}
 });
 document.getElementById("loginForm").addEventListener("submit",async e=>{
  e.preventDefault();const f=new FormData(e.target);
- try{const d=await a24Call("/api/client/login","POST",{email:f.get("email"),password:f.get("password")});localStorage.setItem("24adz_client_token",d.token);localStorage.setItem("24adz_client",JSON.stringify(d.client));e.target.reset();closeModal("loginModal");updateAccountNav();toast("Login successful.");}
- catch(x){toast(x.message)}
+ try{
+  if(!window.a24Supabase)throw new Error("Authentication is initializing. Please try again.");
+  const {data,error}=await window.a24Supabase.auth.signInWithPassword({email:String(f.get("email")||"").trim().toLowerCase(),password:String(f.get("password")||"")});
+  if(error)throw error;
+  const session=data.session;if(!session)throw new Error("Login session was not created.");
+  localStorage.setItem("24adz_client_token",session.access_token);
+  const sync=await a24Call("/api/client/sync","POST",{name:data.user.user_metadata?.full_name||data.user.user_metadata?.name||"",mobile:data.user.user_metadata?.mobile||""});
+  localStorage.setItem("24adz_client",JSON.stringify(sync.client));
+  e.target.reset();closeModal("loginModal");updateAccountNav();toast("Login successful.");
+ }catch(x){toast(x.message||"Login failed")}
 });
 function openForgotPassword(){closeModal("loginModal");openModal("forgotPasswordModal")}
-document.getElementById("forgotPasswordForm").addEventListener("submit",async e=>{e.preventDefault();const f=new FormData(e.target);try{const d=await a24Call("/api/client/forgot-password","POST",{email:f.get("email")});closeModal("forgotPasswordModal");toast(d.message)}catch(x){toast(x.message)}});
-document.getElementById("resetPasswordForm").addEventListener("submit",async e=>{e.preventDefault();const token=new URLSearchParams(location.search).get("reset_password"),f=new FormData(e.target);try{const d=await a24Call("/api/client/reset-password","POST",{token,password:f.get("password")});history.replaceState({},"",location.pathname);closeModal("resetPasswordModal");toast(d.message)}catch(x){toast(x.message)}});
-// Email verification links are processed once when the visitor returns from email.
-(async()=>{const params=new URLSearchParams(location.search),verify=params.get("verify_email"),reset=params.get("reset_password");if(verify){try{const d=await a24Call("/api/client/verify-email","POST",{token:verify});toast(d.message);history.replaceState({},"",location.pathname)}catch(e){toast(e.message)}}if(reset){openModal("resetPasswordModal")}})();
+document.getElementById("forgotPasswordForm").addEventListener("submit",async e=>{
+ e.preventDefault();const f=new FormData(e.target);
+ try{if(!window.a24Supabase)throw new Error("Authentication is initializing.");const email=String(f.get("email")||"").trim().toLowerCase();const {error}=await window.a24Supabase.auth.resetPasswordForEmail(email,{redirectTo:location.origin+"/"});if(error)throw error;closeModal("forgotPasswordModal");toast("If the email is registered, a password reset link has been sent.");}catch(x){toast(x.message)}
+});
+document.getElementById("resetPasswordForm").addEventListener("submit",async e=>{
+ e.preventDefault();const f=new FormData(e.target);
+ try{if(!window.a24Supabase)throw new Error("Authentication is initializing.");const password=String(f.get("password")||"");const {error}=await window.a24Supabase.auth.updateUser({password});if(error)throw error;history.replaceState({},"",location.pathname);closeModal("resetPasswordModal");toast("Password updated successfully. You can now log in.");}catch(x){toast(x.message)}
+});
+// Supabase JS processes confirmation and recovery tokens from the URL hash after client initialization.
 
 // 24Adz account navigation: client sessions are stored under the current project key.
 function getCurrentClient(){try{return JSON.parse(localStorage.getItem("24adz_client")||"null");}catch(_){return null;}}
@@ -2652,7 +2681,7 @@ window.ADZ24_MAIN_CATEGORY_ICONS={Cars:'🚗',Bikes:'🏍️',Mobiles:'📱',Job
     if(select){
       const current=select.value;
       const free=ADZ24.settings.free_ads||{};const freeLimit=Number(free.limit??3),freePeriod=Number(free.period_days??30);
-      select.innerHTML='<option value="">Select Price Plan</option><option value="free">Free Listing · ₹0 ('+freeLimit+'/'+freePeriod+' days/mobile)</option>'+
+      select.innerHTML='<option value="">Select Price Plan</option><option value="free">Free Listing · ₹0 ('+freeLimit+'/'+freePeriod+' days/email)</option>'+
         '<option value="vip3">VIP Promotion · 3 Days · ₹'+Number(p["3"]??300)+'</option>'+
         '<option value="vip5">VIP Promotion · 5 Days · ₹'+Number(p["5"]??500)+'</option>'+
         '<option value="vip7">VIP Promotion · 7 Days · ₹'+Number(p["7"]??700)+'</option>';
@@ -2678,7 +2707,7 @@ window.ADZ24_MAIN_CATEGORY_ICONS={Cars:'🚗',Bikes:'🏍️',Mobiles:'📱',Job
     if(key==="free"){
       document.getElementById("pricePlanName").textContent="FREE LISTING";
       document.getElementById("pricePlanAmount").textContent="₹0";
-      const free=ADZ24.settings.free_ads||{};document.getElementById("pricePlanDescription").textContent="Standard listing. Maximum "+Number(free.limit??3)+" free ads per mobile number every "+Number(free.period_days??30)+" days.";
+      const free=ADZ24.settings.free_ads||{};document.getElementById("pricePlanDescription").textContent="Standard listing. Maximum "+Number(free.limit??3)+" free ads per email every "+Number(free.period_days??30)+" days.";
       document.getElementById("pricePlanFeatures").innerHTML="<li>Standard listing</li><li>Contact options controlled by website settings</li>";
       panel.hidden=false;return;
     }
@@ -2762,13 +2791,33 @@ window.ADZ24_MAIN_CATEGORY_ICONS={Cars:'🚗',Bikes:'🏍️',Mobiles:'📱',Job
 const A24_API="";let a24Client=null;
 function a24Token(){return localStorage.getItem("24adz_client_token")||""}
 async function a24Call(path,method="GET",body){const r=await fetch(A24_API+path,{method,headers:{...(body?{"Content-Type":"application/json"}:{}),...(a24Token()?{Authorization:"Bearer "+a24Token()}:{})},body:body?JSON.stringify(body):undefined});const d=await r.json().catch(()=>({}));if(!r.ok||d.success===false){const e=new Error(d.error||"Request failed");e.status=r.status;throw e}return d}
+async function init24AdzSupabase(){
+ try{
+  const cfg=await fetch("/api/public/auth-config",{cache:"no-store"}).then(r=>r.json());
+  if(!cfg.success||!cfg.supabaseUrl||!cfg.supabaseAnonKey)throw new Error("Supabase configuration is missing in Worker secrets.");
+  window.a24Supabase=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  const {data}=await window.a24Supabase.auth.getSession();
+  if(data.session){localStorage.setItem("24adz_client_token",data.session.access_token);try{const s=await a24Call("/api/client/sync","POST",{name:data.session.user.user_metadata?.full_name||"",mobile:data.session.user.user_metadata?.mobile||""});localStorage.setItem("24adz_client",JSON.stringify(s.client));}catch(e){localStorage.removeItem("24adz_client_token");localStorage.removeItem("24adz_client");}}
+  else{localStorage.removeItem("24adz_client_token");localStorage.removeItem("24adz_client");}
+  window.a24Supabase.auth.onAuthStateChange((event,session)=>{
+   if(session){
+    localStorage.setItem("24adz_client_token",session.access_token);
+    if(event==="PASSWORD_RECOVERY"){openModal("resetPasswordModal");}
+    if(event==="INITIAL_SESSION"&&(location.hash.includes("type=signup")||location.hash.includes("type=email"))){history.replaceState({},"",location.pathname);toast("Email verified. You can now log in.");}
+   }else{localStorage.removeItem("24adz_client_token");localStorage.removeItem("24adz_client");}
+   updateAccountNav();
+  });
+  updateAccountNav();
+ }catch(e){console.error("24Adz Supabase initialization:",e);toast("Login service configuration error. Please contact Admin.");}
+}
+init24AdzSupabase();
 function updateAccountNav(){const logged=!!a24Token();for(const id of ["navLoginBtn","navRegisterBtn"])document.getElementById(id).hidden=logged;for(const id of ["navDashboardBtn","navLogoutBtn"])document.getElementById(id).hidden=!logged;}
-function clientLogout(){localStorage.removeItem("24adz_client_token");localStorage.removeItem("24adz_client");a24Client=null;updateAccountNav();toast("Logged out.");}
+function clientLogout(){if(window.a24Supabase)window.a24Supabase.auth.signOut();localStorage.removeItem("24adz_client_token");localStorage.removeItem("24adz_client");a24Client=null;updateAccountNav();toast("Logged out.");}
 function getCurrentClient(){try{return JSON.parse(localStorage.getItem("24adz_client")||"null")}catch{return null}}
 function startPostAd(){if(!a24Token()){openModal("loginModal");toast("Login or register to post an ad.");return}resetPostFormForNew();openModal("postModal")}
 function resetPostFormForNew(){const f=document.getElementById("postForm");f.reset();document.getElementById("editingAdId").value="";goPostStep(1);}
 async function openClientDashboard(){if(!a24Token()){openModal("loginModal");return}try{const [me,own]=await Promise.all([a24Call("/api/client/me"),a24Call("/api/client/ads")]);const c=me.client,w=me.wallet,limits=me.freeAds;document.getElementById("clientDashboardContent").innerHTML=`<p><b>Account ID:</b> ${c.account_id}</p><p><b>Email:</b> ${c.email}</p><p><b>Coin Balance:</b> ${w.balance}</p><p><b>Free Ads:</b> ${limits.emailUsed}/${limits.emailLimit} · This month mobile: ${limits.phoneUsedThisMonth}/${limits.phoneMonthlyLimit}</p><button class="btn btn-primary" onclick="showCoinPackages()">Purchase Coins</button><h3>My Ads</h3>${own.ads.map(a=>`<article class="ad-card"><b>${escapeDashboardText(a.title)}</b><p>${escapeDashboardText(a.category)} · ${escapeDashboardText(a.district)} / ${escapeDashboardText(a.area)}</p><small>${a.is_vip?"VIP":"Standard"} · ${escapeDashboardText(a.status)}</small><div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-outline" onclick="editServerAd('${String(a.id).replace(/'/g,"\'")}')">Edit</button><button class="btn btn-outline" onclick="deleteServerAd('${String(a.id).replace(/'/g,"\'")}')">Delete</button></div></article>`).join("")||"No ads yet."}`;window.__24adzOwnAds=own.ads;openModal("clientDashboardModal")}catch(e){toast(e.message)}}
-function editServerAd(id){const a=(window.__24adzOwnAds||[]).find(x=>String(x.id)===String(id));if(!a)return;closeModal("clientDashboardModal");resetPostFormForNew();const f=document.getElementById("postForm");for(const k of ["title","description","category","district","area","price","phone","whatsapp"])if(f.elements[k])f.elements[k].value=a[k]||"";document.getElementById("editingAdId").value=a.id;updatePostAreas();document.getElementById("postArea").value=a.area||"";goPostStep(1);openModal("postModal");}
+function editServerAd(id){const a=(window.__24adzOwnAds||[]).find(x=>String(x.id)===String(id));if(!a)return;closeModal("clientDashboardModal");resetPostFormForNew();const f=document.getElementById("postForm");for(const k of ["title","description","category","district","area","price","phone","whatsapp"])if(f.elements[k])f.elements[k].value=a[k]||"";let details={};try{details=JSON.parse(a.details_json||"{}")}catch{}document.getElementById("editingAdId").value=a.id;updatePostAreas();document.getElementById("postArea").value=a.area||"";populateSubcategories(document.getElementById("postCategory"),document.getElementById("postSubcategory"));document.getElementById("postSubcategory").value=details.subcategory||"";document.getElementById("postCategory").dispatchEvent(new Event('change',{bubbles:true}));document.getElementById("postSubcategory").value=details.subcategory||"";document.getElementById("postSubcategory").dispatchEvent(new Event('change',{bubbles:true}));Object.entries(details).forEach(([key,value])=>{const el=document.querySelector('#categorySpecificFields [data-detail-key="'+CSS.escape(key)+'"]');if(el)el.value=value;});Object.entries(details.custom_fields||{}).forEach(([key,value])=>{const el=document.querySelector('#adminCustomFields [name="custom_'+CSS.escape(key)+'"]');if(el)el.value=value;});goPostStep(1);openModal("postModal");}
 async function deleteServerAd(id){if(!confirm("Delete this advertisement permanently?"))return;try{await a24Call("/api/client/ads/"+encodeURIComponent(id),"DELETE");toast("Advertisement deleted.");openClientDashboard();}catch(e){toast(e.message)}}
 async function getAdminWhatsApp(){try{const r=await fetch("/api/public/settings"),d=await r.json();return String(d.settings?.contact?.whatsapp_number||"8870017424").replace(/\D/g,"")}catch{return "8870017424"}}
 async function syncAdminWhatsAppLinks(){const n=await getAdminWhatsApp(),link=document.getElementById("promoAdminWhatsApp");if(link)link.href="https://wa.me/91"+n+"?text="+encodeURIComponent("Hello Admin, I want to advertise on 24Adz.com. Please share the details.");}
@@ -2829,8 +2878,12 @@ updateAccountNav();
    else {h+=field('Engine CC','engine_cc','number');h+=field('Kilometres Driven','kilometres','number');}
   }else if(cat==='Mobiles'){
    h+=field('Brand','brand','select',['Apple','Samsung','OnePlus','Xiaomi','Redmi','Realme','Vivo','Oppo','Motorola','Nothing','Other']);h+=field('Model','model');h+=field('Storage','storage','select',['32 GB','64 GB','128 GB','256 GB','512 GB','1 TB']);h+=field('RAM','ram','select',['2 GB','3 GB','4 GB','6 GB','8 GB','12 GB','16 GB']);h+=field('Condition','condition','select',['New','Used']);h+=field('Warranty','warranty','select',['Yes','No']);
-  }else if(cat==='Houses'){
-   h+=field('Property Type','property_type','select',['Independent House','Apartment / Flat','Villa','PG / Hostel','Commercial Building','Land / Plot']);h+=field('Listing Type','listing_type','select',['For Sale','For Rent','Lease']);h+=field('Bedrooms','bedrooms','select',['1 BHK','2 BHK','3 BHK','4 BHK','5+ BHK']);h+=field('Bathrooms','bathrooms','select',['1','2','3','4','5+']);h+=field('Built-up Area (sq.ft.)','builtup_area','number');h+=field('Furnishing','furnishing','select',['Unfurnished','Semi-furnished','Fully furnished']);
+  }else if(cat==='Real Estate'||cat==='Houses'){
+   h+=field('Property Type','property_type','select',['Independent House','Apartment / Flat','Villa','Commercial Building','Land / Plot','PG / Hostel']);h+=field('Listing Type','listing_type','select',['For Sale','For Rent','Lease']);h+=field('Bedrooms','bedrooms','select',['1 BHK','2 BHK','3 BHK','4 BHK','5+ BHK']);h+=field('Bathrooms','bathrooms','select',['1','2','3','4','5+']);h+=field('Built-up Area (sq.ft.)','builtup_area','number');h+=field('Furnishing','furnishing','select',['Unfurnished','Semi-furnished','Fully furnished']);
+  }else if(cat==='Hotel Rooms'){
+   h+=field('Room Type','room_type','select',['Budget Room','Luxury Room','AC Room','Non-AC Room','Family Room','Lodge','Service Apartment']);h+=field('Occupancy','occupancy','select',['Single','Double','Triple','Family']);h+=field('AC / Non-AC','ac_type','select',['AC','Non-AC']);h+=field('Attached Bathroom','attached_bathroom','select',['Yes','No']);h+=field('Price Per Night (₹)','price_per_night','number');h+=field('Amenities','amenities');
+  }else if(cat==='Fashion & Beauty'){
+   h+=field('Listing Type','fashion_type','select',["Dresses","Men\'s Fashion","Women\'s Fashion","Clothing","Beauty Products","Makeup & Cosmetics","Accessories","Beauty Parlour"]);h+=field('Gender','gender','select',['Men','Women','Unisex','Kids']);h+=field('Size','size','select',['XS','S','M','L','XL','XXL','Free Size','Not Applicable']);h+=field('Brand','brand');h+=field('Condition','condition','select',['New','Used']);
   }else if(cat==='Jobs'){
    h+=field('Job Type','job_type','select',['Full-time','Part-time','Work from Home','Temporary']);h+=field('Salary','salary');h+=field('Experience','experience','select',['Fresher','1-2 Years','3-5 Years','5+ Years']);h+=field('Education','education');
   }else if(cat==='Personals'){
