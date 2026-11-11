@@ -1280,8 +1280,6 @@ footer{background:#080706!important;color:#b9aaa0!important;border-top:1px solid
 @keyframes adzVipVerticalMove{from{transform:translateY(0)}to{transform:translateY(-50%)}}
 @media(max-width:600px){#adsSection #adsList.vip-vertical-list{height:76vh;min-height:320px}#adsSection #adsList.vip-vertical-list .vip-vertical-group{grid-template-columns:1fr;gap:14px}}
 @media(prefers-reduced-motion:reduce){#adsSection #adsList.vip-vertical-list{overflow-y:auto;mask-image:none}#adsSection #adsList.vip-vertical-list .vip-vertical-track{animation:none}}
-[hidden]{display:none!important}
-#postAgeLabel[hidden],#agePicker[hidden]{display:none!important}
 </style>
 <style id="adz24PromoStyles">
 .cinematic-ad-promo{position:relative;isolation:isolate;overflow:hidden;width:min(900px,100%);min-height:230px;margin:26px auto 0;padding:28px 20px;box-sizing:border-box;border:1px solid rgba(255,166,52,.72);border-radius:22px;background:radial-gradient(ellipse at 15% 20%,rgba(255,130,0,.28),transparent 42%),linear-gradient(115deg,#090706 0%,#241006 48%,#080706 100%);box-shadow:0 18px 55px rgba(0,0,0,.58),0 0 35px rgba(255,102,0,.16);text-align:center}
@@ -1540,6 +1538,7 @@ header .premium-24adz-logo .brand-dot{
       <label>Category *</label><select class="field" name="category" id="postCategory" required><option value="">Select Category</option><option>Cars</option><option>Bikes</option><option>Real Estate</option><option>Hotel Rooms</option><option>Fashion &amp; Beauty</option><option>Mobiles</option><option>Jobs</option><option>Personals</option><option>Massage & Spa</option><option>Full Body Massage</option><option>Head Massage</option><option>Foot Massage</option><option>Spa & Wellness</option><option>Beauty & Wellness</option><option>Other Services</option></select>
       <label>Subcategory</label><select class="field" name="subcategory" id="postSubcategory"><option value="">Select Subcategory</option></select>
       <div id="categorySpecificFields" class="category-specific-fields" aria-live="polite"></div>
+      <label>Model Year (Cars / Bikes / Mobiles where applicable)</label><input class="field" name="model_year" type="number" min="1900" max="2099" placeholder="e.g. 2022">
       <label>Description *</label><textarea class="field" name="description" required placeholder="Describe your service"></textarea>
       <label id="postAgeLabel">Age (Years)</label>
       <input type="hidden" name="age" id="postAge" value="">
@@ -2488,35 +2487,18 @@ async function a24InitAuth(){
   a24AuthReady=(async()=>{
     if(!window.supabase?.createClient)throw new Error("Supabase library could not load. Refresh the page and try again.");
     const cfg=await fetch("/api/public/auth-config",{cache:"no-store"}).then(async r=>{const d=await r.json();if(!r.ok||!d.success)throw new Error(d.error||"Supabase configuration unavailable");return d;});
-    const queryParams=new URLSearchParams(location.search);
-    const hashParams=new URLSearchParams(location.hash.replace(/^#/,""));
-    const isSignupConfirmationReturn=queryParams.has("code") || hashParams.get("type")==="signup";
     a24Supabase=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
     const {data,error}=await a24Supabase.auth.getSession();if(error)throw error;
     a24Session=data.session||null;
-    // Supabase may exchange a confirmation link for a temporary session.
-    // Verification is complete, but the customer must still log in manually.
-    if(isSignupConfirmationReturn){
-      if(a24Session)await a24Supabase.auth.signOut();
-      a24Session=null;a24Client=null;localStorage.removeItem("24adz_client");
-      history.replaceState({},"",location.pathname);
-      updateAccountNav();
-      setTimeout(()=>{openModal("loginModal");toast("Email verified successfully. Please log in using your registered email and password.");},250);
-    }else if(a24Session?.user?.email_confirmed_at){
-      await a24SyncClient();
-    }else if(a24Session){
-      await a24Supabase.auth.signOut();a24Session=null;localStorage.removeItem("24adz_client");
-    }
-    a24Supabase.auth.onAuthStateChange((event,session)=>{
+    if(a24Session?.user?.email_confirmed_at)await a24SyncClient();
+    a24Supabase.auth.onAuthStateChange((_event,session)=>{
       a24Session=session||null;
-      if(event==="SIGNED_IN"&&session?.user?.email_confirmed_at){
-        setTimeout(()=>a24SyncClient().catch(e=>console.warn("24Adz profile sync:",e.message)),0);
-      }else if(event==="SIGNED_OUT"){
-        a24Client=null;localStorage.removeItem("24adz_client");
-      }
+      if(session?.user?.email_confirmed_at){setTimeout(()=>a24SyncClient().catch(e=>console.warn("24Adz profile sync:",e.message)),0);}
+      else {localStorage.removeItem("24adz_client");}
       updateAccountNav();
     });
     updateAccountNav();
+    const hashParams=new URLSearchParams(location.hash.replace(/^#/,""));
     if(hashParams.get("type")==="recovery")openModal("resetPasswordModal");
     return a24Supabase;
   })();
@@ -2533,19 +2515,14 @@ async function a24SyncClient(profile={}){
   try{return await a24SyncPromise;}finally{a24SyncPromise=null;}
 }
 document.getElementById("registerForm").addEventListener("submit",async e=>{
-  e.preventDefault();const f=new FormData(e.target),button=e.submitter,name=String(f.get("name")).trim(),mobile=String(f.get("mobile")).trim();if(button)button.disabled=true;
+  e.preventDefault();const f=new FormData(e.target),button=e.submitter,name=String(f.get("name")).trim(),mobile=String(f.get("mobile")).trim(); if(button)button.disabled=true;
   try{
     await a24InitAuth();
-    // Registration must never inherit an already signed-in browser session.
-    if(a24Supabase){await a24Supabase.auth.signOut();a24Session=null;a24Client=null;localStorage.removeItem("24adz_client");}
     const {data,error}=await a24Supabase.auth.signUp({email:String(f.get("email")).trim().toLowerCase(),password:String(f.get("password")),options:{data:{full_name:name,mobile},emailRedirectTo:location.origin+"/"}});
     if(error)throw error;
-    // If Supabase is configured without mandatory email confirmation it may
-    // return a session. Immediately revoke it; do not sync or log in the user.
-    const confirmationDisabled=!!data.session;
-    if(data.session){await a24Supabase.auth.signOut();a24Session=null;a24Client=null;localStorage.removeItem("24adz_client");}
-    e.target.reset();closeModal("registerModal");openModal("loginModal");
-    toast(confirmationDisabled?"Supabase email confirmation is disabled. Enable Confirm Email in Supabase Auth settings before using registration. No login session was kept.":"Registration submitted. Verify your email first, then log in with your registered email and password.");
+    e.target.reset();closeModal("registerModal");
+    if(data.session){a24Session=data.session;await a24SyncClient({name,mobile});toast("Registration successful. Your email is verified and you are logged in.");}
+    else toast("Registration successful. Check your email and click the verification link before logging in.");
   }catch(x){toast(x.message||"Registration failed.");}finally{if(button)button.disabled=false;}
 });
 document.getElementById("loginForm").addEventListener("submit",async e=>{
@@ -2577,9 +2554,9 @@ async function clientLogout(){
 }
 function startPostAd(){
  if(!a24Token()){openModal("loginModal");return;}
- resetPostFormForNew();openModal("postModal");
+ openModal("postModal");
 }
-function resetPostFormForNew(){const form=document.getElementById("postForm");form.reset();document.getElementById("editingAdId").value="";const c=getCurrentClient();if(c){form.elements.contact.value=c.name||"";form.elements.phone.value=c.mobile||c.phone||"";form.elements.whatsapp.value=c.mobile||c.phone||"";}document.getElementById("postAge").value="";document.getElementById("agePickerTrigger").innerHTML='Select Age <span>▾</span>';window.refreshCategorySpecificFields?.();goPostStep(1);}
+function resetPostFormForNew(){const form=document.getElementById("postForm");form.reset();document.getElementById("editingAdId").value="";const c=getCurrentClient();if(c){form.elements.contact.value=c.name||"";form.elements.phone.value=c.mobile||c.phone||"";form.elements.whatsapp.value=c.mobile||c.phone||"";}document.getElementById("postAge").value="";document.getElementById("agePickerTrigger").innerHTML='Select Age <span>▾</span>';goPostStep(1);}
 function escapeDashboardText(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function openClientDashboard(){
  if(!a24Token()){openModal("loginModal");return;}
@@ -3024,93 +3001,25 @@ a24InitAuth().catch(e=>{console.warn("24Adz Supabase Auth:",e.message);toast(e.m
 };
 window.collectCategoryDetails=function(root){const data={};if(!root)return data;root.querySelectorAll('[data-detail-key]').forEach(el=>{if(el.value)data[el.dataset.detailKey]=el.value.trim()});return data;};
  function field(label,key,type='text',opts){let html='<label>'+label+'</label>';if(type==='select'){html+='<select class="field" data-detail-key="'+key+'"><option value="">Select '+label+'</option>'+opts.map(x=>'<option>'+x+'</option>').join('')+'</select>';}else html+='<input class="field" data-detail-key="'+key+'" type="'+type+'" placeholder="'+label+'">';return html;}
- function renderFields(){
-  const cat=$('postCategory')?.value,sub=$('postSubcategory')?.value,box=$('categorySpecificFields');if(!box)return;
-  const ageLabel=$('postAgeLabel'),agePicker=$('agePicker');
-  if(ageLabel)ageLabel.hidden=cat!=='Personals';
-  if(agePicker)agePicker.hidden=cat!=='Personals';
-  let h='';
-  const isCarRental=cat==='Cars'&&/car rentals/i.test(sub);
-  const isCarService=cat==='Cars'&&/car services/i.test(sub);
-  const isBikeService=cat==='Bikes'&&/bike services/i.test(sub);
-  if(cat==='Cars'){
-   if(isCarService){
-    h+=field('Service Type','service_type','select',['Repair','Washing','Painting','Dent & Body Work','Accessories & Fitting','Other']);
-    h+=field('Vehicle Brand','brand','select',['Maruti Suzuki','Hyundai','Tata','Mahindra','Toyota','Honda','Kia','Renault','Volkswagen','Skoda','Other']);
-    h+=field('Service Location','service_location','select',['At Service Centre','Doorstep Service']);
-    h+=field('Availability','availability','select',['Available Now','By Appointment']);
-   }else{
-    h+=field('Brand','brand','select',['Maruti Suzuki','Hyundai','Tata','Mahindra','Toyota','Honda','Kia','Renault','Volkswagen','Skoda','Other']);
-    h+=field('Model','model');h+=field('Model Year','model_year','number');
-    if(isCarRental){
-     h+=field('Transmission','transmission','select',['Manual','Automatic']);
-     h+=field('Fuel Type','fuel_type','select',['Petrol','Diesel','CNG','Electric','Hybrid']);
-     h+=field('Seating Capacity','seats','select',['2','4','5','6','7','8+']);
-     h+=field('Rental Period','rental_period','select',['Per Hour','Per Day','Per Week','Per Month']);
-     h+=field('Security Deposit (₹)','security_deposit','number');
-     h+=field('Availability','availability','select',['Available Now','Advance Booking']);
-    }else{
-     h+=field('Condition','condition','select',['New','Used']);
-     h+=field('Fuel Type','fuel_type','select',['Petrol','Diesel','CNG','Electric','Hybrid']);
-     h+=field('Transmission','transmission','select',['Manual','Automatic']);
-     h+=field('Kilometres Driven','kilometres','number');
-    }
-   }
-  }else if(cat==='Bikes'){
-   if(isBikeService){
-    h+=field('Service Type','service_type','select',['Repair','Servicing','Washing','Painting','Accessories & Fitting','Other']);
-    h+=field('Vehicle Brand','brand','select',['Hero','Honda','TVS','Bajaj','Royal Enfield','Yamaha','Suzuki','KTM','Ola Electric','Ather','Other']);
-    h+=field('Service Location','service_location','select',['At Service Centre','Doorstep Service']);
-   }else{
-    h+=field('Brand','brand','select',['Hero','Honda','TVS','Bajaj','Royal Enfield','Yamaha','Suzuki','KTM','Ola Electric','Ather','Other']);
-    h+=field('Model','model');h+=field('Model Year','model_year','number');
-    h+=field('Condition','condition','select',['New','Used']);
-    h+=field('Engine CC','engine_cc','number');h+=field('Kilometres Driven','kilometres','number');
-    h+=field('Fuel Type','fuel_type','select',['Petrol','Electric']);
-   }
+ function renderFields(){const cat=$('postCategory')?.value,sub=$('postSubcategory')?.value,box=$('categorySpecificFields');if(!box)return;let h='';
+  if(cat==='Cars'||cat==='Bikes'){
+   h+=field('Brand','brand','select',cat==='Cars'?['Maruti Suzuki','Hyundai','Tata','Mahindra','Toyota','Honda','Kia','Renault','Volkswagen','Skoda','Other']:['Hero','Honda','TVS','Bajaj','Royal Enfield','Yamaha','Suzuki','KTM','Ola Electric','Ather','Other']);
+   h+=field('Model','model');h+=field('Model Year','model_year','number');h+=field('Condition','condition','select',['New','Used']);
+   if(cat==='Cars'){h+=field('Fuel Type','fuel_type','select',['Petrol','Diesel','CNG','Electric','Hybrid']);h+=field('Transmission','transmission','select',['Manual','Automatic']);h+=field('Kilometres Driven','kilometres','number');}
+   else {h+=field('Engine CC','engine_cc','number');h+=field('Kilometres Driven','kilometres','number');}
   }else if(cat==='Mobiles'){
-   const accessories=/accessories/i.test(sub),services=/services/i.test(sub);
-   if(accessories){
-    h+=field('Accessory Type','accessory_type','select',['Cases & Covers','Chargers','Earphones & Headphones','Screen Guards','Power Banks','Other']);
-    h+=field('Compatible Brand','brand','select',['Apple','Samsung','OnePlus','Xiaomi','Redmi','Realme','Vivo','Oppo','Motorola','Other']);
-    h+=field('Condition','condition','select',['New','Used']);
-   }else if(services){
-    h+=field('Service Type','service_type','select',['Screen Repair','Battery Replacement','Software Service','Other Repairs']);
-    h+=field('Brand','brand','select',['Apple','Samsung','OnePlus','Xiaomi','Redmi','Realme','Vivo','Oppo','Motorola','Other']);
-    h+=field('Service Location','service_location','select',['At Shop','Doorstep Service']);
-   }else{
-    h+=field('Brand','brand','select',['Apple','Samsung','OnePlus','Xiaomi','Redmi','Realme','Vivo','Oppo','Motorola','Nothing','Other']);
-    h+=field('Model','model');h+=field('Storage','storage','select',['32 GB','64 GB','128 GB','256 GB','512 GB','1 TB']);
-    h+=field('RAM','ram','select',['2 GB','3 GB','4 GB','6 GB','8 GB','12 GB','16 GB']);
-    h+=field('Condition','condition','select',['New','Used']);h+=field('Warranty','warranty','select',['Yes','No']);
-   }
-  }else if(cat==='Houses'||cat==='Real Estate'){
-   h+=field('Property Type','property_type','select',['Independent House','Apartment / Flat','Villa','PG / Hostel','Commercial Building','Land / Plot','Office','Shop']);
-   h+=field('Listing Type','listing_type','select',['For Sale','For Rent','Lease']);
-   if(!/land|plot/i.test(sub)){h+=field('Bedrooms','bedrooms','select',['1 BHK','2 BHK','3 BHK','4 BHK','5+ BHK']);h+=field('Bathrooms','bathrooms','select',['1','2','3','4','5+']);}
-   h+=field('Area (sq.ft.)','builtup_area','number');
-   h+=field('Furnishing','furnishing','select',['Unfurnished','Semi-furnished','Fully furnished']);
+   h+=field('Brand','brand','select',['Apple','Samsung','OnePlus','Xiaomi','Redmi','Realme','Vivo','Oppo','Motorola','Nothing','Other']);h+=field('Model','model');h+=field('Storage','storage','select',['32 GB','64 GB','128 GB','256 GB','512 GB','1 TB']);h+=field('RAM','ram','select',['2 GB','3 GB','4 GB','6 GB','8 GB','12 GB','16 GB']);h+=field('Condition','condition','select',['New','Used']);h+=field('Warranty','warranty','select',['Yes','No']);
+  }else if(cat==='Houses'){
+   h+=field('Property Type','property_type','select',['Independent House','Apartment / Flat','Villa','PG / Hostel','Commercial Building','Land / Plot']);h+=field('Listing Type','listing_type','select',['For Sale','For Rent','Lease']);h+=field('Bedrooms','bedrooms','select',['1 BHK','2 BHK','3 BHK','4 BHK','5+ BHK']);h+=field('Bathrooms','bathrooms','select',['1','2','3','4','5+']);h+=field('Built-up Area (sq.ft.)','builtup_area','number');h+=field('Furnishing','furnishing','select',['Unfurnished','Semi-furnished','Fully furnished']);
   }else if(cat==='Jobs'){
-   h+=field('Job Type','job_type','select',['Full-time','Part-time','Work from Home','Temporary']);
-   h+=field('Salary','salary');h+=field('Experience','experience','select',['Fresher','1-2 Years','3-5 Years','5+ Years']);
-   h+=field('Education','education');h+=field('Work Location','work_location','select',['On-site','Remote','Hybrid']);
+   h+=field('Job Type','job_type','select',['Full-time','Part-time','Work from Home','Temporary']);h+=field('Salary','salary');h+=field('Experience','experience','select',['Fresher','1-2 Years','3-5 Years','5+ Years']);h+=field('Education','education');
   }else if(cat==='Personals'){
-   h+=field('Service Type','service_type','select',[sub||'Massage & Spa','Home Service','At Centre']);
-   h+=field('Provider Type','provider_type','select',['Individual','Business / Centre']);
-   h+=field('Availability','availability','select',['Full-time','Part-time','By Appointment']);
-  }else if(cat==='Hotel Rooms'){
-   h+=field('Room Type','room_type','select',['Budget Room','Luxury Room','AC Room','Non-AC Room','Family Room','Lodge','Service Apartment']);
-   h+=field('Occupancy','occupancy','select',['Single','Double','Family','Group']);
-   h+=field('Amenities','amenities');h+=field('Availability','availability','select',['Available Now','Advance Booking']);
-  }else if(cat==='Fashion & Beauty'){
-   h+=field('Product / Service Type','fashion_type','select',['Clothing','Footwear','Accessories','Beauty Products','Makeup','Salon / Parlour Service','Other']);
-   h+=field('For','gender','select',['Men','Women','Unisex','Kids']);
-   h+=field('Condition','condition','select',['New','Used']);
-   h+=field('Size','size');h+=field('Brand','brand');
+   h+=field('Service Type','service_type','select',[sub||'Massage & Spa','Home Service','At Centre']);h+=field('Provider Type','provider_type','select',['Individual','Business / Centre']);h+=field('Availability','availability','select',['Full-time','Part-time','By Appointment']);
   }
   box.innerHTML=h;
+  const year=document.querySelector('#postForm [name="model_year"]');if(year)year.hidden=!(cat==='Cars'||cat==='Bikes'||cat==='Mobiles');
+  const ageLabel=$('postAgeLabel'),agePicker=$('agePicker');if(ageLabel)ageLabel.hidden=cat!=='Personals';if(agePicker)agePicker.hidden=cat!=='Personals';
  }
- window.refreshCategorySpecificFields=renderFields;
  function init(){ensurePanels();const c=$('postCategory'),sub=$('postSubcategory');if(c){c.addEventListener('change',()=>{if(typeof populateSubcategories==='function')populateSubcategories(c,sub);renderFields()});}if(sub)sub.addEventListener('change',renderFields);renderFields();}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
