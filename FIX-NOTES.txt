@@ -114,3 +114,39 @@ These are source-code and clean-database checks only. They do not prove that the
 live Cloudflare Worker has deployed this ZIP, that production D1 migration history
 matches this package, that secrets contain valid values, or that Supabase email
 and end-to-end browser flows succeed. Those require post-deployment live tests.
+
+
+POST-AUDIT CORRECTIONS — 11 November 2026
+- Replaced the Homepage's legacy client register/login/password-reset handlers.
+  They called Worker endpoints that intentionally return HTTP 410 because
+  Supabase Auth is the configured identity provider. Homepage now loads
+  Supabase JS v2, fetches /api/public/auth-config, registers and signs in with
+  Supabase, synchronizes verified sessions through /api/client/sync, uses
+  Supabase password recovery/update, and signs out of Supabase.
+- Updated the client dashboard free-ad wording to match the per-email rule.
+- Removed obsolete phone-based quota counting from Worker free-ad checks and
+  /api/client/me. The active rule remains 3 free ads per verified email in
+  30 days by default (admin setting can change it).
+- Found that the Worker and Admin Panel expected a D1 districts table, but the
+  supplied migration history did not create or seed it. Added migration
+  0013_seed_tamil_nadu_districts.sql with the 38 districts used by Homepage.
+- Found that Admin-managed local areas depended on D1 rows but the supplied
+  migration history did not seed the Homepage's local-area directory. Added
+  migration 0014_seed_tamil_nadu_areas.sql with 652 unique district/area pairs.
+- Replaced public/index.html with the separately uploaded index.html as
+  requested. The old ZIP homepage was not retained as the deployment homepage.
+- Revalidated Worker and inline Homepage/Admin JavaScript syntax; all passed.
+- Replayed all 14 migrations in order against a clean SQLite validation DB:
+  8 active main categories, 44 active subcategories, 38 districts and
+  652 unique areas were present.
+
+DEPLOYMENT WARNING
+- Before applying migrations 0013 and 0014 to the reused production D1 database,
+  run `npx wrangler d1 migrations list hey-mr-database --remote` and inspect
+  the existing districts/areas schema and migration history. Apply only pending
+  migrations. If production already has a districts table whose district-name
+  column is not named `name`, reconcile migration 0013 to that schema before
+  applying it; do not blindly run it.
+- Live Supabase credentials, confirmation email delivery, Cloudflare bindings,
+  production D1 schema, and actual browser workflows cannot be verified from
+  uploaded source files alone.
