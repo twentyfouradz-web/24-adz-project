@@ -161,3 +161,68 @@ AUTH SOURCE-CODE ALIGNMENT — 11 November 2026
 - Admin login remains the existing independent ADMIN_PASSWORD session flow.
 - No homepage design, category, listing, admin UI or other business feature was
   intentionally redesigned as part of this authentication-only correction.
+
+
+AUTH + CATEGORY FORM REPAIR — 11 November 2026
+- Register no longer keeps a newly-created Supabase session. The page tells the
+  user to open the confirmation email and then explicitly log in.
+- The confirmation return URL is /?email_confirm=1. On a verified signup return,
+  the Homepage syncs the verified Supabase identity to D1, signs out that
+  temporary confirmation session, pre-fills the same email in Login, and asks
+  the user to log in manually.
+- Login accepts either the registered email address or the registered
+  10-digit mobile number. Mobile login is resolved inside the Worker and the
+  email address is never returned to the browser. Login attempts are rate
+  limited. Both methods still require Supabase password authentication and a
+  confirmed email.
+- Worker category validation no longer treats legacy unscoped form_fields rows
+  as mandatory for every category. Category-scoped required fields are enforced
+  only when the form_fields schema has an explicit category/category_name field.
+- Post Ad form now uses one consistent main-category list and renders the
+  correct category fields for Cars, Bikes, Mobiles, Jobs, Personals, Hotel Rooms,
+  Real Estate, and Fashion & Beauty. Removed the duplicate generic Model Year
+  input; Model Year is shown only in the relevant category form. Age is shown
+  only for Personals. Personals age and contact name are included in the saved
+  ad details. Editing an ad restores its selected subcategory and category data.
+- Replaced the fixed 4-inch Post Ad modal with a responsive, viewport-height
+  modal and clearer field spacing. Enlarged the main Post Ad action while
+  retaining the existing visual theme and homepage structure.
+- Corrected the Client Dashboard free-ad usage display to match the Worker
+  response: the shared quota is counted by registered mobile number over the
+  configured period.
+
+VALIDATION AFTER REPAIR
+- `node --check workers/index.js`: passed.
+- All five inline JavaScript blocks in public/index.html: passed Node syntax
+  checks.
+- All 14 SQL migrations applied in order to a clean SQLite validation database:
+  passed; 8 active main categories, 38 districts and 652 areas were present.
+- Admin Panel, Wrangler bindings, migration files and homepage layout/theme
+  were preserved. Only public/index.html, workers/index.js and this note file
+  were changed.
+- Live Supabase email delivery, confirmation settings, deployed Worker, and
+  production D1 data cannot be verified from this ZIP. Before testing live,
+  enable Supabase Auth > Email > Confirm email, configure a working SMTP sender,
+  and allow https://24adz.com/?email_confirm=1 and https://www.24adz.com/?email_confirm=1
+  in Supabase Auth URL Configuration. Deploy the updated Worker and static
+  Homepage together so the mobile-login route is available.
+
+
+CONTACT ACTION + AD DETAIL REPAIR — 11 November 2026
+- Advertisement cards now open a full detail view when the card/image is tapped.
+- Detail view shows available image, title, category, subcategory, location, price,
+  description and advertiser information, with the permitted contact actions.
+- Customer-to-client chat is shown for every client-owned ad across all categories.
+- Call and WhatsApp are publicly enabled only for Cars > Car Rentals,
+  Hotel Rooms (all subcategories), Fashion & Beauty (all subcategories), and
+  Personals (all subcategories). Cars' other subcategories, Bikes, Real Estate,
+  Mobiles and Jobs remain chat-only.
+- Worker public-ad response now applies the same contact policy and hides
+  phone/WhatsApp fields for chat-only categories.
+- Registration success message now explicitly asks the customer to check the
+  email inbox for the verification link. On successful email confirmation,
+  the site displays “Registration Successfully!” and asks the customer to log in.
+- Validation: Worker syntax passed; all five inline homepage scripts passed;
+  all 14 migrations applied to a clean SQLite database with no errors.
+- Live email delivery, production deployment and real customer-to-client chat
+  still require end-to-end testing after deployment.
