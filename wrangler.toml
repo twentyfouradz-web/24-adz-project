@@ -18,3 +18,11 @@ binding = "ASSETS"
 [[r2_buckets]]
 binding = "IMAGES"
 bucket_name = "hey-mr-images"
+[observability]
+enabled = true
+head_sampling_rate = 1.0
+
+[observability.logs]
+enabled = true
+invocation_logs = true
+persist = true
