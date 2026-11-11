@@ -603,7 +603,7 @@ var index_default = { async fetch(req, env) {
       // Homepage feed: only currently active VIP placements from the seven approved homepage categories.
       // The normal public search/feed remains unchanged unless homepage=1 is explicitly requested.
       if (url.searchParams.get("homepage") === "1") {
-        w.push("LOWER(TRIM(ads.category)) IN ('cars','bikes','mobiles','real estate','jobs','hotel rooms','fashion & beauty')");
+        w.push("LOWER(TRIM(ads.category)) IN ('cars','bikes','mobiles','real estate','jobs','hotel rooms','fashion & beauty','personals')");
         if (vipTable) {
           w.push("EXISTS (SELECT 1 FROM vip_promotions hp WHERE hp.ad_id=ads.id AND LOWER(hp.status)='active' AND datetime(hp.created_at,'+'||hp.days||' days')>datetime('now'))");
         } else {
