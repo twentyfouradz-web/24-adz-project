@@ -154,10 +154,17 @@ async function validateAdCategory(db, category, detailsJson) {
     if (!sub) return "Selected subcategory does not belong to this main category or is inactive.";
   }
   if (await table(db, "form_fields")) {
-    const required = await all(db, "SELECT id,label FROM form_fields WHERE active=1 AND required=1 ORDER BY sort_order,id");
-    const custom = details.custom_fields && typeof details.custom_fields === "object" ? details.custom_fields : {};
-    for (const field of required) {
-      if (!str(custom[String(field.id)] ?? "", 2e3)) return `Please complete the required field: ${str(field.label, 100)}.`;
+    const fieldColumns = await cols(db, "form_fields");
+    // Legacy form_fields has no category relation. Treating its rows as global
+    // required fields incorrectly blocks every category form. Enforce only
+    // explicitly category-scoped fields when the schema supports that relation.
+    const categoryColumn = fieldColumns.includes("category") ? "category" : fieldColumns.includes("category_name") ? "category_name" : null;
+    if (categoryColumn) {
+      const required = await all(db, `SELECT id,label FROM form_fields WHERE active=1 AND required=1 AND LOWER(${categoryColumn})=LOWER(?) ORDER BY sort_order,id`, category);
+      const custom = details.custom_fields && typeof details.custom_fields === "object" ? details.custom_fields : {};
+      for (const field of required) {
+        if (!str(custom[String(field.id)] ?? "", 2e3)) return `Please complete the required field: ${str(field.label, 100)}.`;
+      }
     }
   }
   return null;
@@ -205,6 +212,27 @@ var index_default = { async fetch(req, env) {
     if (await table(env.DB, "api_rate_limits")) {
       const generalKey = await sha256(`all:${ip}`);
       if (!await rateLimit(env.DB, generalKey, 180, 6e4)) return bad("Too many requests. Please try again in one minute.", 429);
+    }
+    if (p === "/api/public/login-by-mobile" && req.method === "POST") {
+      if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) return bad("Login service is not configured.", 503);
+      const b = await readBody(req) || {}, mobile = digits(b.mobile), password = String(b.password || "");
+      if (!validMobile(mobile) || password.length < 1 || password.length > 256) return bad("Invalid login details.", 401);
+      const key = await sha256(`mobile-login:${mobile}:${ip}`);
+      if (!await rateLimit(env.DB, key, 8, 15 * 60 * 1000)) return bad("Too many login attempts. Try again after 15 minutes.", 429);
+      const account = await first(env.DB, "SELECT email FROM client_accounts WHERE mobile=? AND email_verified=1 ORDER BY created_at DESC LIMIT 1", mobile);
+      if (!account?.email) return bad("Invalid login details, or this mobile number is not linked to a verified account.", 401);
+      try {
+        const response = await fetch(String(env.SUPABASE_URL).replace(/\/+$/, "") + "/auth/v1/token?grant_type=password", {
+          method: "POST",
+          headers: { apikey: env.SUPABASE_ANON_KEY, "Content-Type": "application/json" },
+          body: JSON.stringify({ email: account.email, password })
+        });
+        const session = await response.json().catch(() => ({}));
+        if (!response.ok || !session.access_token || !session.refresh_token) return bad("Invalid login details, or please verify your email first.", 401);
+        return out({ success: true, session: { access_token: session.access_token, refresh_token: session.refresh_token, expires_in: session.expires_in, token_type: session.token_type } });
+      } catch {
+        return bad("Login service is temporarily unavailable. Please try again.", 503);
+      }
     }
     if (p === "/api/health" && req.method === "GET") {
       const x = await first(env.DB, "SELECT 1 AS ok");
@@ -543,8 +571,14 @@ var index_default = { async fetch(req, env) {
         } catch {
           row.subcategory = "";
         }
-        const category = String(row.category || "").toLowerCase();
-        const publicContactAllowed = category.includes("massage") || category.includes("spa");
+        const category = String(row.category || "").trim().toLowerCase();
+        let subcategory = "";
+        try { subcategory = String(JSON.parse(row.details_json || "{}").subcategory || "").trim().toLowerCase(); } catch {}
+        // Public phone/WhatsApp is enabled only for Car Rentals, Hotel Rooms,
+        // Fashion & Beauty and Personals. Other categories remain chat-only.
+        const publicContactAllowed =
+          (category === "cars" && subcategory === "car rentals") ||
+          ["hotel rooms", "fashion & beauty", "personals"].includes(category);
         row.can_chat = !!row.owner_client_id;
         delete row.owner_client_id;
         if (!publicContactAllowed) {
