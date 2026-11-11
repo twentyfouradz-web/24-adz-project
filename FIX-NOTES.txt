@@ -226,3 +226,39 @@ CONTACT ACTION + AD DETAIL REPAIR — 11 November 2026
   all 14 migrations applied to a clean SQLite database with no errors.
 - Live email delivery, production deployment and real customer-to-client chat
   still require end-to-end testing after deployment.
+
+CLIENT DASHBOARD, CUSTOMER CHAT AND CONTACT CONTROLS — 11 November 2026
+- My Ads API now returns only the logged-in customer's approved/published ads.
+  The existing owner-checked Edit and Delete endpoints remain in use.
+- My24adz dashboard now includes editable name/mobile profile fields, published
+  My Ads, Messages, wallet balance, coin purchase and coin transaction history.
+- Added customer-to-customer chat delivery to the owner of the selected approved
+  ad. Added authenticated reply handling and conversation access for both the
+  advertiser and the interested customer. Existing Admin messages remain separate.
+- Added customer Auto Renew action for 3, 5 or 7 days. Renewal checks ownership,
+  approved status and coin balance, debits the configured VIP coin cost, records
+  the coin transaction and activates a VIP promotion.
+- Added per-subcategory Call / WhatsApp / Chat ON/OFF controls to Admin Panel
+  Website Settings for all eight approved categories and their 44 current
+  subcategories. Defaults: Cars > Car Rentals, Personals, Hotel Rooms, and
+  Fashion & Beauty have Call + WhatsApp + Chat ON; all other categories have
+  Chat ON and Call + WhatsApp OFF.
+- Public ad responses apply the saved per-subcategory policy and suppress
+  disabled contact details. Chat send API also checks the saved Chat setting.
+- No new D1 migration is required: contact policies use the existing settings
+  key/value table; chat and wallet tables already exist in migration history.
+- Validation: Worker syntax check passed; all Homepage and Admin inline
+  JavaScript blocks passed Node syntax checks; all 14 migrations applied in
+  order to a clean SQLite database (8 main categories, 44 subcategories).
+- Live Cloudflare deployment, production D1 settings, Supabase login and
+  real-time customer chat still require end-to-end testing after uploading
+  this complete project ZIP to the connected GitHub repository and deploying.
+
+
+PRICE LIST + WHATSAPP COIN PURCHASE UPDATE — 11 November 2026
+- Preserved the existing homepage design and added a Coin Purchase WhatsApp contact directly below the Listing Plans price list.
+- The displayed WhatsApp number defaults to +91 8870017424 and syncs from Admin > Website Settings > Client Coin Purchase WhatsApp Number.
+- When the API blocks a new ad because the registered mobile number has used its 3 free ads in the configured 30-day period, the homepage now closes the Post Ad form and opens/scrolls to the Listing Plans price list and WhatsApp Coin Purchase section.
+- The Buy Coins button requires client login, creates a coin purchase request using the existing API, then opens WhatsApp with the package and request ID. Admin confirms payment in Admin > Clients & Coins to credit the wallet.
+- Existing coin package settings, VIP prices, ad forms, categories, dashboard, Admin panel and database migrations were not changed.
+- Validation performed: homepage inline JavaScript syntax checked; Worker and Admin source files unchanged. Live behavior still requires deployment and browser testing.
