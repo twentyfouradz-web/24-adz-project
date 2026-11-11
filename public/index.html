@@ -1612,6 +1612,7 @@ header .premium-24adz-logo .brand-dot{
 
 <div class="modal" id="adChatModal"><div class="modal-box"><div class="modal-top"><h2>Chat with Advertiser</h2><button class="close" type="button" onclick="closeModal('adChatModal')">×</button></div><div id="adChatHistory" style="max-height:300px;overflow:auto"></div><form id="adChatForm"><input type="hidden" id="chatAdId"><label>Message</label><textarea class="field" id="chatMessage" required maxlength="2000" placeholder="Write your message"></textarea><button class="btn btn-primary" type="submit">Send Message</button></form></div></div><div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 function togglePasswordVisibility(inputId, button){
   const field=document.getElementById(inputId);
@@ -2476,24 +2477,69 @@ document.querySelectorAll("[data-password-target]").forEach(button=>{
   });
 });
 
-// Mobile OTP is intentionally disabled. Registration and login use the secure API.
+// Client identity, email confirmation and password recovery are managed by Supabase Auth.
+let a24Supabase=null;
+let a24Session=null;
+let a24AuthReady=null;
+let a24SyncPromise=null;
+async function a24InitAuth(){
+  if(a24AuthReady)return a24AuthReady;
+  a24AuthReady=(async()=>{
+    if(!window.supabase?.createClient)throw new Error("Supabase library could not load. Refresh the page and try again.");
+    const cfg=await fetch("/api/public/auth-config",{cache:"no-store"}).then(async r=>{const d=await r.json();if(!r.ok||!d.success)throw new Error(d.error||"Supabase configuration unavailable");return d;});
+    a24Supabase=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+    const {data,error}=await a24Supabase.auth.getSession();if(error)throw error;
+    a24Session=data.session||null;
+    if(a24Session?.user?.email_confirmed_at)await a24SyncClient();
+    a24Supabase.auth.onAuthStateChange((_event,session)=>{
+      a24Session=session||null;
+      if(session?.user?.email_confirmed_at){setTimeout(()=>a24SyncClient().catch(e=>console.warn("24Adz profile sync:",e.message)),0);}
+      else {localStorage.removeItem("24adz_client");}
+      updateAccountNav();
+    });
+    updateAccountNav();
+    const hashParams=new URLSearchParams(location.hash.replace(/^#/,""));
+    if(hashParams.get("type")==="recovery")openModal("resetPasswordModal");
+    return a24Supabase;
+  })();
+  return a24AuthReady;
+}
+async function a24SyncClient(profile={}){
+  if(a24SyncPromise)return a24SyncPromise;
+  a24SyncPromise=(async()=>{
+    if(!a24Session?.access_token)throw new Error("Please log in again.");
+    const r=await fetch("/api/client/sync",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+a24Session.access_token},body:JSON.stringify(profile)});
+    const d=await r.json().catch(()=>({}));if(!r.ok||!d.success)throw new Error(d.error||"Unable to sync your 24Adz account.");
+    a24Client=d.client;localStorage.setItem("24adz_client",JSON.stringify(d.client));updateAccountNav();return d.client;
+  })();
+  try{return await a24SyncPromise;}finally{a24SyncPromise=null;}
+}
 document.getElementById("registerForm").addEventListener("submit",async e=>{
- e.preventDefault();const f=new FormData(e.target);
- try{const d=await a24Call("/api/client/register","POST",{name:f.get("name"),email:f.get("email"),mobile:f.get("mobile"),password:f.get("password")});
- e.target.reset();closeModal("registerModal");toast(d.message||"Registration received. Verify your email before login.");
- }catch(x){toast(x.message)}
+  e.preventDefault();const f=new FormData(e.target),button=e.submitter,name=String(f.get("name")).trim(),mobile=String(f.get("mobile")).trim(); if(button)button.disabled=true;
+  try{
+    await a24InitAuth();
+    const {data,error}=await a24Supabase.auth.signUp({email:String(f.get("email")).trim().toLowerCase(),password:String(f.get("password")),options:{data:{full_name:name,mobile},emailRedirectTo:location.origin+"/"}});
+    if(error)throw error;
+    e.target.reset();closeModal("registerModal");
+    if(data.session){a24Session=data.session;await a24SyncClient({name,mobile});toast("Registration successful. Your email is verified and you are logged in.");}
+    else toast("Registration successful. Check your email and click the verification link before logging in.");
+  }catch(x){toast(x.message||"Registration failed.");}finally{if(button)button.disabled=false;}
 });
 document.getElementById("loginForm").addEventListener("submit",async e=>{
- e.preventDefault();const f=new FormData(e.target);
- try{const d=await a24Call("/api/client/login","POST",{email:f.get("email"),password:f.get("password")});localStorage.setItem("24adz_client_token",d.token);localStorage.setItem("24adz_client",JSON.stringify(d.client));e.target.reset();closeModal("loginModal");updateAccountNav();toast("Login successful.");}
- catch(x){toast(x.message)}
+  e.preventDefault();const f=new FormData(e.target),button=e.submitter;if(button)button.disabled=true;
+  try{
+    await a24InitAuth();
+    const {data,error}=await a24Supabase.auth.signInWithPassword({email:String(f.get("email")).trim().toLowerCase(),password:String(f.get("password"))});
+    if(error)throw error;a24Session=data.session;await a24SyncClient();e.target.reset();closeModal("loginModal");toast("Login successful.");
+  }catch(x){toast(x.message||"Login failed.");}finally{if(button)button.disabled=false;}
 });
 function openForgotPassword(){closeModal("loginModal");openModal("forgotPasswordModal")}
-document.getElementById("forgotPasswordForm").addEventListener("submit",async e=>{e.preventDefault();const f=new FormData(e.target);try{const d=await a24Call("/api/client/forgot-password","POST",{email:f.get("email")});closeModal("forgotPasswordModal");toast(d.message)}catch(x){toast(x.message)}});
-document.getElementById("resetPasswordForm").addEventListener("submit",async e=>{e.preventDefault();const token=new URLSearchParams(location.search).get("reset_password"),f=new FormData(e.target);try{const d=await a24Call("/api/client/reset-password","POST",{token,password:f.get("password")});history.replaceState({},"",location.pathname);closeModal("resetPasswordModal");toast(d.message)}catch(x){toast(x.message)}});
-// Email verification links are processed once when the visitor returns from email.
-(async()=>{const params=new URLSearchParams(location.search),verify=params.get("verify_email"),reset=params.get("reset_password");if(verify){try{const d=await a24Call("/api/client/verify-email","POST",{token:verify});toast(d.message);history.replaceState({},"",location.pathname)}catch(e){toast(e.message)}}if(reset){openModal("resetPasswordModal")}})();
-
+document.getElementById("forgotPasswordForm").addEventListener("submit",async e=>{
+  e.preventDefault();const f=new FormData(e.target);try{await a24InitAuth();const {error}=await a24Supabase.auth.resetPasswordForEmail(String(f.get("email")).trim().toLowerCase(),{redirectTo:location.origin+"/"});if(error)throw error;closeModal("forgotPasswordModal");toast("If the account exists, Supabase has sent a password reset email.");}catch(x){toast(x.message||"Unable to send reset email.");}
+});
+document.getElementById("resetPasswordForm").addEventListener("submit",async e=>{
+  e.preventDefault();const f=new FormData(e.target);try{await a24InitAuth();const {error}=await a24Supabase.auth.updateUser({password:String(f.get("password"))});if(error)throw error;closeModal("resetPasswordModal");history.replaceState({},"",location.pathname);toast("Password updated successfully. Please log in again.");await a24Supabase.auth.signOut();}catch(x){toast(x.message||"Unable to update password.");}
+});
 // 24Adz account navigation: client sessions are stored under the current project key.
 function getCurrentClient(){try{return JSON.parse(localStorage.getItem("24adz_client")||"null");}catch(_){return null;}}
 function setCurrentClient(client){localStorage.setItem("24adz_client",JSON.stringify(client||{}));}
@@ -2502,10 +2548,9 @@ function updateAccountNav(){
  if(login)login.style.display="";
  if(register)register.style.display="";
 }
-function clientLogout(){
- localStorage.removeItem("24adz_client_token");
- localStorage.removeItem("24adz_client");
- location.href="/";
+async function clientLogout(){
+ try{await a24InitAuth();if(a24Supabase)await a24Supabase.auth.signOut();}catch(e){console.warn(e)}
+ a24Session=null;a24Client=null;localStorage.removeItem("24adz_client");updateAccountNav();toast("Logged out.");
 }
 function startPostAd(){
  if(!a24Token()){openModal("loginModal");return;}
@@ -2839,10 +2884,10 @@ window.ADZ24_MAIN_CATEGORY_ICONS={Cars:'🚗',Bikes:'🏍️',Mobiles:'📱',Job
 
 <script id="24adz-client-bridge">
 const A24_API="";let a24Client=null;
-function a24Token(){return localStorage.getItem("24adz_client_token")||""}
-async function a24Call(path,method="GET",body){const r=await fetch(A24_API+path,{method,headers:{...(body?{"Content-Type":"application/json"}:{}),...(a24Token()?{Authorization:"Bearer "+a24Token()}:{})},body:body?JSON.stringify(body):undefined});const d=await r.json().catch(()=>({}));if(!r.ok||d.success===false){const e=new Error(d.error||"Request failed");e.status=r.status;throw e}return d}
+function a24Token(){return a24Session?.access_token||""}
+async function a24Call(path,method="GET",body){await a24InitAuth();const token=a24Token();const r=await fetch(A24_API+path,{method,headers:{...(body?{"Content-Type":"application/json"}:{}),...(token?{Authorization:"Bearer "+token}:{})},body:body?JSON.stringify(body):undefined});const d=await r.json().catch(()=>({}));if(!r.ok||d.success===false){const e=new Error(d.error||"Request failed");e.status=r.status;throw e}return d}
 function updateAccountNav(){const logged=!!a24Token();for(const id of ["navLoginBtn","navRegisterBtn"])document.getElementById(id).hidden=logged;for(const id of ["navDashboardBtn","navLogoutBtn"])document.getElementById(id).hidden=!logged;}
-function clientLogout(){localStorage.removeItem("24adz_client_token");localStorage.removeItem("24adz_client");a24Client=null;updateAccountNav();toast("Logged out.");}
+async function clientLogout(){try{await a24InitAuth();if(a24Supabase)await a24Supabase.auth.signOut();}catch(e){console.warn(e)}a24Session=null;a24Client=null;localStorage.removeItem("24adz_client");updateAccountNav();toast("Logged out.");}
 function getCurrentClient(){try{return JSON.parse(localStorage.getItem("24adz_client")||"null")}catch{return null}}
 function startPostAd(){if(!a24Token()){openModal("loginModal");toast("Login or register to post an ad.");return}resetPostFormForNew();openModal("postModal")}
 function resetPostFormForNew(){const f=document.getElementById("postForm");f.reset();document.getElementById("editingAdId").value="";goPostStep(1);}
@@ -2857,6 +2902,7 @@ function openMessages(){if(!a24Token()){openModal("loginModal");return}openClien
 function openAdChat(adId){if(!a24Token()){openModal("loginModal");toast("Login to chat with the advertiser.");return}document.getElementById("chatAdId").value=adId;document.getElementById("adChatHistory").textContent="Send a message to start this conversation.";openModal("adChatModal");}
 document.getElementById("adChatForm").addEventListener("submit",async e=>{e.preventDefault();try{await a24Call("/api/client/chat","POST",{ad_id:document.getElementById("chatAdId").value,message:document.getElementById("chatMessage").value});document.getElementById("chatMessage").value="";document.getElementById("adChatHistory").textContent="Message sent. Check Messages in My 24Adz for replies.";toast("Message sent.")}catch(x){toast(x.message)}});
 updateAccountNav();
+a24InitAuth().catch(e=>{console.warn("24Adz Supabase Auth:",e.message);toast(e.message);});
 </script>
 
 
