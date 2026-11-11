@@ -693,7 +693,7 @@ body{-webkit-overflow-scrolling:touch}
 .district-list button:hover,.district-list button:focus-visible{border-color:var(--orange);background:#241609;color:#ffb04b;outline:none}
 .district-results-filters{box-sizing:border-box;width:100%;margin:0 0 22px;padding:17px;border:1px solid rgba(255,151,31,.32);border-radius:17px;background:linear-gradient(145deg,#17110c,#0c0c0c);height:2.5in;max-height:75vh;min-height:150px;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#a85b17 #130d08;touch-action:pan-y}
 .district-results-filters[hidden]{display:none!important}
-.district-filter-drag-handle{position:sticky;top:-17px;z-index:5;display:flex;align-items:center;justify-content:center;gap:9px;margin:-17px -17px 13px;padding:9px 12px;background:linear-gradient(180deg,#241508,#17110c);border-bottom:1px solid rgba(255,151,31,.25);color:#ffb04b;font-size:10px;font-weight:800;letter-spacing:2px;cursor:ns-resize;touch-action:none;user-select:none}.district-filter-drag-handle:before{content:"↕";font-size:18px;line-height:1;color:#ffb04b;display:block}.district-filter-drag-handle:after{content:none}.district-results-filters.is-dragging{transition:none;outline:1px solid rgba(255,151,31,.5)}
+.district-filter-drag-handle{position:relative;z-index:5;display:flex;align-items:center;justify-content:center;gap:9px;margin:-17px -17px 13px;padding:13px 12px;background:linear-gradient(180deg,#241508,#17110c);border-bottom:1px solid rgba(255,151,31,.25);color:#ffb04b;font-size:12px;font-weight:800;letter-spacing:2px;cursor:pointer;touch-action:manipulation;user-select:none;min-height:46px;box-sizing:border-box}.district-filter-drag-handle:before{content:"⌕";font-size:18px;line-height:1;color:#ffb04b;display:block}.district-filter-drag-handle:after{content:"⌄";font-size:18px;line-height:1;color:#ffb04b;display:block}.district-results-filters.is-collapsed{height:auto!important;max-height:none!important;min-height:0!important;overflow:hidden!important;padding-bottom:0!important}.district-results-filters.is-collapsed>.district-filter-drag-handle{margin-bottom:-1px;border-radius:12px}.district-results-filters.is-collapsed>:not(.district-filter-drag-handle){display:none!important}.district-results-filters:not(.is-collapsed) .district-filter-drag-handle:after{content:"⌃"}.district-results-filters.is-dragging{transition:none;outline:1px solid rgba(255,151,31,.5)}
 .district-filter-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .district-results-filters .field{min-width:0;margin:0 0 10px;background:#090909;color:#fff;border:1px solid #39302a;border-radius:12px;padding:14px}
 .district-results-filters select{color-scheme:dark}
@@ -1510,7 +1510,7 @@ header .premium-24adz-logo .brand-dot{
     <div class="price-card" id="coinPurchaseContact" style="margin-top:16px;padding:18px;border:1px solid rgba(255,145,0,.45);border-radius:14px">
       <h3 style="margin:0 0 8px">Buy Coins through WhatsApp</h3>
       <p style="margin:0 0 10px">After using your 3 free ads, contact Admin on WhatsApp to purchase Coins and continue posting or renew VIP ads.</p>
-      <p style="margin:0 0 12px"><strong>WhatsApp Contact: <span id="coinPurchaseWhatsAppNumber">+91 8870017424</span></strong></p>
+      
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <button type="button" class="btn btn-primary" onclick="showCoinPackages()">Buy Coins on WhatsApp</button>
         <a class="btn btn-outline" id="coinPurchaseWhatsAppLink" href="https://wa.me/918870017424?text=Hello%2024Adz%20Admin%2C%20I%20want%20to%20buy%20Coins." target="_blank" rel="noopener">Chat with Admin</a>
@@ -1531,7 +1531,7 @@ header .premium-24adz-logo .brand-dot{
     <button type="button" class="results-back" onclick="closeSearchResults()">← Back to Home</button>
     <div class="listing-head"><h2 class="section-title" id="adsHeading" style="margin:0">Latest <span>Listings</span></h2><span class="muted" id="resultCount">0 listings</span></div>
     <div class="district-results-filters" id="districtResultsFilters" hidden>
-      <div class="district-filter-drag-handle" id="districtFilterDragHandle" role="separator" aria-orientation="horizontal" aria-label="Single shared drag control for all Tamil Nadu districts">↕ FILTERS · DRAG TO EXPAND / SHRINK</div>
+      <button type="button" class="district-filter-drag-handle" id="districtFilterDragHandle" aria-expanded="false" aria-controls="districtFilterKeyword">FILTERS</button>
       <input class="field" id="districtFilterKeyword" placeholder="Search by keyword or ad title" aria-label="Search by keyword">
       <div class="district-filter-grid">
         <select class="field" id="districtFilterCategory"><option value="">All Categories</option></select>
@@ -1558,7 +1558,7 @@ header .premium-24adz-logo .brand-dot{
         <button type="button" class="btn btn-outline" id="useMyLocationForDistance">⌖ Use My Location</button>
         <span class="district-distance-status" id="districtDistanceStatus" role="status" aria-live="polite">Choose a distance and share your location to find nearby ads.</span>
       </div>
-      <button type="button" class="btn btn-primary" onclick="applyDistrictListingFilters()">Apply Filters</button>
+      <button type="button" class="btn btn-primary" onclick="applyDistrictListingFilters();collapseDistrictFilters()">Apply Filters</button>
       <button type="button" class="btn btn-outline" onclick="resetDistrictListingFilters()">Reset Filters</button>
     </div>
     <div class="ads" id="adsList"><div class="empty">No advertisements yet. Contact the Admin if you want to advertise here.</div></div>
@@ -2009,6 +2009,10 @@ function showCategoryListingResults(mainCategory,subcategory=""){
   document.getElementById("districtFilterSort").value=document.getElementById("sortListings")?.value||"newest";
   document.getElementById("adsHeading").innerHTML='Listings <span>· '+escapeHtml(subcategory||mainCategory||"All Categories")+'</span>';
   applyDistrictListingFilters();
+  // After choosing/applying a filter, keep the filter bar collapsed.
+  const filterPanel=document.getElementById("districtResultsFilters");
+  const filterHandle=document.getElementById("districtFilterDragHandle");
+  if(filterPanel&&filterHandle){filterPanel.classList.add("is-collapsed");filterHandle.setAttribute("aria-expanded","false");}
   // Keep the visitor at the current scroll position; listings are explored manually.
 }
 function chooseCategory(cat,el){
@@ -2130,10 +2134,10 @@ function openDistrictListings(district){
   district=canonicalDistrict;
   activeDistrictListing=district;
   const districtFilterPanel=document.getElementById("districtResultsFilters");
-  // Apply the same compact, draggable filter panel whenever ANY district is opened.
-  // Use the compact filter panel height; users can expand/collapse with its one drag handle.
+  // Show one compact filter dropdown; expand only when the customer taps FILTERS.
   districtFilterPanel.hidden=false;
-  districtFilterPanel.style.height="2.5in";
+  districtFilterPanel.classList.add("is-collapsed");
+  document.getElementById("districtFilterDragHandle").setAttribute("aria-expanded","false");
   districtFilterPanel.scrollTop=0;
   document.getElementById("districtFilterDistrict").value=district;
   updateDistrictFilterAreas();
@@ -2149,6 +2153,11 @@ function openDistrictListings(district){
   document.getElementById("adsHeading").innerHTML='District Listings <span>· '+escapeHtml(district)+'</span>';
   applyDistrictListingFilters();
   // No automatic page jump: the visitor scrolls the listings manually.
+}
+function collapseDistrictFilters(){
+  const panel=document.getElementById("districtResultsFilters");
+  const handle=document.getElementById("districtFilterDragHandle");
+  if(panel&&handle){panel.classList.add("is-collapsed");handle.setAttribute("aria-expanded","false");}
 }
 function applyDistrictListingFilters(){
   const keyword=document.getElementById("districtFilterKeyword").value.trim().toLowerCase();
@@ -2278,16 +2287,25 @@ function refreshVipShuffleOrder(list){
 refreshVipShuffleOrder(ads);
 
 function categoryArtwork(category){
+  const key=String(category||"").trim().toLowerCase();
   const art={
-    "Massage & Spa":{icon:"💆‍♀️",label:"MASSAGE & SPA",c1:"#ff9b24",c2:"#8c2d08"},
-    "Full Body Massage":{icon:"🧖",label:"FULL BODY",c1:"#ff7a18",c2:"#6b210d"},
-    "Head Massage":{icon:"💆",label:"HEAD MASSAGE",c1:"#ffc04a",c2:"#71300c"},
-    "Foot Massage":{icon:"🦶",label:"FOOT MASSAGE",c1:"#ffad22",c2:"#5b3108"},
-    "Spa & Wellness":{icon:"🌿",label:"SPA & WELLNESS",c1:"#8fc66b",c2:"#164b2c"},
-    "Beauty & Wellness":{icon:"✨",label:"BEAUTY & CARE",c1:"#f7bd63",c2:"#7a2866"},
-    "Other Services":{icon:"⭐",label:"WELLNESS SERVICES",c1:"#ffad32",c2:"#63310c"}
+    "cars":{icon:"🚗",label:"CARS",c1:"#ff9b24",c2:"#55300b"},
+    "bikes":{icon:"🏍️",label:"BIKES",c1:"#ff9b24",c2:"#55300b"},
+    "mobiles":{icon:"📱",label:"MOBILES",c1:"#ff9b24",c2:"#55300b"},
+    "jobs":{icon:"💼",label:"JOBS",c1:"#ff9b24",c2:"#55300b"},
+    "real estate":{icon:"🏘️",label:"REAL ESTATE",c1:"#ff9b24",c2:"#55300b"},
+    "hotel rooms":{icon:"🏨",label:"HOTEL ROOMS",c1:"#ff9b24",c2:"#55300b"},
+    "fashion & beauty":{icon:"💄",label:"FASHION & BEAUTY",c1:"#ff9b24",c2:"#55300b"},
+    "personals":{icon:"❤️",label:"PERSONALS",c1:"#ff9b24",c2:"#55300b"},
+    "massage & spa":{icon:"💆‍♀️",label:"MASSAGE & SPA",c1:"#ff9b24",c2:"#8c2d08"},
+    "full body massage":{icon:"🧖",label:"FULL BODY",c1:"#ff7a18",c2:"#6b210d"},
+    "head massage":{icon:"💆",label:"HEAD MASSAGE",c1:"#ffc04a",c2:"#71300c"},
+    "foot massage":{icon:"🦶",label:"FOOT MASSAGE",c1:"#ffad22",c2:"#5b3108"},
+    "spa & wellness":{icon:"🌿",label:"SPA & WELLNESS",c1:"#8fc66b",c2:"#164b2c"},
+    "beauty & wellness":{icon:"✨",label:"BEAUTY & CARE",c1:"#f7bd63",c2:"#7a2866"},
+    "other services":{icon:"⭐",label:"WELLNESS SERVICES",c1:"#ffad32",c2:"#63310c"}
   };
-  const a=art[category]||art["Massage & Spa"];
+  const a=art[key]||art.personals;
   return `<svg class="ad-artwork" viewBox="0 0 640 300" role="img" aria-label="${a.label}" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <linearGradient id="artbg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${a.c2}"/><stop offset="1" stop-color="#080808"/></linearGradient>
@@ -2305,15 +2323,17 @@ function categoryArtwork(category){
 
 function renderAds(items=ads,page=1){
   if(adsScrollObserver){adsScrollObserver.disconnect();adsScrollObserver=null;}
-  // Homepage/public listing area is intentionally VIP-only and limited to the seven approved categories.
-  const homepageCategories=new Set(["cars","bikes","mobiles","real estate","jobs","hotel rooms","fashion & beauty"]);
+  // Homepage shows only active VIP ads in non-Personals categories.
+  // Category/district result pages continue to show all matching active ads.
+  const isHomepage=!document.body.classList.contains("search-results-mode");
   const now=Date.now();
   const sorted=[...items].filter(a=>{
     if(String(a.status||"Active").toLowerCase()==="paused")return false;
-    // Show every approved public listing; VIP ads are ranked first, not used as an access gate.
     const expiry=getAdExpiryTime(a);
     const vipActive=isVipAd(a) && !!expiry && expiry>now;
     a._activeVip=vipActive;
+    const main=String(a.category||"").trim().toLowerCase();
+    if(isHomepage && (main==="personals" || !vipActive))return false;
     return true;
   }).sort((a,b)=>{
     const vipDiff=Number(!!b._activeVip)-Number(!!a._activeVip);
@@ -2739,39 +2759,21 @@ function deleteClientAd(id){const c=getCurrentClient(),a=ads.find(x=>String(x.id
 updateAccountNav();
 document.getElementById("sortListings").addEventListener("change",searchAds);
 document.getElementById("keyword").addEventListener("keydown",e=>{if(e.key==="Enter")openSearchResults();});
-// ONE shared district filter panel and ONE drag handle for all 38 Tamil Nadu districts.
-// The same control is reused whenever any district is selected.
+// ONE shared click-to-expand filter dropdown for all district listings.
 (function(){
   const panel=document.getElementById("districtResultsFilters");
   const handle=document.getElementById("districtFilterDragHandle");
   if(!panel||!handle)return;
-  panel.style.height="2.5in";
-  panel.style.boxSizing="border-box";
-  panel.style.overflowY="auto";
   panel.dataset.sharedDistrictPanel="true";
-  handle.dataset.sharedDistrictDragHandle="true";
-  let startY=0,startHeight=0,activePointer=null;
-  handle.addEventListener("pointerdown",event=>{
-    if(event.button!==undefined && event.button!==0)return;
-    activePointer=event.pointerId;startY=event.clientY;startHeight=panel.getBoundingClientRect().height;
-    panel.classList.add("is-dragging");
-    handle.setPointerCapture?.(event.pointerId);
-    event.preventDefault();
+  handle.dataset.sharedDistrictFilterToggle="true";
+  handle.addEventListener("click",()=>{
+    const collapsed=panel.classList.toggle("is-collapsed");
+    handle.setAttribute("aria-expanded",String(!collapsed));
+    panel.scrollTop=0;
   });
-  handle.addEventListener("pointermove",event=>{
-    if(activePointer!==event.pointerId)return;
-    const delta=event.clientY-startY;
-    // One shared handle: drag UP to expand, DOWN to make the filter panel compact.
-    const next=Math.max(150,Math.min(window.innerHeight*.75,startHeight-delta));
-    panel.style.height=next+"px";
-    panel.style.maxHeight="75vh";
-  });
-  const finish=event=>{
-    if(activePointer!==event.pointerId)return;
-    activePointer=null;panel.classList.remove("is-dragging");
-  };
-  handle.addEventListener("pointerup",finish);
-  handle.addEventListener("pointercancel",finish);
+  // Start closed whenever the district listing filter is first shown.
+  panel.classList.add("is-collapsed");
+  handle.setAttribute("aria-expanded","false");
 })();
 renderAds();
 // Repaint the current results as the VIP rotation advances; no page reload needed.
