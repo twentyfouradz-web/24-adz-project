@@ -1700,13 +1700,17 @@ function fillAreas(districtSelect,areaSelect){
   const district=districtSelect.value;
   const previous=areaSelect.value;
   areaSelect.innerHTML='<option value="">Select Area</option>';
-  const list=district && districtAreas[district]
-    ? districtAreas[district]
-    : [...new Set(Object.values(districtAreas).flat())].sort((a,b)=>a.localeCompare(b));
-  list.forEach(name=>{
+  // Area choices are always scoped to the selected district. Never mix
+  // areas from other districts into the Search or Post Ad forms.
+  const list=district && districtAreas[district] ? districtAreas[district] : [];
+  // Show the district's own main area first (e.g. Tiruppur district -> Tiruppur area).
+  // If it already exists in the area list, move it to the first position;
+  // otherwise add it as the first selectable area.
+  const orderedAreas = district ? [district, ...list.filter(name => name.toLowerCase() !== district.toLowerCase())] : list;
+  orderedAreas.forEach(name=>{
     const o=document.createElement("option");o.value=name;o.textContent=name;areaSelect.appendChild(o);
   });
-  if(previous && list.includes(previous)) areaSelect.value=previous;
+  if(previous && orderedAreas.includes(previous)) areaSelect.value=previous;
 }
 function updateSearchAreas(){
   fillAreas(document.getElementById("searchDistrict"),document.getElementById("searchArea"));
@@ -1721,6 +1725,12 @@ const searchSubcategorySelect=document.getElementById("searchSubcategory");
 function populateSearchSubcategories(category){
   if(!searchSubcategorySelect)return;
   searchSubcategorySelect.innerHTML='<option value="">All Subcategories</option>';
+  // Search-only parent option: selecting "Cars" means all Cars ads,
+  // regardless of their New/Used/Rental/Service subcategory.
+  if(category==="Cars"){
+    const allCars=document.createElement("option");allCars.value="Cars";allCars.textContent="Cars";
+    searchSubcategorySelect.appendChild(allCars);
+  }
   (categories[category]||[]).forEach(value=>{
     const option=document.createElement("option");option.value=value;option.textContent=value;
     searchSubcategorySelect.appendChild(option);
@@ -1729,21 +1739,15 @@ function populateSearchSubcategories(category){
 }
 
 function updateSearchFilterSteps(){
-  const hasCategory=!!searchCategorySelect.value;
-  searchDistrictSelect.disabled=!hasCategory;
-  if(!hasCategory){
-    searchDistrictSelect.value="";
-    searchAreaSelect.innerHTML='<option value="">Select Area</option>';
-    searchAreaSelect.disabled=true;
-    return;
-  }
+  // District can be selected independently of category. Once selected,
+  // only that district's areas become available.
+  searchDistrictSelect.disabled=false;
   const hasDistrict=!!searchDistrictSelect.value;
   searchAreaSelect.disabled=!hasDistrict;
   if(!hasDistrict) searchAreaSelect.innerHTML='<option value="">Select Area</option>';
 }
 searchCategorySelect.addEventListener("change",()=>{
-  searchDistrictSelect.value="";
-  searchAreaSelect.value="";
+  // Changing category must not erase an already selected district/area.
   populateSearchSubcategories(searchCategorySelect.value);
   if(searchSubcategorySelect)searchSubcategorySelect.value="";
   updateSearchFilterSteps();
@@ -1909,6 +1913,12 @@ function chooseCategory(cat,el){
   populateSearchSubcategories(mainCategory);
   const subSelect=document.getElementById("searchSubcategory");
   if(subSelect)subSelect.value=parent?cat:"";
+  const district=document.getElementById("searchDistrict"),area=document.getElementById("searchArea"),keyword=document.getElementById("keyword");
+  if(district)district.value="";
+  if(area){area.innerHTML='<option value="">Select Area</option>';area.value="";}
+  if(keyword)keyword.value="";
+  const heading=document.getElementById("adsHeading");
+  if(heading)heading.innerHTML='Listings <span>· '+escapeHtml(mainCategory)+(parent?' · '+escapeHtml(cat):'')+'</span>';
   updateSearchFilterSteps();
   document.querySelectorAll(".category").forEach(x=>x.classList.remove("active"));
   if(el)el.classList.add("active");
@@ -1954,13 +1964,19 @@ function runQuickSearch(event){
 }
 function openSearchResults(){
   const cat=document.getElementById("searchCategory").value;
+  const sub=document.getElementById("searchSubcategory").value;
   const dist=document.getElementById("searchDistrict").value;
   const area=document.getElementById("searchArea").value;
-  if(!cat){toast("Please select a category.");return;}
-  if(!dist){toast("Please select a district.");return;}
-  if(!area){toast("Please select an area.");return;}
+  const keyword=document.getElementById("keyword").value.trim();
+  if(area && !dist){toast("Please select a district before selecting an area.");return;}
+  const parts=[];
+  if(cat)parts.push(cat);
+  if(sub)parts.push(sub);
+  if(dist)parts.push(dist);
+  if(area)parts.push(area);
+  if(keyword)parts.push(keyword);
   document.body.classList.add("search-results-mode");
-  document.getElementById("adsHeading").innerHTML='Search Results <span>· '+escapeHtml(area)+'</span>';
+  document.getElementById("adsHeading").innerHTML='Search Results <span>· '+escapeHtml(parts.join(' · ')||'All Listings')+'</span>';
   searchAds();
   window.scrollTo({top:0,behavior:"smooth"});
 }
@@ -2094,7 +2110,7 @@ function searchAds(){
   const area=document.getElementById("searchArea").value;
   let filtered=ads.filter(a=>
     (!keyword||(String(a.title||"")+" "+String(a.description||"")+" "+String(a.contact||"")+" "+String(a.category||"")).toLowerCase().includes(keyword)) &&
-    (!cat||a.category===cat) && (!sub||a.subcategory===sub||(()=>{try{return JSON.parse(a.details_json||"{}").subcategory===sub}catch(_){return false}})()) && (!dist||String(a.district||"").trim()===dist) && (!area||String(a.area||"").trim()===area)
+    (!cat||a.category===cat) && (!sub||sub===cat||a.subcategory===sub||(()=>{try{return JSON.parse(a.details_json||"{}").subcategory===sub}catch(_){return false}})()) && (!dist||String(a.district||"").trim()===dist) && (!area||String(a.area||"").trim()===area)
   );
   const sort=document.getElementById("sortListings")?.value || "newest";
   if(sort==="price-low") filtered.sort((a,b)=>(Number(a.price)||0)-(Number(b.price)||0));
@@ -2862,11 +2878,55 @@ updateAccountNav();
  window.toggleMainCategory=function(name,el){
   const panel=$("personalsSubcategories"),trigger=$("personalsCategory"); if(!panel)return;
   const opening=panel.hidden||panel.dataset.category!==name;
+
+  // A main-category tap always shows every approved ad in that category,
+  // across all Tamil Nadu districts. District/area filters are only applied
+  // when the visitor explicitly chooses them in the search filters.
+  const search=$('searchCategory'),subSearch=$('searchSubcategory');
+  if(search)search.value=name;
+  if(typeof populateSearchSubcategories==='function')populateSearchSubcategories(name);
+  if(subSearch)subSearch.value='';
+  const district=$('searchDistrict'),area=$('searchArea'),keyword=$('keyword');
+  if(district)district.value='';
+  if(area){area.innerHTML='<option value="">Select Area</option>';area.value='';}
+  if(keyword)keyword.value='';
+  if(typeof updateSearchFilterSteps==='function')updateSearchFilterSteps();
+  const heading=$('adsHeading');if(heading)heading.innerHTML='Listings <span>· '+adz24Escape(name)+'</span>';
+  if(typeof searchAds==='function')searchAds();
+
   panel.hidden=!opening; panel.dataset.category=opening?name:"";
   if(trigger)trigger.setAttribute('aria-expanded',String(opening&&name==='Personals'));
   document.querySelectorAll('#categories .category').forEach(x=>x.classList.remove('active'));
   if(opening&&el)el.classList.add('active');
-  if(opening){$('activeSubcategoryHeading').textContent=name;const grid=$('dynamicSubcategoryGrid');grid.innerHTML='';const allRows=window.ADZ24_ADMIN_CONFIG?.categories||[];const parent=allRows.find(x=>String(x.name||'').trim()===name&&(x.parent_id===null||x.parent_id===undefined));const childRows=parent?allRows.filter(x=>String(x.parent_id)===String(parent.id)):[];const subs=childRows.length?childRows.map(x=>({name:x.name,icon:x.icon})):((categoryMap[name]||[]).map(sub=>({name:sub,icon:icons[sub]})));subs.forEach(item=>{const sub=item.name;const card=document.createElement('button');card.type='button';card.className='category';card.innerHTML='<span class="ico"></span><strong></strong>';card.querySelector('.ico').textContent=icons[sub]||item.icon||'📁';card.querySelector('strong').textContent=sub;card.addEventListener('click',()=>{const search=$('searchCategory'),subSearch=$('searchSubcategory');if(search)search.value=name;if(subSearch){populateSearchSubcategories(name);subSearch.value=sub;} if(typeof updateSearchFilterSteps==='function')updateSearchFilterSteps();if(typeof searchAds==='function')searchAds();$('adsSection')?.scrollIntoView({behavior:'smooth',block:'start'});});grid.appendChild(card)});panel.scrollIntoView({behavior:'smooth',block:'nearest'});}
+  if(opening){
+   $('activeSubcategoryHeading').textContent=name;
+   const grid=$('dynamicSubcategoryGrid');grid.innerHTML='';
+   const allRows=window.ADZ24_ADMIN_CONFIG?.categories||[];
+   const parent=allRows.find(x=>String(x.name||'').trim()===name&&(x.parent_id===null||x.parent_id===undefined));
+   const childRows=parent?allRows.filter(x=>String(x.parent_id)===String(parent.id)):[];
+   const subs=childRows.length?childRows.map(x=>({name:x.name,icon:x.icon})):((categoryMap[name]||[]).map(sub=>({name:sub,icon:icons[sub]})));
+   subs.forEach(item=>{
+    const sub=item.name;const card=document.createElement('button');card.type='button';card.className='category';
+    card.innerHTML='<span class="ico"></span><strong></strong>';
+    card.querySelector('.ico').textContent=icons[sub]||item.icon||'📁';
+    card.querySelector('strong').textContent=sub;
+    card.addEventListener('click',()=>{
+     const search=$('searchCategory'),subSearch=$('searchSubcategory');
+     if(search)search.value=name;
+     if(subSearch){populateSearchSubcategories(name);subSearch.value=sub;}
+     const district=$('searchDistrict'),area=$('searchArea'),keyword=$('keyword');
+     if(district)district.value='';
+     if(area){area.innerHTML='<option value="">Select Area</option>';area.value='';}
+     if(keyword)keyword.value='';
+     if(typeof updateSearchFilterSteps==='function')updateSearchFilterSteps();
+     const heading=$('adsHeading');if(heading)heading.innerHTML='Listings <span>· '+adz24Escape(name)+' · '+adz24Escape(sub)+'</span>';
+     if(typeof searchAds==='function')searchAds();
+     $('adsSection')?.scrollIntoView({behavior:'smooth',block:'start'});
+    });
+    grid.appendChild(card);
+   });
+   panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
  };
  window.collectCategoryDetails=function(root){const data={};if(!root)return data;root.querySelectorAll('[data-detail-key]').forEach(el=>{if(el.value)data[el.dataset.detailKey]=el.value.trim()});return data;};
  function field(label,key,type='text',opts){let html='<label>'+label+'</label>';if(type==='select'){html+='<select class="field" data-detail-key="'+key+'"><option value="">Select '+label+'</option>'+opts.map(x=>'<option>'+x+'</option>').join('')+'</select>';}else html+='<input class="field" data-detail-key="'+key+'" type="'+type+'" placeholder="'+label+'">';return html;}
