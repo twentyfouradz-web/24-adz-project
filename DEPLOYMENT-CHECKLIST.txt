@@ -1,0 +1,14 @@
+24Adz.com — Safe Deployment Checklist
+
+[ ] Extract the ZIP and upload the CONTENTS to the root of the connected GitHub repo.
+[ ] Confirm wrangler.toml, package.json, workers/, public/ and migrations/ are at repo root.
+[ ] Keep Cloudflare Build command = None.
+[ ] Keep Cloudflare Deploy command = npx wrangler deploy.
+[ ] Keep Root directory = .
+[ ] Do not manually add another ASSETS binding; wrangler.toml declares it.
+[ ] Keep D1 binding DB pointed to hey-mr-database.
+[ ] Keep R2 binding IMAGES pointed to hey-mr-images.
+[ ] Inspect remote D1 migration history before applying any migration.
+[ ] Apply only migrations that are not already recorded as applied.
+[ ] Verify Worker secrets/variables names; never expose secret values.
+[ ] Deploy and test health, categories, ads, auth, post/edit/delete and images.

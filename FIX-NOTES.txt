@@ -1,35 +1,116 @@
-24Adz.com homepage and category form cleanup
-Date: 10 November 2026
+24Adz.com — Full Website + API Worker Update
+Updated: 11 November 2026
 
-Included runtime files only:
-- public/index.html — homepage, registration/login, search and Post Ad forms
-- public/admin.html — admin panel used by the site
-- workers/index.js — API/backend
-- migrations/*.sql — database schema/history required by the Worker
-- wrangler.toml and package.json — deployment configuration
+PROJECT CONTENTS
+- public/index.html: public homepage, client register/login via Supabase Auth,
+  email confirmation flow, client dashboard, Post Ad forms, category directory,
+  search/filter UI and district/area selection.
+- public/admin.html: existing admin panel; preserved.
+- workers/index.js: API Worker for public ads/search, client account sync,
+  client ad create/edit/delete, admin endpoints, D1 and R2 operations.
+- migrations/*.sql: ordered D1 migration history, including category hierarchy
+  and Supabase user ID linking.
+- wrangler.toml: Worker deployment, existing D1, existing R2 and static assets.
+- package.json: Wrangler scripts and syntax-check command.
 
-Cleanup and fixes:
-- Homepage's six main categories are the only categories exposed to users:
-  Cars, Bikes, Mobiles, Jobs, Real Estate, Personals.
-- Removed legacy Hotel Rooms and Fashion & Beauty categories from homepage
-  category fallback, search options, and Worker category allow-list.
-- All six categories use their own homepage subcategory lists.
-- Post Ad requires a valid main category and subcategory.
-- Category-specific fields are shown for Cars, Bikes, Mobiles, Real Estate,
-  Jobs and Personals.
-- Contact name, age and category-specific details are sent to the API and
-  saved in D1 details_json.
-- Editing an ad restores its category, subcategory and saved detail fields.
-- Admin category data is filtered so only the six homepage categories and
-  their direct subcategories can appear on the homepage.
-- Existing homepage design/layout/styles were retained.
+APPROVED MAIN CATEGORIES (8)
+1. Cars
+2. Bikes
+3. Mobiles
+4. Jobs
+5. Personals
+6. Hotel Rooms
+7. Real Estate
+8. Fashion & Beauty
 
-Checks:
-- All four inline homepage JavaScript blocks pass `node --check`.
-- Worker JavaScript passes `node --check`.
+ACTIVE SUBCATEGORIES (44)
+Cars (4): New Cars, Used Cars, Car Rentals, Car Services.
+Bikes (3): New Bikes, Used Bikes, Bike Services.
+Mobiles (4): New Mobiles, Used Mobiles, Mobile Accessories, Mobile Services.
+Jobs (4): Full-time Jobs, Part-time Jobs, Work from Home, Temporary Jobs.
+Personals (7): Massage & Spa, Full Body Massage, Head Massage, Foot Massage,
+Spa & Wellness, Beauty & Wellness, Other Services.
+Hotel Rooms (7): Budget Hotel Rooms, Luxury Hotel Rooms, AC Rooms, Non-AC Rooms,
+Family Rooms, Lodges, Service Apartments.
+Real Estate (7): Residential Properties, Commercial Spaces, Houses for Sale,
+Houses for Rent, Apartments & Flats, Land & Plots, PG & Hostels.
+Fashion & Beauty (8): Beauty Parlour Ads, Dresses, Men's Fashion,
+Women's Fashion, Men's & Women's Clothing, Beauty Products,
+Makeup & Cosmetics, Accessories.
 
-Deployment note:
-Upload/replace public/index.html and workers/index.js in the existing project,
-then deploy the Worker. No new D1 migration is required for these code changes.
-Keep the existing D1 and R2 bindings in wrangler.toml; verify they match the
-resources in your Cloudflare account before deploying.
+CATEGORY AND FORM FIXES IN THIS UPDATE
+- Homepage main category directory explicitly displays all eight main categories.
+- Category/subcategory search selection resolves a clicked subcategory to its
+  parent main category, then filters using both values.
+- Post Ad form has all eight main categories and category-specific form fields.
+- Client-created ads now persist details_json, including the selected subcategory
+  and category-specific values; client edits also update details_json.
+- Admin-managed category hierarchy remains D1-driven. Worker validates the active
+  main category and verifies that a selected active subcategory belongs to it.
+- Future active main categories/subcategories added through the admin category
+  manager are read from D1; Worker category validation does not use a fixed list.
+- Free listing rule defaults to 3 ads per email account every 30 days. Admin
+  settings can change the limit and period. Error/UI wording now says per email.
+- Newest-first sorting uses timestamps, not numeric conversion of UUID ad IDs.
+
+AUTHENTICATION AND EMAIL
+- Homepage uses Supabase JavaScript v2 for email/password registration/login,
+  email confirmation, password recovery and session handling.
+- Worker reads SUPABASE_URL and SUPABASE_ANON_KEY to provide public auth config
+  and verify Supabase bearer tokens.
+- SUPABASE_SERVICE_ROLE_KEY is not required by the current browser auth flow and
+  must never be exposed in homepage HTML. Keeping it as a Worker secret is safe,
+  but the current Worker does not need it for these routes.
+- Supabase confirmation and password recovery emails are sent by Supabase Auth.
+  Configure Resend as SMTP in Supabase Dashboard if Resend is the chosen provider.
+- RESEND_API_KEY and RESEND_FROM remain in the Worker settings for legacy email
+  helper code; the legacy client auth endpoints are short-circuited with HTTP 410
+  and are not the current Supabase confirmation flow.
+
+WRANGLER AND EXISTING CLOUDFLARE RESOURCES
+- Worker name: 24adz-api
+- Main: workers/index.js
+- D1 binding: DB -> hey-mr-database
+- R2 binding: IMAGES -> hey-mr-images
+- Static assets: [assets] directory = ./public, binding = ASSETS
+- Do not create another manual Assets binding. Wrangler's [assets] configuration
+  owns the ASSETS binding when this Worker version is deployed from this repo.
+- Existing D1 and R2 resources are reused; this project does not create new ones.
+- Do not delete, rename or replace the existing DB or IMAGES bindings.
+
+DEPLOYMENT SAFETY
+1. Upload/commit the complete ZIP contents to the connected GitHub repository,
+   preserving the repository root structure (wrangler.toml, package.json,
+   workers/, public/, migrations/).
+2. Cloudflare Worker Build settings expected for this repository root:
+   Build command: None; Deploy command: npx wrangler deploy; Root directory: .
+3. Before any remote migration, inspect production history:
+   npx wrangler d1 migrations list hey-mr-database --remote
+4. Apply only pending migrations. Do not blindly replay the complete migration
+   history against the reused production database.
+5. Deploy Worker only after checking bindings and secrets. Do not change the
+   existing DB or IMAGES resource selections.
+6. After deployment, test /api/health, /api/public/categories,
+   /api/public/ads, Supabase registration + confirmation + login, posting,
+   editing, deletion, image upload, and category/search filters.
+
+CREDENTIALS / SECRETS
+Expected current Worker values include ADMIN_PASSWORD, ADMIN_SESSION_SECRET,
+CLIENT_SESSION_SECRET, SUPABASE_URL, SUPABASE_ANON_KEY, RESEND_API_KEY and
+RESEND_FROM. Never put secret values in GitHub or in this ZIP. Set them only in
+Cloudflare Worker Settings > Variables and Secrets. The screenshots showed the
+names exist, but encrypted secret values cannot be verified from screenshots.
+
+VALIDATION PERFORMED FOR THIS ZIP
+- Node syntax check: workers/index.js passed.
+- All inline scripts extracted from public/index.html passed Node syntax checks.
+- All SQL migrations applied in filename order to a clean SQLite validation DB.
+- Validation DB result: exactly 8 active main categories and 44 active
+  subcategories (counts listed above).
+- Static homepage category markup includes all eight approved main categories.
+
+LIMITATION
+These are source-code and clean-database checks only. They do not prove that the
+live Cloudflare Worker has deployed this ZIP, that production D1 migration history
+matches this package, that secrets contain valid values, or that Supabase email
+and end-to-end browser flows succeed. Those require post-deployment live tests.
