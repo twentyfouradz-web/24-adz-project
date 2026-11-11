@@ -1308,7 +1308,6 @@ header .premium-24adz-logo .brand-dot{
 }
 </style>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <header>
@@ -1377,6 +1376,10 @@ header .premium-24adz-logo .brand-dot{
         <select id="searchDistrict" class="field" disabled><option value="">Select District</option></select>
       </div>
       <select id="searchArea" class="field" disabled><option value="">Select Area</option></select>
+      <div class="search-grid">
+        <input id="searchMinPrice" class="field" type="number" min="0" placeholder="Minimum Price (₹)" aria-label="Minimum price">
+        <input id="searchMaxPrice" class="field" type="number" min="0" placeholder="Maximum Price (₹)" aria-label="Maximum price">
+      </div>
       <select id="sortListings" class="field" aria-label="Sort listings">
         <option value="newest">Sort: Newest First</option>
         <option value="price-low">Price: Low to High</option>
@@ -1561,7 +1564,7 @@ header .premium-24adz-logo .brand-dot{
         <button class="btn btn-primary" type="submit">Publish Ad</button>
       </div>
     </div>
-    <p class="small-note">First 3 ads are free per email every 30 days. VIP duration uses Coins from your 24Adz Wallet. Standard categories use Chat; Massage / Spa categories show Call, WhatsApp and Chat.</p>
+    <p class="small-note">First 3 ads are free subject to the monthly mobile-number limit. VIP duration uses Coins from your 24Adz Wallet. Standard categories use Chat; Massage / Spa categories show Call, WhatsApp and Chat.</p>
   </form>
 </div></div>
 
@@ -1691,17 +1694,9 @@ function updateDistrictFilterSubcategories(){
   const cat=document.getElementById("districtFilterCategory").value;
   const sub=document.getElementById("districtFilterSubcategory");
   sub.innerHTML='<option value="">All Subcategories</option>';
-  // "Cars" is the first selectable Cars subcategory and means every Cars ad,
-  // including New Cars, Used Cars, Car Rentals and Car Services.
-  if(cat==="Cars"){
-    const allCars=document.createElement("option");
-    allCars.value="Cars";
-    allCars.textContent="Cars";
-    sub.appendChild(allCars);
-  }
-  (categories[cat]||[]).forEach(name=>{
-    const o=document.createElement("option");o.value=name;o.textContent=name;sub.appendChild(o);
-  });
+  const values=(categories[cat]||[]).slice();
+  if(cat && !values.some(v=>String(v).trim().toLowerCase()===String(cat).trim().toLowerCase())) values.unshift(cat);
+  values.forEach(name=>{if([...sub.options].some(o=>o.value.toLowerCase()===String(name).toLowerCase()))return;const o=document.createElement("option");o.value=name;o.textContent=name;sub.appendChild(o);});
 }
 function updateDistrictFilterAreas(){
   fillAreas(document.getElementById("districtFilterDistrict"),document.getElementById("districtFilterArea"));
@@ -1709,18 +1704,17 @@ function updateDistrictFilterAreas(){
 function fillAreas(districtSelect,areaSelect){
   const district=districtSelect.value;
   const previous=areaSelect.value;
-  areaSelect.innerHTML='<option value="">Select Area</option>';
-  // Area choices are always scoped to the selected district. Never mix
-  // areas from other districts into the Search or Post Ad forms.
-  const list=district && districtAreas[district] ? districtAreas[district] : [];
-  // Show the district's own main area first (e.g. Tiruppur district -> Tiruppur area).
-  // If it already exists in the area list, move it to the first position;
-  // otherwise add it as the first selectable area.
-  const orderedAreas = district ? [district, ...list.filter(name => name.toLowerCase() !== district.toLowerCase())] : list;
-  orderedAreas.forEach(name=>{
+  areaSelect.innerHTML='<option value="">'+(areaSelect.id==="districtFilterArea"?"All Areas":"Select Area")+'</option>';
+  const localAreas=district && districtAreas[district]
+    ? districtAreas[district]
+    : [...new Set(Object.values(districtAreas).flat())].sort((a,b)=>a.localeCompare(b));
+  const list=district
+    ? [district,...localAreas.filter(name=>String(name).trim().toLocaleLowerCase("en-IN")!==String(district).trim().toLocaleLowerCase("en-IN"))]
+    : localAreas;
+  list.forEach(name=>{
     const o=document.createElement("option");o.value=name;o.textContent=name;areaSelect.appendChild(o);
   });
-  if(previous && orderedAreas.includes(previous)) areaSelect.value=previous;
+  if(previous && list.includes(previous)) areaSelect.value=previous;
 }
 function updateSearchAreas(){
   fillAreas(document.getElementById("searchDistrict"),document.getElementById("searchArea"));
@@ -1735,29 +1729,32 @@ const searchSubcategorySelect=document.getElementById("searchSubcategory");
 function populateSearchSubcategories(category){
   if(!searchSubcategorySelect)return;
   searchSubcategorySelect.innerHTML='<option value="">All Subcategories</option>';
-  // Search-only parent option: selecting "Cars" means all Cars ads,
-  // regardless of their New/Used/Rental/Service subcategory.
-  if(category==="Cars"){
-    const allCars=document.createElement("option");allCars.value="Cars";allCars.textContent="Cars";
-    searchSubcategorySelect.appendChild(allCars);
-  }
-  (categories[category]||[]).forEach(value=>{
+  const values=(categories[category]||[]).slice();
+  if(category && !values.some(v=>String(v).trim().toLowerCase()===String(category).trim().toLowerCase())) values.unshift(category);
+  values.forEach(value=>{
+    if([...searchSubcategorySelect.options].some(o=>o.value.toLowerCase()===String(value).toLowerCase()))return;
     const option=document.createElement("option");option.value=value;option.textContent=value;
     searchSubcategorySelect.appendChild(option);
   });
-  searchSubcategorySelect.disabled=!(categories[category]||[]).length;
+  searchSubcategorySelect.disabled=values.length===0;
 }
 
 function updateSearchFilterSteps(){
-  // District can be selected independently of category. Once selected,
-  // only that district's areas become available.
-  searchDistrictSelect.disabled=false;
+  const hasCategory=!!searchCategorySelect.value;
+  searchDistrictSelect.disabled=!hasCategory;
+  if(!hasCategory){
+    searchDistrictSelect.value="";
+    searchAreaSelect.innerHTML='<option value="">Select Area</option>';
+    searchAreaSelect.disabled=true;
+    return;
+  }
   const hasDistrict=!!searchDistrictSelect.value;
   searchAreaSelect.disabled=!hasDistrict;
   if(!hasDistrict) searchAreaSelect.innerHTML='<option value="">Select Area</option>';
 }
 searchCategorySelect.addEventListener("change",()=>{
-  // Changing category must not erase an already selected district/area.
+  searchDistrictSelect.value="";
+  searchAreaSelect.value="";
   populateSearchSubcategories(searchCategorySelect.value);
   if(searchSubcategorySelect)searchSubcategorySelect.value="";
   updateSearchFilterSteps();
@@ -1811,7 +1808,7 @@ function showPricePlan(){
   const key=document.getElementById("pricePlanSelect").value;
   const panel=document.getElementById("pricePlanDetails");
   const plans={
-    free:{name:"FREE LISTING",amount:"₹0",description:"Up to 3 free advertisements per email every 30 days.",features:["Standard listing","Call & WhatsApp contact"]},
+    free:{name:"FREE LISTING",amount:"₹0",description:"Up to 3 free advertisements per mobile number each calendar month.",features:["Standard listing","Call & WhatsApp contact"]},
     vip3:{name:"VIP · 3 DAYS",amount:"₹300",description:"Promote your advertisement for 3 days.",features:["VIP placement","More visibility","Call & WhatsApp contact"]},
     vip5:{name:"VIP · 5 DAYS",amount:"₹500",description:"Promote your advertisement for 5 days.",features:["VIP placement","More visibility","Call & WhatsApp contact"]},
     vip7:{name:"VIP · 7 DAYS",amount:"₹700",description:"Promote your advertisement for 7 days.",features:["VIP placement","More visibility","Call & WhatsApp contact"]}
@@ -1898,7 +1895,7 @@ function togglePersonalsCategories(){
   const trigger=document.getElementById("personalsCategory");
   if(!panel||!trigger)return;
   const opening=panel.hidden;
-  // Personals is the only main category that opens this subcategory panel.
+  // Main categories use the shared expandable subcategory panel, including Fashion & Beauty.
   closePersonalsCategories();
   if(opening){
     panel.hidden=false;
@@ -1910,28 +1907,42 @@ function togglePersonalsCategories(){
     trigger.classList.remove("active");
   }
 }
+function showCategoryListingResults(mainCategory,subcategory=""){
+  const panel=document.getElementById("districtResultsFilters");
+  if(panel)panel.hidden=false;
+  document.body.classList.add("search-results-mode");
+  activeDistrictListing="";
+  const searchDistrict=document.getElementById("searchDistrict")?.value||"";
+  const district=document.getElementById("districtFilterDistrict");
+  if(district){fillDistricts(district);district.value=searchDistrict;}
+  const category=document.getElementById("districtFilterCategory");
+  if(category)category.value=mainCategory||"";
+  updateDistrictFilterSubcategories();
+  const sub=document.getElementById("districtFilterSubcategory");
+  if(sub)sub.value=subcategory||"";
+  updateDistrictFilterAreas();
+  const area=document.getElementById("districtFilterArea");
+  if(area)area.value=document.getElementById("searchArea")?.value||"";
+  document.getElementById("districtFilterKeyword").value=document.getElementById("keyword")?.value||"";
+  document.getElementById("districtFilterMinPrice").value=document.getElementById("searchMinPrice")?.value||"";
+  document.getElementById("districtFilterMaxPrice").value=document.getElementById("searchMaxPrice")?.value||"";
+  document.getElementById("districtFilterSort").value=document.getElementById("sortListings")?.value||"newest";
+  document.getElementById("adsHeading").innerHTML='Listings <span>· '+escapeHtml(subcategory||mainCategory||"All Categories")+'</span>';
+  applyDistrictListingFilters();
+  document.getElementById("adsSection").scrollIntoView({behavior:"smooth",block:"start"});
+}
 function chooseCategory(cat,el){
-  // A clicked directory item is a subcategory. Resolve its active parent so
-  // filtering always sends the main category plus the selected subcategory.
+  // Selecting any category (including a Personal subcategory) closes the
+  // Personals panel so unrelated categories are never left open together.
   closePersonalsCategories();
   const personalsTrigger=document.getElementById("personalsCategory");
   if(personalsTrigger && el!==personalsTrigger)personalsTrigger.classList.remove("active");
-  const parent=Object.entries(categories).find(([,subs])=>Array.isArray(subs)&&subs.includes(cat));
-  const mainCategory=parent?parent[0]:cat;
-  const mainSelect=document.getElementById("searchCategory");
-  if(mainSelect)mainSelect.value=mainCategory;
-  populateSearchSubcategories(mainCategory);
-  const subSelect=document.getElementById("searchSubcategory");
-  if(subSelect)subSelect.value=parent?cat:"";
-  const district=document.getElementById("searchDistrict"),area=document.getElementById("searchArea"),keyword=document.getElementById("keyword");
-  if(district)district.value="";
-  if(area){area.innerHTML='<option value="">Select Area</option>';area.value="";}
-  if(keyword)keyword.value="";
-  const heading=document.getElementById("adsHeading");
-  if(heading)heading.innerHTML='Listings <span>· '+escapeHtml(mainCategory)+(parent?' · '+escapeHtml(cat):'')+'</span>';
+  document.getElementById("searchCategory").value=cat;
+  populateSearchSubcategories(cat);
+  if(document.getElementById("searchSubcategory"))document.getElementById("searchSubcategory").value="";
   updateSearchFilterSteps();
   document.querySelectorAll(".category").forEach(x=>x.classList.remove("active"));
-  if(el)el.classList.add("active");
+  el.classList.add("active");
   searchAds();
   document.getElementById("adsSection").scrollIntoView({behavior:"smooth",block:"start"});
 }
@@ -1953,9 +1964,7 @@ function quickCategory(category){
   populateSearchSubcategories(category);
   if(document.getElementById("searchSubcategory"))document.getElementById("searchSubcategory").value="";
   document.getElementById("keyword").value="";
-  document.body.classList.add("search-results-mode");
-  document.getElementById("adsHeading").innerHTML='Listings <span>· '+escapeHtml(category)+'</span>';
-  searchAds();
+  showCategoryListingResults(category,"");
   window.scrollTo({top:0,behavior:"smooth"});
 }
 function runQuickSearch(event){
@@ -1974,20 +1983,26 @@ function runQuickSearch(event){
 }
 function openSearchResults(){
   const cat=document.getElementById("searchCategory").value;
-  const sub=document.getElementById("searchSubcategory").value;
   const dist=document.getElementById("searchDistrict").value;
   const area=document.getElementById("searchArea").value;
-  const keyword=document.getElementById("keyword").value.trim();
-  if(area && !dist){toast("Please select a district before selecting an area.");return;}
-  const parts=[];
-  if(cat)parts.push(cat);
-  if(sub)parts.push(sub);
-  if(dist)parts.push(dist);
-  if(area)parts.push(area);
-  if(keyword)parts.push(keyword);
+  if(!cat){toast("Please select a category.");return;}
+  if(!dist){toast("Please select a district.");return;}
+  if(!area){toast("Please select an area.");return;}
+  const panel=document.getElementById("districtResultsFilters");
+  if(panel)panel.hidden=false;
   document.body.classList.add("search-results-mode");
-  document.getElementById("adsHeading").innerHTML='Search Results <span>· '+escapeHtml(parts.join(' · ')||'All Listings')+'</span>';
-  searchAds();
+  document.getElementById("districtFilterCategory").value=cat;
+  updateDistrictFilterSubcategories();
+  document.getElementById("districtFilterSubcategory").value=document.getElementById("searchSubcategory")?.value||"";
+  document.getElementById("districtFilterDistrict").value=dist;
+  updateDistrictFilterAreas();
+  document.getElementById("districtFilterArea").value=area;
+  document.getElementById("districtFilterKeyword").value=document.getElementById("keyword").value||"";
+  document.getElementById("districtFilterMinPrice").value=document.getElementById("searchMinPrice")?.value||"";
+  document.getElementById("districtFilterMaxPrice").value=document.getElementById("searchMaxPrice")?.value||"";
+  document.getElementById("districtFilterSort").value=document.getElementById("sortListings").value||"newest";
+  document.getElementById("adsHeading").innerHTML='Search Results <span>· '+escapeHtml(area)+'</span>';
+  applyDistrictListingFilters();
   window.scrollTo({top:0,behavior:"smooth"});
 }
 let activeDistrictListing="";
@@ -2078,8 +2093,13 @@ function applyDistrictListingFilters(){
       distanceKm(districtViewerLocation.latitude,districtViewerLocation.longitude,Number(a.latitude),Number(a.longitude))<=maxDistance
     );
     return (!keyword||text.includes(keyword)) &&
-      (!category||a.category===category) &&
-      (!subcategory||subcategory===category||a.subcategory===subcategory||(()=>{try{return JSON.parse(a.details_json||"{}").subcategory===subcategory}catch(_){return false}})()) &&
+      (!category||String(a.category||"").trim().toLowerCase()===String(category).trim().toLowerCase()) &&
+      (!subcategory||String(subcategory).trim().toLowerCase()===String(category).trim().toLowerCase()||
+        [a.subcategory,(()=>{try{return JSON.parse(a.details_json||"{}").subcategory}catch(_){return ""}})()].some(v=>{
+          const norm=x=>String(x||"").trim().toLowerCase().replace(/\s+/g," ");
+          const aliases=x=>norm(x)==="cars rentals"?"car rentals":norm(x);
+          return aliases(v)===aliases(subcategory);
+        })) &&
       (!district||normalizeDistrict(a.district)===normalizeDistrict(district)) &&
       (!area||String(a.area||"").trim()===area) &&
       (min===null||price>=min) && (max===null||price<=max) && withinDistance;
@@ -2118,14 +2138,24 @@ function searchAds(){
   const sub=document.getElementById("searchSubcategory")?.value||"";
   const dist=document.getElementById("searchDistrict").value;
   const area=document.getElementById("searchArea").value;
+  const minText=document.getElementById("searchMinPrice")?.value||"";
+  const maxText=document.getElementById("searchMaxPrice")?.value||"";
+  const min=minText===""?null:Number(minText),max=maxText===""?null:Number(maxText);
   let filtered=ads.filter(a=>
     (!keyword||(String(a.title||"")+" "+String(a.description||"")+" "+String(a.contact||"")+" "+String(a.category||"")).toLowerCase().includes(keyword)) &&
-    (!cat||a.category===cat) && (!sub||sub===cat||a.subcategory===sub||(()=>{try{return JSON.parse(a.details_json||"{}").subcategory===sub}catch(_){return false}})()) && (!dist||String(a.district||"").trim()===dist) && (!area||String(a.area||"").trim()===area)
+    (!cat||String(a.category||"").trim().toLowerCase()===String(cat).trim().toLowerCase()) &&
+    (!sub||String(sub).trim().toLowerCase()===String(cat).trim().toLowerCase()||
+      [a.subcategory,(()=>{try{return JSON.parse(a.details_json||"{}").subcategory}catch(_){return ""}})()].some(v=>{
+        const norm=x=>String(x||"").trim().toLowerCase().replace(/\s+/g," ");
+        const aliases=x=>norm(x)==="cars rentals"?"car rentals":norm(x);
+        return aliases(v)===aliases(sub);
+      })) && (!dist||String(a.district||"").trim().toLowerCase()===dist.trim().toLowerCase()) && (!area||String(a.area||"").trim()===area) &&
+    (min===null||(Number(a.price)||0)>=min) && (max===null||(Number(a.price)||0)<=max)
   );
   const sort=document.getElementById("sortListings")?.value || "newest";
   if(sort==="price-low") filtered.sort((a,b)=>(Number(a.price)||0)-(Number(b.price)||0));
   if(sort==="price-high") filtered.sort((a,b)=>(Number(b.price)||0)-(Number(a.price)||0));
-  if(sort==="newest") filtered.sort((a,b)=>getAdStartTime(b)-getAdStartTime(a));
+  if(sort==="newest") filtered.sort((a,b)=>(Number(b.id)||0)-(Number(a.id)||0));
   renderAds(filtered,1);
 }
 let adsCurrentPage=1;
@@ -2269,7 +2299,7 @@ function renderAds(items=ads,page=1){
       ? (selectedDistrict
           ? '<div class="empty"><div style="font-size:38px;margin-bottom:10px">⌕</div><strong style="display:block;color:#ffad3b;font-size:21px;margin-bottom:8px">No Ads Available in This District</strong>There are currently no advertisements in '+escapeHtml(selectedDistrict)+'.<br>Please check another district or come back later.</div>'
           : '<div class="empty"><div style="font-size:38px;margin-bottom:10px">⌕</div><strong style="display:block;color:#ffad3b;font-size:21px;margin-bottom:8px">No Listings Found</strong>No advertisements are available in '+escapeHtml(selectedArea)+'.<br>Try another area or district.</div>')
-      : '<div class="empty">No matching advertisements found. Contact the Admin if you want to advertise here.</div>';
+      : '<div class="empty">No Listing Ads in this Category / Subcategory. Ads will appear here when a matching advertisement is published.</div>';
     pagination.innerHTML="";
     return;
   }
@@ -2429,9 +2459,7 @@ document.getElementById("postForm").addEventListener("submit",async e=>{
   if(file){const fd=new FormData();fd.append("image",file);const up=await fetch("/api/client/images/upload",{method:"POST",headers:{Authorization:"Bearer "+a24Token()},body:fd});const ud=await up.json();if(!up.ok||!ud.success)throw new Error(ud.error||"Image upload failed");imageUrl=ud.url;}
   else imageUrl=String(f.get("image")||"");
   const days=Number(f.get("days")||0),plan=days===3?"vip3":days===5?"vip5":days===7?"vip7":"free";
-  const categoryDetails=collectCategoryDetails(document.getElementById("categorySpecificFields"));
-  const customFields={};document.querySelectorAll('#adminCustomFields [data-admin-field="1"]').forEach(input=>{const id=String(input.name||'').replace(/^custom_/, '');if(/^\d+$/.test(id)&&String(input.value||'').trim())customFields[id]=String(input.value).trim();});
-  const payload={title:f.get("title"),description:f.get("description"),category:f.get("category"),subcategory:f.get("subcategory"),model_year:categoryDetails.model_year||f.get("model_year"),category_details:categoryDetails,custom_fields:customFields,district:f.get("district"),area:f.get("area"),price:f.get("price"),phone:mobile,whatsapp:f.get("whatsapp")||mobile,image_url:imageUrl,plan};
+  const categoryDetails=collectCategoryDetails(document.getElementById("categorySpecificFields")); const payload={title:f.get("title"),description:f.get("description"),category:f.get("category"),subcategory:f.get("subcategory"),model_year:categoryDetails.model_year||f.get("model_year"),category_details:categoryDetails,district:f.get("district"),area:f.get("area"),price:f.get("price"),phone:mobile,whatsapp:f.get("whatsapp")||mobile,image_url:imageUrl,plan};
   const result=editingId?await a24Call("/api/client/ads/"+encodeURIComponent(editingId),"PATCH",payload):await a24Call("/api/client/ads","POST",payload);
   e.target.reset();document.getElementById("editingAdId").value="";document.getElementById("postAge").value="";
   fillAreas(document.getElementById("postDistrict"),document.getElementById("postArea"));populateSubcategories(document.getElementById("postCategory"),document.getElementById("postSubcategory"));goPostStep(1);closeModal("postModal");toast(result.message||(editingId?"Advertisement updated.":"Advertisement published."));
@@ -2451,43 +2479,23 @@ document.querySelectorAll("[data-password-target]").forEach(button=>{
   });
 });
 
-// Supabase Auth: registration, email confirmation, login and password recovery.
+// Mobile OTP is intentionally disabled. Registration and login use the secure API.
 document.getElementById("registerForm").addEventListener("submit",async e=>{
  e.preventDefault();const f=new FormData(e.target);
- try{
-  if(!window.a24Supabase)throw new Error("Authentication is initializing. Please try again.");
-  const name=String(f.get("name")||"").trim(),email=String(f.get("email")||"").trim().toLowerCase(),mobile=String(f.get("mobile")||"").replace(/\D/g,""),password=String(f.get("password")||"");
-  if(!name||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||!/^[6-9]\d{9}$/.test(mobile)||password.length<10||!/[A-Za-z]/.test(password)||!/[0-9]/.test(password))throw new Error("Enter name, valid email, 10-digit mobile and password (10+ characters with a number).");
-  const {data,error}=await window.a24Supabase.auth.signUp({email,password,options:{data:{full_name:name,mobile},emailRedirectTo:location.origin+"/"}});
-  if(error)throw error;
-  e.target.reset();closeModal("registerModal");
-  if(data.session){localStorage.setItem("24adz_client_token",data.session.access_token);const sync=await a24Call("/api/client/sync","POST",{name,mobile});localStorage.setItem("24adz_client",JSON.stringify(sync.client));updateAccountNav();toast("Account created and signed in.");}
-  else toast("Registration successful. Check your email and click the Supabase verification link before logging in.");
- }catch(x){toast(x.message||"Registration failed")}
+ try{const d=await a24Call("/api/client/register","POST",{name:f.get("name"),email:f.get("email"),mobile:f.get("mobile"),password:f.get("password")});
+ e.target.reset();closeModal("registerModal");toast(d.message||"Registration received. Verify your email before login.");
+ }catch(x){toast(x.message)}
 });
 document.getElementById("loginForm").addEventListener("submit",async e=>{
  e.preventDefault();const f=new FormData(e.target);
- try{
-  if(!window.a24Supabase)throw new Error("Authentication is initializing. Please try again.");
-  const {data,error}=await window.a24Supabase.auth.signInWithPassword({email:String(f.get("email")||"").trim().toLowerCase(),password:String(f.get("password")||"")});
-  if(error)throw error;
-  const session=data.session;if(!session)throw new Error("Login session was not created.");
-  localStorage.setItem("24adz_client_token",session.access_token);
-  const sync=await a24Call("/api/client/sync","POST",{name:data.user.user_metadata?.full_name||data.user.user_metadata?.name||"",mobile:data.user.user_metadata?.mobile||""});
-  localStorage.setItem("24adz_client",JSON.stringify(sync.client));
-  e.target.reset();closeModal("loginModal");updateAccountNav();toast("Login successful.");
- }catch(x){toast(x.message||"Login failed")}
+ try{const d=await a24Call("/api/client/login","POST",{email:f.get("email"),password:f.get("password")});localStorage.setItem("24adz_client_token",d.token);localStorage.setItem("24adz_client",JSON.stringify(d.client));e.target.reset();closeModal("loginModal");updateAccountNav();toast("Login successful.");}
+ catch(x){toast(x.message)}
 });
 function openForgotPassword(){closeModal("loginModal");openModal("forgotPasswordModal")}
-document.getElementById("forgotPasswordForm").addEventListener("submit",async e=>{
- e.preventDefault();const f=new FormData(e.target);
- try{if(!window.a24Supabase)throw new Error("Authentication is initializing.");const email=String(f.get("email")||"").trim().toLowerCase();const {error}=await window.a24Supabase.auth.resetPasswordForEmail(email,{redirectTo:location.origin+"/"});if(error)throw error;closeModal("forgotPasswordModal");toast("If the email is registered, a password reset link has been sent.");}catch(x){toast(x.message)}
-});
-document.getElementById("resetPasswordForm").addEventListener("submit",async e=>{
- e.preventDefault();const f=new FormData(e.target);
- try{if(!window.a24Supabase)throw new Error("Authentication is initializing.");const password=String(f.get("password")||"");const {error}=await window.a24Supabase.auth.updateUser({password});if(error)throw error;history.replaceState({},"",location.pathname);closeModal("resetPasswordModal");toast("Password updated successfully. You can now log in.");}catch(x){toast(x.message)}
-});
-// Supabase JS processes confirmation and recovery tokens from the URL hash after client initialization.
+document.getElementById("forgotPasswordForm").addEventListener("submit",async e=>{e.preventDefault();const f=new FormData(e.target);try{const d=await a24Call("/api/client/forgot-password","POST",{email:f.get("email")});closeModal("forgotPasswordModal");toast(d.message)}catch(x){toast(x.message)}});
+document.getElementById("resetPasswordForm").addEventListener("submit",async e=>{e.preventDefault();const token=new URLSearchParams(location.search).get("reset_password"),f=new FormData(e.target);try{const d=await a24Call("/api/client/reset-password","POST",{token,password:f.get("password")});history.replaceState({},"",location.pathname);closeModal("resetPasswordModal");toast(d.message)}catch(x){toast(x.message)}});
+// Email verification links are processed once when the visitor returns from email.
+(async()=>{const params=new URLSearchParams(location.search),verify=params.get("verify_email"),reset=params.get("reset_password");if(verify){try{const d=await a24Call("/api/client/verify-email","POST",{token:verify});toast(d.message);history.replaceState({},"",location.pathname)}catch(e){toast(e.message)}}if(reset){openModal("resetPasswordModal")}})();
 
 // 24Adz account navigation: client sessions are stored under the current project key.
 function getCurrentClient(){try{return JSON.parse(localStorage.getItem("24adz_client")||"null");}catch(_){return null;}}
@@ -2598,6 +2606,25 @@ window.ADZ24_MAIN_CATEGORY_ICONS={Cars:'🚗',Bikes:'🏍️',Mobiles:'📱',Job
         sourceRows.push({id:parentId,name,parent_id:null,icon:'◆',sort_order:parentId,active:1});
         children.forEach(child=>sourceRows.push({id:id++,name:child,parent_id:parentId,icon:'◆',sort_order:id,active:1}));
       });
+    }else{
+      // Keep Admin-managed rows, and add any built-in categories/subcategories
+      // that are absent so Fashion & Beauty is visible in this homepage too.
+      let nextId=Math.max(0,...sourceRows.map(x=>Number(x.id)||0))+1;
+      Object.entries(fallbackMap).forEach(([name,children])=>{
+        let parent=sourceRows.find(x=>(x.parent_id===null||x.parent_id===undefined)&&String(x.name||'').trim().toLowerCase()===name.toLowerCase());
+        // Fashion & Beauty is the specifically requested additional main category.
+        // Do not create unrelated missing main categories from the fallback list.
+        if(!parent && name.toLowerCase()==='fashion & beauty'){
+          parent={id:'html-default-'+nextId++,name,parent_id:null,icon:'💄',sort_order:999,active:1};
+          sourceRows.push(parent);
+        }
+        if(!parent)return;
+        const existingChildren=sourceRows.filter(x=>String(x.parent_id)===String(parent.id)).map(x=>String(x.name||'').trim().toLowerCase());
+        children.forEach(child=>{
+          if(existingChildren.includes(child.toLowerCase()))return;
+          sourceRows.push({id:'html-default-'+nextId++,name:child,parent_id:parent.id,icon:'◆',sort_order:999,active:1});
+        });
+      });
     }
     ADZ24.categories=sourceRows;
     Object.keys(categories).forEach(k=>delete categories[k]);
@@ -2707,7 +2734,7 @@ window.ADZ24_MAIN_CATEGORY_ICONS={Cars:'🚗',Bikes:'🏍️',Mobiles:'📱',Job
     if(select){
       const current=select.value;
       const free=ADZ24.settings.free_ads||{};const freeLimit=Number(free.limit??3),freePeriod=Number(free.period_days??30);
-      select.innerHTML='<option value="">Select Price Plan</option><option value="free">Free Listing · ₹0 ('+freeLimit+'/'+freePeriod+' days/email)</option>'+
+      select.innerHTML='<option value="">Select Price Plan</option><option value="free">Free Listing · ₹0 ('+freeLimit+'/'+freePeriod+' days/mobile)</option>'+
         '<option value="vip3">VIP Promotion · 3 Days · ₹'+Number(p["3"]??300)+'</option>'+
         '<option value="vip5">VIP Promotion · 5 Days · ₹'+Number(p["5"]??500)+'</option>'+
         '<option value="vip7">VIP Promotion · 7 Days · ₹'+Number(p["7"]??700)+'</option>';
@@ -2733,7 +2760,7 @@ window.ADZ24_MAIN_CATEGORY_ICONS={Cars:'🚗',Bikes:'🏍️',Mobiles:'📱',Job
     if(key==="free"){
       document.getElementById("pricePlanName").textContent="FREE LISTING";
       document.getElementById("pricePlanAmount").textContent="₹0";
-      const free=ADZ24.settings.free_ads||{};document.getElementById("pricePlanDescription").textContent="Standard listing. Maximum "+Number(free.limit??3)+" free ads per email every "+Number(free.period_days??30)+" days.";
+      const free=ADZ24.settings.free_ads||{};document.getElementById("pricePlanDescription").textContent="Standard listing. Maximum "+Number(free.limit??3)+" free ads per mobile number every "+Number(free.period_days??30)+" days.";
       document.getElementById("pricePlanFeatures").innerHTML="<li>Standard listing</li><li>Contact options controlled by website settings</li>";
       panel.hidden=false;return;
     }
@@ -2817,33 +2844,13 @@ window.ADZ24_MAIN_CATEGORY_ICONS={Cars:'🚗',Bikes:'🏍️',Mobiles:'📱',Job
 const A24_API="";let a24Client=null;
 function a24Token(){return localStorage.getItem("24adz_client_token")||""}
 async function a24Call(path,method="GET",body){const r=await fetch(A24_API+path,{method,headers:{...(body?{"Content-Type":"application/json"}:{}),...(a24Token()?{Authorization:"Bearer "+a24Token()}:{})},body:body?JSON.stringify(body):undefined});const d=await r.json().catch(()=>({}));if(!r.ok||d.success===false){const e=new Error(d.error||"Request failed");e.status=r.status;throw e}return d}
-async function init24AdzSupabase(){
- try{
-  const cfg=await fetch("/api/public/auth-config",{cache:"no-store"}).then(r=>r.json());
-  if(!cfg.success||!cfg.supabaseUrl||!cfg.supabaseAnonKey)throw new Error("Supabase configuration is missing in Worker secrets.");
-  window.a24Supabase=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-  const {data}=await window.a24Supabase.auth.getSession();
-  if(data.session){localStorage.setItem("24adz_client_token",data.session.access_token);try{const s=await a24Call("/api/client/sync","POST",{name:data.session.user.user_metadata?.full_name||"",mobile:data.session.user.user_metadata?.mobile||""});localStorage.setItem("24adz_client",JSON.stringify(s.client));}catch(e){localStorage.removeItem("24adz_client_token");localStorage.removeItem("24adz_client");}}
-  else{localStorage.removeItem("24adz_client_token");localStorage.removeItem("24adz_client");}
-  window.a24Supabase.auth.onAuthStateChange((event,session)=>{
-   if(session){
-    localStorage.setItem("24adz_client_token",session.access_token);
-    if(event==="PASSWORD_RECOVERY"){openModal("resetPasswordModal");}
-    if(event==="INITIAL_SESSION"&&(location.hash.includes("type=signup")||location.hash.includes("type=email"))){history.replaceState({},"",location.pathname);toast("Email verified. You can now log in.");}
-   }else{localStorage.removeItem("24adz_client_token");localStorage.removeItem("24adz_client");}
-   updateAccountNav();
-  });
-  updateAccountNav();
- }catch(e){console.error("24Adz Supabase initialization:",e);toast("Login service configuration error. Please contact Admin.");}
-}
-init24AdzSupabase();
 function updateAccountNav(){const logged=!!a24Token();for(const id of ["navLoginBtn","navRegisterBtn"])document.getElementById(id).hidden=logged;for(const id of ["navDashboardBtn","navLogoutBtn"])document.getElementById(id).hidden=!logged;}
-function clientLogout(){if(window.a24Supabase)window.a24Supabase.auth.signOut();localStorage.removeItem("24adz_client_token");localStorage.removeItem("24adz_client");a24Client=null;updateAccountNav();toast("Logged out.");}
+function clientLogout(){localStorage.removeItem("24adz_client_token");localStorage.removeItem("24adz_client");a24Client=null;updateAccountNav();toast("Logged out.");}
 function getCurrentClient(){try{return JSON.parse(localStorage.getItem("24adz_client")||"null")}catch{return null}}
 function startPostAd(){if(!a24Token()){openModal("loginModal");toast("Login or register to post an ad.");return}resetPostFormForNew();openModal("postModal")}
 function resetPostFormForNew(){const f=document.getElementById("postForm");f.reset();document.getElementById("editingAdId").value="";goPostStep(1);}
 async function openClientDashboard(){if(!a24Token()){openModal("loginModal");return}try{const [me,own]=await Promise.all([a24Call("/api/client/me"),a24Call("/api/client/ads")]);const c=me.client,w=me.wallet,limits=me.freeAds;document.getElementById("clientDashboardContent").innerHTML=`<p><b>Account ID:</b> ${c.account_id}</p><p><b>Email:</b> ${c.email}</p><p><b>Coin Balance:</b> ${w.balance}</p><p><b>Free Ads:</b> ${limits.emailUsed}/${limits.emailLimit} · This month mobile: ${limits.phoneUsedThisMonth}/${limits.phoneMonthlyLimit}</p><button class="btn btn-primary" onclick="showCoinPackages()">Purchase Coins</button><h3>My Ads</h3>${own.ads.map(a=>`<article class="ad-card"><b>${escapeDashboardText(a.title)}</b><p>${escapeDashboardText(a.category)} · ${escapeDashboardText(a.district)} / ${escapeDashboardText(a.area)}</p><small>${a.is_vip?"VIP":"Standard"} · ${escapeDashboardText(a.status)}</small><div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-outline" onclick="editServerAd('${String(a.id).replace(/'/g,"\'")}')">Edit</button><button class="btn btn-outline" onclick="deleteServerAd('${String(a.id).replace(/'/g,"\'")}')">Delete</button></div></article>`).join("")||"No ads yet."}`;window.__24adzOwnAds=own.ads;openModal("clientDashboardModal")}catch(e){toast(e.message)}}
-function editServerAd(id){const a=(window.__24adzOwnAds||[]).find(x=>String(x.id)===String(id));if(!a)return;closeModal("clientDashboardModal");resetPostFormForNew();const f=document.getElementById("postForm");for(const k of ["title","description","category","district","area","price","phone","whatsapp"])if(f.elements[k])f.elements[k].value=a[k]||"";let details={};try{details=JSON.parse(a.details_json||"{}")}catch{}document.getElementById("editingAdId").value=a.id;updatePostAreas();document.getElementById("postArea").value=a.area||"";populateSubcategories(document.getElementById("postCategory"),document.getElementById("postSubcategory"));document.getElementById("postSubcategory").value=details.subcategory||"";document.getElementById("postCategory").dispatchEvent(new Event('change',{bubbles:true}));document.getElementById("postSubcategory").value=details.subcategory||"";document.getElementById("postSubcategory").dispatchEvent(new Event('change',{bubbles:true}));Object.entries(details).forEach(([key,value])=>{const el=document.querySelector('#categorySpecificFields [data-detail-key="'+CSS.escape(key)+'"]');if(el)el.value=value;});Object.entries(details.custom_fields||{}).forEach(([key,value])=>{const el=document.querySelector('#adminCustomFields [name="custom_'+CSS.escape(key)+'"]');if(el)el.value=value;});goPostStep(1);openModal("postModal");}
+function editServerAd(id){const a=(window.__24adzOwnAds||[]).find(x=>String(x.id)===String(id));if(!a)return;closeModal("clientDashboardModal");resetPostFormForNew();const f=document.getElementById("postForm");for(const k of ["title","description","category","district","area","price","phone","whatsapp"])if(f.elements[k])f.elements[k].value=a[k]||"";document.getElementById("editingAdId").value=a.id;updatePostAreas();document.getElementById("postArea").value=a.area||"";goPostStep(1);openModal("postModal");}
 async function deleteServerAd(id){if(!confirm("Delete this advertisement permanently?"))return;try{await a24Call("/api/client/ads/"+encodeURIComponent(id),"DELETE");toast("Advertisement deleted.");openClientDashboard();}catch(e){toast(e.message)}}
 async function getAdminWhatsApp(){try{const r=await fetch("/api/public/settings"),d=await r.json();return String(d.settings?.contact?.whatsapp_number||"8870017424").replace(/\D/g,"")}catch{return "8870017424"}}
 async function syncAdminWhatsAppLinks(){const n=await getAdminWhatsApp(),link=document.getElementById("promoAdminWhatsApp");if(link)link.href="https://wa.me/91"+n+"?text="+encodeURIComponent("Hello Admin, I want to advertise on 24Adz.com. Please share the details.");}
@@ -2886,59 +2893,63 @@ updateAccountNav();
   if(search){const keep=search.value;const values=Object.keys(categoryMap);search.innerHTML='<option value="">Select Main Category</option>'+values.map(v=>`<option value="${v}">${v}</option>`).join('');if(values.includes(keep))search.value=keep;}if(post){const keep=post.value;const values=Object.keys(categoryMap);post.innerHTML='<option value="">Select Category</option>'+values.map(v=>`<option value="${v}">${v}</option>`).join('');if(values.includes(keep))post.value=keep;}
  }
  window.toggleMainCategory=function(name,el){
-  const panel=$("personalsSubcategories"),trigger=$("personalsCategory"); if(!panel)return;
+  const panel=$("personalsSubcategories"); if(!panel)return;
   const opening=panel.hidden||panel.dataset.category!==name;
-
-  // A main-category tap always shows every approved ad in that category,
-  // across all Tamil Nadu districts. District/area filters are only applied
-  // when the visitor explicitly chooses them in the search filters.
-  const search=$('searchCategory'),subSearch=$('searchSubcategory');
-  if(search)search.value=name;
-  if(typeof populateSearchSubcategories==='function')populateSearchSubcategories(name);
-  if(subSearch)subSearch.value='';
-  const district=$('searchDistrict'),area=$('searchArea'),keyword=$('keyword');
-  if(district)district.value='';
-  if(area){area.innerHTML='<option value="">Select Area</option>';area.value='';}
-  if(keyword)keyword.value='';
-  if(typeof updateSearchFilterSteps==='function')updateSearchFilterSteps();
-  const heading=$('adsHeading');if(heading)heading.innerHTML='Listings <span>· '+adz24Escape(name)+'</span>';
-  if(typeof searchAds==='function')searchAds();
-
   panel.hidden=!opening; panel.dataset.category=opening?name:"";
+  const trigger=$("personalsCategory");
   if(trigger)trigger.setAttribute('aria-expanded',String(opening&&name==='Personals'));
   document.querySelectorAll('#categories .category').forEach(x=>x.classList.remove('active'));
   if(opening&&el)el.classList.add('active');
   if(opening){
-   $('activeSubcategoryHeading').textContent=name;
-   const grid=$('dynamicSubcategoryGrid');grid.innerHTML='';
-   const allRows=window.ADZ24_ADMIN_CONFIG?.categories||[];
-   const parent=allRows.find(x=>String(x.name||'').trim()===name&&(x.parent_id===null||x.parent_id===undefined));
-   const childRows=parent?allRows.filter(x=>String(x.parent_id)===String(parent.id)):[];
-   const subs=childRows.length?childRows.map(x=>({name:x.name,icon:x.icon})):((categoryMap[name]||[]).map(sub=>({name:sub,icon:icons[sub]})));
-   subs.forEach(item=>{
-    const sub=item.name;const card=document.createElement('button');card.type='button';card.className='category';
-    card.innerHTML='<span class="ico"></span><strong></strong>';
-    card.querySelector('.ico').textContent=icons[sub]||item.icon||'📁';
-    card.querySelector('strong').textContent=sub;
-    card.addEventListener('click',()=>{
-     const search=$('searchCategory'),subSearch=$('searchSubcategory');
-     if(search)search.value=name;
-     if(subSearch){populateSearchSubcategories(name);subSearch.value=sub;}
-     const district=$('searchDistrict'),area=$('searchArea'),keyword=$('keyword');
-     if(district)district.value='';
-     if(area){area.innerHTML='<option value="">Select Area</option>';area.value='';}
-     if(keyword)keyword.value='';
-     if(typeof updateSearchFilterSteps==='function')updateSearchFilterSteps();
-     const heading=$('adsHeading');if(heading)heading.innerHTML='Listings <span>· '+adz24Escape(name)+' · '+adz24Escape(sub)+'</span>';
-     if(typeof searchAds==='function')searchAds();
-     $('adsSection')?.scrollIntoView({behavior:'smooth',block:'start'});
+    $('activeSubcategoryHeading').textContent=name;
+    const grid=$('dynamicSubcategoryGrid');grid.innerHTML='';
+    const allRows=ADZ24.categories||window.ADZ24_ADMIN_CONFIG?.categories||[];
+    const parent=allRows.find(x=>String(x.name||'').trim()===name&&(x.parent_id===null||x.parent_id===undefined));
+    const childRows=parent?allRows.filter(x=>String(x.parent_id)===String(parent.id)):[];
+    // Every main category gets an aggregate option first, followed by all
+    // active D1 subcategories. Built-in defaults fill gaps without removing
+    // any additional subcategories configured by the Admin.
+    const fromDatabase=childRows.map(x=>({name:String(x.name||'').trim(),icon:x.icon}));
+    const byName=new Map(fromDatabase.filter(x=>x.name).map(x=>[x.name.toLowerCase(),x]));
+    const subs=[{name:name,icon:icons[name]||'📁',aggregate:true}];
+    (categoryMap[name]||[]).forEach(sub=>{
+      const found=byName.get(String(sub).toLowerCase());
+      if(found){subs.push(found);byName.delete(String(sub).toLowerCase());}
+      else subs.push({name:sub,icon:icons[sub]||'📁'});
     });
-    grid.appendChild(card);
-   });
-   panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+    fromDatabase.forEach(item=>{
+      if(item.name&&!subs.some(x=>x.name.toLowerCase()===item.name.toLowerCase()))subs.push(item);
+    });
+    // Keep the Cars label used on the public category panel consistent with
+    // the agreed wording while matching either stored spelling in filters.
+    if(name==='Cars'){
+      const rentals=subs.find(x=>String(x.name).trim().toLowerCase()==='car rentals');
+      if(rentals)rentals.name='Cars Rentals';
+    }
+    subs.forEach(item=>{
+      const sub=item.name;
+      const card=document.createElement('button');card.type='button';card.className='category';
+      card.innerHTML='<span class="ico"></span><strong></strong>';
+      card.querySelector('.ico').textContent=item.icon||icons[sub]||'📁';
+      card.querySelector('strong').textContent=sub;
+      card.addEventListener('click',()=>{
+        const search=$('searchCategory'),subSearch=$('searchSubcategory');
+        if(search)search.value=name;
+        if(subSearch){
+          populateSearchSubcategories(name);
+          // The main-category-named option is an aggregate: blank subcategory
+          // means include every subcategory belonging to this main category.
+          subSearch.value=item.aggregate?'':sub;
+        }
+        if(typeof updateSearchFilterSteps==='function')updateSearchFilterSteps();
+        if(typeof showCategoryListingResults==='function')showCategoryListingResults(name,item.aggregate?'':sub);
+      });
+      grid.appendChild(card);
+    });
+    panel.scrollIntoView({behavior:'smooth',block:'nearest'});
   }
- };
- window.collectCategoryDetails=function(root){const data={};if(!root)return data;root.querySelectorAll('[data-detail-key]').forEach(el=>{if(el.value)data[el.dataset.detailKey]=el.value.trim()});return data;};
+};
+window.collectCategoryDetails=function(root){const data={};if(!root)return data;root.querySelectorAll('[data-detail-key]').forEach(el=>{if(el.value)data[el.dataset.detailKey]=el.value.trim()});return data;};
  function field(label,key,type='text',opts){let html='<label>'+label+'</label>';if(type==='select'){html+='<select class="field" data-detail-key="'+key+'"><option value="">Select '+label+'</option>'+opts.map(x=>'<option>'+x+'</option>').join('')+'</select>';}else html+='<input class="field" data-detail-key="'+key+'" type="'+type+'" placeholder="'+label+'">';return html;}
  function renderFields(){const cat=$('postCategory')?.value,sub=$('postSubcategory')?.value,box=$('categorySpecificFields');if(!box)return;let h='';
   if(cat==='Cars'||cat==='Bikes'){
@@ -2948,12 +2959,8 @@ updateAccountNav();
    else {h+=field('Engine CC','engine_cc','number');h+=field('Kilometres Driven','kilometres','number');}
   }else if(cat==='Mobiles'){
    h+=field('Brand','brand','select',['Apple','Samsung','OnePlus','Xiaomi','Redmi','Realme','Vivo','Oppo','Motorola','Nothing','Other']);h+=field('Model','model');h+=field('Storage','storage','select',['32 GB','64 GB','128 GB','256 GB','512 GB','1 TB']);h+=field('RAM','ram','select',['2 GB','3 GB','4 GB','6 GB','8 GB','12 GB','16 GB']);h+=field('Condition','condition','select',['New','Used']);h+=field('Warranty','warranty','select',['Yes','No']);
-  }else if(cat==='Real Estate'||cat==='Houses'){
-   h+=field('Property Type','property_type','select',['Independent House','Apartment / Flat','Villa','Commercial Building','Land / Plot','PG / Hostel']);h+=field('Listing Type','listing_type','select',['For Sale','For Rent','Lease']);h+=field('Bedrooms','bedrooms','select',['1 BHK','2 BHK','3 BHK','4 BHK','5+ BHK']);h+=field('Bathrooms','bathrooms','select',['1','2','3','4','5+']);h+=field('Built-up Area (sq.ft.)','builtup_area','number');h+=field('Furnishing','furnishing','select',['Unfurnished','Semi-furnished','Fully furnished']);
-  }else if(cat==='Hotel Rooms'){
-   h+=field('Room Type','room_type','select',['Budget Room','Luxury Room','AC Room','Non-AC Room','Family Room','Lodge','Service Apartment']);h+=field('Occupancy','occupancy','select',['Single','Double','Triple','Family']);h+=field('AC / Non-AC','ac_type','select',['AC','Non-AC']);h+=field('Attached Bathroom','attached_bathroom','select',['Yes','No']);h+=field('Price Per Night (₹)','price_per_night','number');h+=field('Amenities','amenities');
-  }else if(cat==='Fashion & Beauty'){
-   h+=field('Listing Type','fashion_type','select',["Dresses","Men\'s Fashion","Women\'s Fashion","Clothing","Beauty Products","Makeup & Cosmetics","Accessories","Beauty Parlour"]);h+=field('Gender','gender','select',['Men','Women','Unisex','Kids']);h+=field('Size','size','select',['XS','S','M','L','XL','XXL','Free Size','Not Applicable']);h+=field('Brand','brand');h+=field('Condition','condition','select',['New','Used']);
+  }else if(cat==='Houses'){
+   h+=field('Property Type','property_type','select',['Independent House','Apartment / Flat','Villa','PG / Hostel','Commercial Building','Land / Plot']);h+=field('Listing Type','listing_type','select',['For Sale','For Rent','Lease']);h+=field('Bedrooms','bedrooms','select',['1 BHK','2 BHK','3 BHK','4 BHK','5+ BHK']);h+=field('Bathrooms','bathrooms','select',['1','2','3','4','5+']);h+=field('Built-up Area (sq.ft.)','builtup_area','number');h+=field('Furnishing','furnishing','select',['Unfurnished','Semi-furnished','Fully furnished']);
   }else if(cat==='Jobs'){
    h+=field('Job Type','job_type','select',['Full-time','Part-time','Work from Home','Temporary']);h+=field('Salary','salary');h+=field('Experience','experience','select',['Fresher','1-2 Years','3-5 Years','5+ Years']);h+=field('Education','education');
   }else if(cat==='Personals'){
@@ -2965,6 +2972,87 @@ updateAccountNav();
  }
  function init(){ensurePanels();const c=$('postCategory'),sub=$('postSubcategory');if(c){c.addEventListener('change',()=>{if(typeof populateSubcategories==='function')populateSubcategories(c,sub);renderFields()});}if(sub)sub.addEventListener('change',renderFields);renderFields();}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
+
+
+<script id="24adz-all-main-category-subcategory-fix">
+(function(){
+  const defaults = {
+    "Cars":["Cars","New Cars","Used Cars","Car Rentals","Car Services"],
+    "Bikes":["Bikes","New Bikes","Used Bikes","Bike Services"],
+    "Mobiles":["Mobiles","New Mobiles","Used Mobiles","Mobile Accessories","Mobile Services"],
+    "Jobs":["Jobs","Full-time Jobs","Part-time Jobs","Work from Home","Temporary Jobs"],
+    "Real Estate":["Real Estate","Residential Properties","Commercial Spaces","Houses for Sale","Houses for Rent","Apartments & Flats","Land & Plots","PG & Hostels"],
+    "Hotel Rooms":["Hotel Rooms","Budget Hotel Rooms","Luxury Hotel Rooms","AC Rooms","Non-AC Rooms","Family Rooms","Lodges","Service Apartments"],
+    "Fashion & Beauty":["Fashion & Beauty","Beauty Parlour Ads","Dresses","Men's Fashion","Women's Fashion","Men's & Women's Clothing","Beauty Products","Makeup & Cosmetics","Accessories"],
+    "Personals":["Personals","Massage & Spa","Full Body Massage","Head Massage","Foot Massage","Spa & Wellness","Beauty & Wellness","Other Services"]
+  };
+  const icons = {
+    "Cars":"🚗","New Cars":"🚘","Used Cars":"🚙","Car Rentals":"🚕","Car Services":"🛠️",
+    "Bikes":"🏍️","New Bikes":"🏍️","Used Bikes":"🛵","Bike Services":"🔧",
+    "Mobiles":"📱","New Mobiles":"📱","Used Mobiles":"📲","Mobile Accessories":"🎧","Mobile Services":"🛠️",
+    "Jobs":"💼","Full-time Jobs":"💼","Part-time Jobs":"🕒","Work from Home":"🏡","Temporary Jobs":"📋",
+    "Real Estate":"🏘️","Residential Properties":"🏠","Commercial Spaces":"🏬","Houses for Sale":"🏡","Houses for Rent":"🔑","Apartments & Flats":"🏢","Land & Plots":"🌳","PG & Hostels":"🏘️",
+    "Hotel Rooms":"🏨","Budget Hotel Rooms":"🛏️","Luxury Hotel Rooms":"🏨","AC Rooms":"❄️","Non-AC Rooms":"🛌","Family Rooms":"👨‍👩‍👧","Lodges":"🏩","Service Apartments":"🏢",
+    "Fashion & Beauty":"💄","Beauty Parlour Ads":"💇","Dresses":"👗","Men's Fashion":"👔","Women's Fashion":"👚","Men's & Women's Clothing":"👕","Beauty Products":"💄","Makeup & Cosmetics":"💅","Accessories":"👜",
+    "Personals":"❤️","Massage & Spa":"💆","Full Body Massage":"🧖","Head Massage":"💆‍♀️","Foot Massage":"🦶","Spa & Wellness":"🌿","Beauty & Wellness":"✨","Other Services":"⭐"
+  };
+  const $ = id => document.getElementById(id);
+  function databaseChildren(name){
+    const rows = window.ADZ24?.categories || window.ADZ24_ADMIN_CONFIG?.categories || [];
+    const parent = rows.find(x => String(x.name||"").trim().toLowerCase()===name.toLowerCase() && (x.parent_id==null || x.parent_id===""));
+    if(!parent) return [];
+    return rows.filter(x => String(x.parent_id)===String(parent.id) && x.active!==false && x.is_active!==false)
+      .map(x=>({name:String(x.name||"").trim(),icon:x.icon||""})).filter(x=>x.name);
+  }
+  window.toggleMainCategory = function(name, el){
+    const panel=$("personalsSubcategories");
+    if(!panel) return;
+    const isOpen=!panel.hidden && panel.dataset.category===name;
+    panel.hidden=isOpen;
+    panel.dataset.category=isOpen?"":name;
+    const heading=$("activeSubcategoryHeading");
+    if(heading) heading.textContent=name;
+    document.querySelectorAll("#categories .category").forEach(x=>x.classList.toggle("active",!isOpen && x===el));
+    const trigger=$("personalsCategory");
+    if(trigger) trigger.setAttribute("aria-expanded",String(!isOpen && name==="Personals"));
+    if(isOpen) return;
+    let grid=$("dynamicSubcategoryGrid");
+    if(!grid){
+      panel.innerHTML='<h3 class="personals-subcategory-title">Categories <span id="activeSubcategoryHeading"></span></h3><div class="categories personals-subcategories" id="dynamicSubcategoryGrid"></div>';
+      grid=$("dynamicSubcategoryGrid");
+    }
+    const headingNow=$("activeSubcategoryHeading");
+    if(headingNow) headingNow.textContent=name;
+    grid.innerHTML="";
+    const merged=new Map();
+    (defaults[name]||[name]).forEach((label,i)=>merged.set(label.toLowerCase(),{name:label,icon:icons[label]||"📁",aggregate:i===0}));
+    databaseChildren(name).forEach(item=>{
+      const key=item.name.toLowerCase();
+      if(!merged.has(key)) merged.set(key,{...item,aggregate:false});
+      else if(item.icon) merged.get(key).icon=item.icon;
+    });
+    [...merged.values()].forEach(item=>{
+      const card=document.createElement("button");
+      card.type="button";card.className="category";
+      const ico=document.createElement("span");ico.className="ico";ico.textContent=item.icon||icons[item.name]||"📁";
+      const label=document.createElement("strong");label.textContent=item.name;
+      card.append(ico,label);
+      card.addEventListener("click",()=>{
+        const searchCategory=$("searchCategory");
+        const searchSub=$("searchSubcategory");
+        if(searchCategory) searchCategory.value=name;
+        if(typeof populateSearchSubcategories==="function") populateSearchSubcategories(name);
+        if(searchSub) searchSub.value=item.aggregate?"":item.name;
+        if(typeof updateSearchFilterSteps==="function") updateSearchFilterSteps();
+        if(typeof showCategoryListingResults==="function") showCategoryListingResults(name,item.aggregate?"":item.name);
+      });
+      grid.appendChild(card);
+    });
+    panel.hidden=false;
+    panel.scrollIntoView({behavior:"smooth",block:"nearest"});
+  };
 })();
 </script>
 
