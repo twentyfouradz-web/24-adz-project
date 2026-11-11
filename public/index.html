@@ -1318,6 +1318,22 @@ header .premium-24adz-logo .brand-dot{
 }
 </style>
 
+
+<style id="24adz-account-nav-visibility-fix">
+header .nav-actions#accountNav{display:flex!important;visibility:visible!important;opacity:1!important}
+header .nav-actions#accountNav #navLoginBtn,
+header .nav-actions#accountNav #navRegisterBtn{
+  display:inline-flex!important;visibility:visible!important;opacity:1!important;
+}
+@media(max-width:600px){
+  header .nav{display:flex!important;flex-wrap:nowrap!important;align-items:center!important;gap:6px!important;padding:9px 10px!important}
+  header .premium-24adz-logo{flex:1 1 auto!important;min-width:0!important;width:auto!important;max-width:none!important}
+  header .premium-24adz-logo .brand-main{font-size:clamp(19px,5.8vw,26px)!important;letter-spacing:-1px!important}
+  header .nav-actions#accountNav{flex:0 0 auto!important;gap:5px!important;margin-left:auto!important}
+  header .nav-actions#accountNav .btn{min-height:34px!important;padding:7px 9px!important;font-size:11px!important;white-space:nowrap!important}
+}
+</style>
+
 </head>
 <body>
 <header>
@@ -3103,6 +3119,152 @@ window.collectCategoryDetails=function(root){const data={};if(!root)return data;
     panel.hidden=false;
     panel.scrollIntoView({behavior:"smooth",block:"nearest"});
   };
+})();
+</script>
+
+
+<script id="24adz-final-client-navigation-fix">
+(function(){
+  const byId = id => document.getElementById(id);
+  const esc = value => String(value ?? "").replace(/[&<>"']/g, ch => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[ch]));
+
+  function loggedIn(){
+    return typeof a24Token === "function" && !!a24Token();
+  }
+  function needLogin(){
+    if(loggedIn()) return true;
+    openModal("loginModal");
+    return false;
+  }
+  function setDashboard(title, markup){
+    const modal=byId("clientDashboardModal");
+    const heading=modal && modal.querySelector(".modal-top h2");
+    const content=byId("clientDashboardContent");
+    if(!modal || !content) return;
+    if(heading) heading.textContent=title;
+    content.innerHTML=markup;
+    openModal("clientDashboardModal");
+  }
+  function messageText(m){
+    return `<article class="ad-card" style="margin:9px 0;padding:12px">
+      <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">
+        <b>${m.sender_client_id==="ADMIN" ? "24Adz Admin" : "You"}</b>
+        <small>${esc(m.created_at||"")}</small>
+      </div>
+      <p style="white-space:pre-wrap;margin:8px 0">${esc(m.message||"")}</p>
+      <small>Ad ID: ${esc(m.ad_id||"-")}</small>
+      ${m.ad_id ? `<button class="btn btn-outline" type="button" style="margin-top:8px" onclick="openAdChat('${esc(m.ad_id)}')">Open Chat</button>` : ""}
+    </article>`;
+  }
+
+  // The homepage header must always show Login and Register, including after auth refresh.
+  window.updateAccountNav=function(){
+    ["navLoginBtn","navRegisterBtn"].forEach(id=>{
+      const el=byId(id);
+      if(el){el.hidden=false;el.style.display="inline-flex";el.style.visibility="visible";el.removeAttribute("aria-hidden");}
+    });
+    const nav=byId("accountNav");
+    if(nav){nav.hidden=false;nav.style.display="flex";nav.style.visibility="visible";}
+  };
+
+  // My Ads has its own endpoint and view; it must not show wallet/coin purchase UI.
+  window.openMyAds=async function(){
+    if(!needLogin()) return;
+    try{
+      const result=await a24Call("/api/client/ads");
+      const ads=Array.isArray(result.ads)?result.ads:[];
+      window.__24adzOwnAds=ads;
+      const content=ads.length ? ads.map(a=>`
+        <article class="ad-card" style="margin:10px 0;padding:13px">
+          <b>${esc(a.title)}</b>
+          <p>${esc(a.category)} · ${esc(a.district)} / ${esc(a.area)}</p>
+          <small>${a.is_vip?"VIP":"Standard"} · ${esc(a.status||"Active")}</small>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+            <button class="btn btn-outline" type="button" onclick="editServerAd('${esc(a.id)}')">Edit</button>
+            <button class="btn btn-outline" type="button" onclick="deleteServerAd('${esc(a.id)}')">Delete</button>
+          </div>
+        </article>`).join("") : "<p>You have not posted any advertisements yet.</p>";
+      setDashboard("My Ads",`<p>Your advertisements</p>${content}`);
+    }catch(e){toast(e.message||"Unable to load your ads.");}
+  };
+
+  // Messages uses the real Worker GET endpoint (not an invented route).
+  window.openClientMessages=async function(){
+    if(!needLogin()) return;
+    try{
+      const result=await a24Call("/api/client/messages");
+      const messages=Array.isArray(result.messages)?result.messages:[];
+      const content=messages.length ? messages.map(messageText).join("") :
+        "<p>No messages yet. Replies from 24Adz Admin will appear here.</p>";
+      setDashboard("Messages",content);
+    }catch(e){toast(e.message||"Unable to load messages.");}
+  };
+  window.openMessages=window.openClientMessages;
+
+  // My 24Adz is the only navigation destination that shows wallet and coin purchase.
+  window.openMy24Adz=async function(){
+    if(!needLogin()) return;
+    try{
+      const result=await a24Call("/api/client/me");
+      const c=result.client||{}, wallet=result.wallet||{}, limits=result.freeAds||{};
+      const balance=Number(wallet.balance||0);
+      const used=Number(limits.mobileUsed||0), limit=Number(limits.mobileLimit||3);
+      const days=Number(limits.periodDays||30);
+      const content=`
+        <p><b>Account ID:</b> ${esc(c.account_id||"-")}</p>
+        <p><b>Name:</b> ${esc(c.name||"-")}</p>
+        <p><b>Email:</b> ${esc(c.email||"-")}</p>
+        <p><b>Mobile:</b> ${esc(c.mobile||"-")}</p>
+        <p><b>Coin Balance:</b> ${balance.toLocaleString("en-IN")}</p>
+        <p><b>Free Ads:</b> ${used}/${limit} per mobile number · ${days} days</p>
+        <button class="btn btn-primary" type="button" onclick="showCoinPackages()">Purchase Coins</button>
+        <form id="24adzProfileForm" style="margin-top:16px">
+          <h3>Account Details</h3>
+          <label>Full Name</label><input class="field" name="name" required maxlength="100" value="${esc(c.name||"")}">
+          <label>Mobile Number</label><input class="field" name="mobile" required inputmode="numeric" pattern="[6-9][0-9]{9}" maxlength="10" value="${esc(c.mobile||"")}">
+          <button class="btn btn-outline" type="submit">Update Account</button>
+        </form>
+        <button class="btn btn-outline" type="button" style="margin-top:12px" onclick="clientLogout();closeModal('clientDashboardModal')">Logout</button>`;
+      setDashboard("My 24Adz",content);
+      byId("24adzProfileForm").addEventListener("submit",async function(ev){
+        ev.preventDefault();
+        const form=new FormData(ev.currentTarget);
+        try{
+          await a24Call("/api/client/profile","PUT",{name:form.get("name"),mobile:form.get("mobile")});
+          toast("Account details updated.");
+          window.openMy24Adz();
+        }catch(e){toast(e.message||"Unable to update account.");}
+      });
+    }catch(e){toast(e.message||"Unable to load your account.");}
+  };
+
+  // Keep the legacy dashboard entry point aligned with My Ads. The bottom
+  // navigation explicitly calls My 24Adz for account/wallet functions.
+  window.openClientDashboard=window.openMyAds;
+
+  // Post Ad remains a separate action and opens only the post form after login.
+  window.startPostAd=function(){
+    if(!needLogin()){toast("Login or register to post an ad.");return;}
+    if(typeof resetPostFormForNew==="function") resetPostFormForNew();
+    openModal("postModal");
+  };
+
+  // Rewire the existing mobile navigation controls without changing its layout.
+  const bottom= document.querySelector(".mobile-bottom-nav");
+  if(bottom){
+    const items=bottom.querySelectorAll(".bottom-nav-item");
+    if(items[1]) items[1].onclick=window.openMyAds;
+    if(items[2]) items[2].onclick=window.startPostAd;
+    if(items[3]) items[3].onclick=window.openClientMessages;
+    if(items[4]) items[4].onclick=window.openMy24Adz;
+  }
+
+  window.updateAccountNav();
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",window.updateAccountNav,{once:true});
+  }
 })();
 </script>
 
