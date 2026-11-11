@@ -1665,6 +1665,7 @@ header .premium-24adz-logo .brand-dot{
     <label>Mobile Number *</label><input class="field" id="registerPhone" name="mobile" type="tel" required inputmode="numeric" pattern="[6-9][0-9]{9}" maxlength="10" placeholder="10-digit mobile number">
     <label>Password *</label><div class="auth-password-wrap"><input class="field" id="clientRegisterPassword" name="password" type="password" minlength="10" pattern="(?=.*[A-Za-z])(?=.*[0-9]).{10,}" required autocomplete="new-password" placeholder="10+ characters, include a number"><button class="password-eye" type="button" aria-label="Show password" aria-pressed="false" onclick="togglePasswordVisibility('clientRegisterPassword',this)">👁</button></div>
     <button class="btn btn-primary" type="submit">Register</button>
+    <p id="registerAuthMessage" class="small-note" role="alert" aria-live="polite" style="display:none;color:#c62828"></p>
     <p class="small-note">Your email is your login ID. Verify your email to activate your account. Mobile OTP is not required.</p>
   </form>
 </div></div>
@@ -2695,22 +2696,39 @@ async function a24SyncClient(profile={}){
   try{return await a24SyncPromise;}finally{a24SyncPromise=null;}
 }
 document.getElementById("registerForm").addEventListener("submit",async e=>{
-  e.preventDefault();const f=new FormData(e.target),button=e.submitter,name=String(f.get("name")).trim(),mobile=String(f.get("mobile")).trim(); if(button)button.disabled=true;
+  e.preventDefault();
+  const f=new FormData(e.target),button=e.submitter;
+  const name=String(f.get("name")).trim(),mobile=String(f.get("mobile")).replace(/\D/g,"");
+  const email=String(f.get("email")).trim().toLowerCase();
+  const message=document.getElementById("registerAuthMessage");
+  const showDuplicate=()=>{
+    message.innerHTML='Already registered with this Email or Mobile Number. Please <a href="#" onclick="openForgotPassword();return false" style="color:#d35400;text-decoration:underline;font-weight:700">Forgot your password?</a>';
+    message.style.display="block";
+  };
+  message.style.display="none";message.textContent="";
+  if(button)button.disabled=true;
   try{
     await a24InitAuth();
-    const email=String(f.get("email")).trim().toLowerCase();
-    localStorage.setItem("24adz_pending_email",email);
+    if(!/^[6-9]\d{9}$/.test(mobile))throw new Error("Enter a valid 10-digit mobile number.");
+    const check=await fetch("/api/public/check-mobile",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mobile})});
+    const checkData=await check.json().catch(()=>({}));
+    if(!check.ok)throw new Error(checkData.error||"Unable to verify mobile number. Please try again.");
+    if(checkData.registered){showDuplicate();return;}
     const {data,error}=await a24Supabase.auth.signUp({email,password:String(f.get("password")),options:{data:{full_name:name,mobile},emailRedirectTo:location.origin+"/?email_confirm=1"}});
-    if(error)throw error;
-    // Never keep the registration response signed in. The user must return through
-    // the confirmation link and then explicitly log in with the same credentials.
+    if(error){
+      if(/already registered|already exists|user exists|duplicate/i.test(error.message||"")){showDuplicate();return;}
+      throw error;
+    }
+    // Supabase can return an empty identities array for an email that is already registered.
+    if(data.user && Array.isArray(data.user.identities) && data.user.identities.length===0){showDuplicate();return;}
+    localStorage.setItem("24adz_pending_email",email);
     const confirmationWasRequired=!data.session;
     if(data.session)await a24Supabase.auth.signOut();
     a24Session=null;localStorage.removeItem("24adz_client");
     e.target.reset();closeModal("registerModal");
     toast(confirmationWasRequired
-      ?"Please check your Mail inbox. We have sent a verification link to your registered email. Open the email and touch the link to complete registration."
-      :"Account created, but Supabase returned a session immediately. Turn ON Confirm email in Supabase Auth settings so unverified users cannot log in.");
+      ?"Please check your email inbox. We have sent a verification link. Open it to complete registration."
+      :"Account created, but email confirmation must be enabled in Supabase Auth settings.");
   }catch(x){toast(x.message||"Registration failed.");}finally{if(button)button.disabled=false;}
 });
 document.getElementById("googleLoginBtn").addEventListener("click",async function(){
@@ -2741,8 +2759,8 @@ document.getElementById("loginForm").addEventListener("submit",async e=>{
     if(identity.includes("@")){
       ({data,error}=await a24Supabase.auth.signInWithPassword({email:identity.toLowerCase(),password}));
     }else{
-      const mobile=identity.replace(/\\D/g,"");
-      if(!/^[6-9]\\d{9}$/.test(mobile))throw new Error("Enter your registered email address or 10-digit mobile number.");
+      const mobile=identity.replace(/\D/g,"");
+      if(!/^[6-9]\d{9}$/.test(mobile))throw new Error("Enter your registered email address or 10-digit mobile number.");
       const r=await fetch("/api/public/login-by-mobile",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mobile,password})});
       const result=await r.json().catch(()=>({}));
       if(!r.ok||!result.success)throw new Error(result.error||"Invalid login details or email not verified.");
