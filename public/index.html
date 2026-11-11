@@ -693,7 +693,7 @@ body{-webkit-overflow-scrolling:touch}
 .district-list button:hover,.district-list button:focus-visible{border-color:var(--orange);background:#241609;color:#ffb04b;outline:none}
 .district-results-filters{box-sizing:border-box;width:100%;margin:0 0 22px;padding:17px;border:1px solid rgba(255,151,31,.32);border-radius:17px;background:linear-gradient(145deg,#17110c,#0c0c0c);height:2.5in;max-height:75vh;min-height:150px;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#a85b17 #130d08;touch-action:pan-y}
 .district-results-filters[hidden]{display:none!important}
-.district-filter-drag-handle{position:sticky;top:-17px;z-index:5;display:flex;align-items:center;justify-content:center;gap:9px;margin:-17px -17px 13px;padding:9px 12px;background:linear-gradient(180deg,#241508,#17110c);border-bottom:1px solid rgba(255,151,31,.25);color:#ffb04b;font-size:10px;font-weight:800;letter-spacing:2px;cursor:ns-resize;touch-action:none;user-select:none}.district-filter-drag-handle:before{content:"";width:34px;height:4px;border-radius:9px;background:#b97832;display:block}.district-filter-drag-handle:after{content:"";width:34px;height:4px;border-radius:9px;background:#b97832;display:block}.district-results-filters.is-dragging{transition:none;outline:1px solid rgba(255,151,31,.5)}
+.district-filter-drag-handle{position:sticky;top:-17px;z-index:5;display:flex;align-items:center;justify-content:center;gap:9px;margin:-17px -17px 13px;padding:9px 12px;background:linear-gradient(180deg,#241508,#17110c);border-bottom:1px solid rgba(255,151,31,.25);color:#ffb04b;font-size:10px;font-weight:800;letter-spacing:2px;cursor:ns-resize;touch-action:none;user-select:none}.district-filter-drag-handle:before{content:"↕";font-size:18px;line-height:1;color:#ffb04b;display:block}.district-filter-drag-handle:after{content:none}.district-results-filters.is-dragging{transition:none;outline:1px solid rgba(255,151,31,.5)}
 .district-filter-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .district-results-filters .field{min-width:0;margin:0 0 10px;background:#090909;color:#fff;border:1px solid #39302a;border-radius:12px;padding:14px}
 .district-results-filters select{color-scheme:dark}
@@ -1285,15 +1285,19 @@ footer{background:#080706!important;color:#b9aaa0!important;border-top:1px solid
 }
 
 
-/* Homepage VIP-only vertical rotation: 25 unique listings, continuously moving upward. */
-#adsSection #adsList.vip-vertical-list{display:block;position:relative;height:min(900px,78vh);min-height:300px;overflow:hidden;overscroll-behavior:contain;margin-bottom:24px;mask-image:linear-gradient(to bottom,transparent 0,#000 4%,#000 96%,transparent 100%)}
-#adsSection #adsList.vip-vertical-list .vip-vertical-track{display:flex;flex-direction:column;gap:0;will-change:transform;animation:adzVipVerticalMove 75s linear infinite}
-#adsSection #adsList.vip-vertical-list .vip-vertical-group{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;flex:0 0 auto}
-#adsSection #adsList.vip-vertical-list:hover .vip-vertical-track{animation-play-state:paused}
-#adsSection #adsList.vip-vertical-list .vip-vertical-copy{pointer-events:auto}
-@keyframes adzVipVerticalMove{from{transform:translateY(0)}to{transform:translateY(-50%)}}
-@media(max-width:600px){#adsSection #adsList.vip-vertical-list{height:76vh;min-height:320px}#adsSection #adsList.vip-vertical-list .vip-vertical-group{grid-template-columns:1fr;gap:14px}}
-@media(prefers-reduced-motion:reduce){#adsSection #adsList.vip-vertical-list{overflow-y:auto;mask-image:none}#adsSection #adsList.vip-vertical-list .vip-vertical-track{animation:none}}
+/* Public listings stay in normal document flow: visitors scroll manually.
+   No timed carousel, auto movement, clipping window, or forced scroll. */
+#adsSection #adsList.vip-vertical-list{display:block;height:auto;max-height:none;overflow:visible;mask-image:none}
+#adsSection #adsList.vip-vertical-list .vip-vertical-track{display:block;animation:none;transform:none}
+#adsSection #adsList.vip-vertical-list .vip-vertical-group{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+@media(max-width:600px){#adsSection #adsList.vip-vertical-list .vip-vertical-group{grid-template-columns:1fr;gap:14px}}
+
+/* Post Ad category detail fields only */
+#postModal .category-specific-fields{display:grid;grid-template-columns:1fr;gap:0 10px}
+#postModal .category-specific-fields label{margin-top:7px}
+#postModal .category-specific-fields .field{width:100%;min-height:44px}
+#postModal textarea[name="description"]{min-height:150px;resize:vertical;line-height:1.5}
+@media(min-width:620px){#postModal .category-specific-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 <style id="adz24PromoStyles">
 .cinematic-ad-promo{position:relative;isolation:isolate;overflow:hidden;width:min(900px,100%);min-height:230px;margin:26px auto 0;padding:28px 20px;box-sizing:border-box;border:1px solid rgba(255,166,52,.72);border-radius:22px;background:radial-gradient(ellipse at 15% 20%,rgba(255,130,0,.28),transparent 42%),linear-gradient(115deg,#090706 0%,#241006 48%,#080706 100%);box-shadow:0 18px 55px rgba(0,0,0,.58),0 0 35px rgba(255,102,0,.16);text-align:center}
@@ -1497,7 +1501,7 @@ header .premium-24adz-logo .brand-dot{
     <button type="button" class="results-back" onclick="closeSearchResults()">← Back to Home</button>
     <div class="listing-head"><h2 class="section-title" id="adsHeading" style="margin:0">Latest <span>Listings</span></h2><span class="muted" id="resultCount">0 listings</span></div>
     <div class="district-results-filters" id="districtResultsFilters" hidden>
-      <div class="district-filter-drag-handle" id="districtFilterDragHandle" role="separator" aria-orientation="horizontal" aria-label="Single shared drag control for all Tamil Nadu districts">DRAG UP TO EXPAND · DRAG DOWN TO SHRINK</div>
+      <div class="district-filter-drag-handle" id="districtFilterDragHandle" role="separator" aria-orientation="horizontal" aria-label="Single shared drag control for all Tamil Nadu districts">↕ FILTERS · DRAG TO EXPAND / SHRINK</div>
       <input class="field" id="districtFilterKeyword" placeholder="Search by keyword or ad title" aria-label="Search by keyword">
       <div class="district-filter-grid">
         <select class="field" id="districtFilterCategory"><option value="">All Categories</option></select>
@@ -1562,7 +1566,7 @@ header .premium-24adz-logo .brand-dot{
       <label>Category *</label><select class="field" name="category" id="postCategory" required><option value="">Select Category</option><option>Cars</option><option>Bikes</option><option>Real Estate</option><option>Hotel Rooms</option><option>Fashion &amp; Beauty</option><option>Mobiles</option><option>Jobs</option><option>Personals</option><option>Massage & Spa</option><option>Full Body Massage</option><option>Head Massage</option><option>Foot Massage</option><option>Spa & Wellness</option><option>Beauty & Wellness</option><option>Other Services</option></select>
       <label>Subcategory</label><select class="field" name="subcategory" id="postSubcategory"><option value="">Select Subcategory</option></select>
       <div id="categorySpecificFields" class="category-specific-fields" aria-live="polite"></div>
-      <label>Description *</label><textarea class="field" name="description" required placeholder="Describe your service"></textarea>
+      <label>Description *</label><textarea class="field" name="description" required placeholder="Describe your ad. You can enter text, numbers, phone numbers and other details." maxlength="5000"></textarea>
       <label id="postAgeLabel" hidden>Age (Years)</label>
       <input type="hidden" name="age" id="postAge" value="">
       <div class="age-picker" id="agePicker" hidden>
@@ -1957,9 +1961,10 @@ function showCategoryListingResults(mainCategory,subcategory=""){
   if(panel)panel.hidden=false;
   document.body.classList.add("search-results-mode");
   activeDistrictListing="";
-  const searchDistrict=document.getElementById("searchDistrict")?.value||"";
+  // Category pages start with all Tamil Nadu districts. Customers can narrow
+  // the results later with the District dropdown if they want.
   const district=document.getElementById("districtFilterDistrict");
-  if(district){fillDistricts(district);district.value=searchDistrict;}
+  if(district){fillDistricts(district);district.value="";}
   const category=document.getElementById("districtFilterCategory");
   if(category)category.value=mainCategory||"";
   updateDistrictFilterSubcategories();
@@ -1967,14 +1972,14 @@ function showCategoryListingResults(mainCategory,subcategory=""){
   if(sub)sub.value=subcategory||"";
   updateDistrictFilterAreas();
   const area=document.getElementById("districtFilterArea");
-  if(area)area.value=document.getElementById("searchArea")?.value||"";
-  document.getElementById("districtFilterKeyword").value=document.getElementById("keyword")?.value||"";
-  document.getElementById("districtFilterMinPrice").value=document.getElementById("searchMinPrice")?.value||"";
-  document.getElementById("districtFilterMaxPrice").value=document.getElementById("searchMaxPrice")?.value||"";
+  if(area)area.value="";
+  document.getElementById("districtFilterKeyword").value="";
+  document.getElementById("districtFilterMinPrice").value="";
+  document.getElementById("districtFilterMaxPrice").value="";
   document.getElementById("districtFilterSort").value=document.getElementById("sortListings")?.value||"newest";
   document.getElementById("adsHeading").innerHTML='Listings <span>· '+escapeHtml(subcategory||mainCategory||"All Categories")+'</span>';
   applyDistrictListingFilters();
-  document.getElementById("adsSection").scrollIntoView({behavior:"smooth",block:"start"});
+  // Keep the visitor at the current scroll position; listings are explored manually.
 }
 function chooseCategory(cat,el){
   // Selecting any category (including a Personal subcategory) closes the
@@ -1988,8 +1993,7 @@ function chooseCategory(cat,el){
   updateSearchFilterSteps();
   document.querySelectorAll(".category").forEach(x=>x.classList.remove("active"));
   el.classList.add("active");
-  searchAds();
-  document.getElementById("adsSection").scrollIntoView({behavior:"smooth",block:"start"});
+  showCategoryListingResults(cat,"");
 }
 function goHomeTop(){
   // Home always returns to the main website homepage.
@@ -2010,7 +2014,6 @@ function quickCategory(category){
   if(document.getElementById("searchSubcategory"))document.getElementById("searchSubcategory").value="";
   document.getElementById("keyword").value="";
   showCategoryListingResults(category,"");
-  window.scrollTo({top:0,behavior:"smooth"});
 }
 function runQuickSearch(event){
   event.preventDefault();
@@ -2094,9 +2097,9 @@ function openDistrictListings(district){
   activeDistrictListing=district;
   const districtFilterPanel=document.getElementById("districtResultsFilters");
   // Apply the same compact, draggable filter panel whenever ANY district is opened.
-  // Reset to the 4-inch starting height for every district selection.
+  // Use the compact filter panel height; users can expand/collapse with its one drag handle.
   districtFilterPanel.hidden=false;
-  districtFilterPanel.style.height="4in";
+  districtFilterPanel.style.height="2.5in";
   districtFilterPanel.scrollTop=0;
   document.getElementById("districtFilterDistrict").value=district;
   updateDistrictFilterAreas();
@@ -2111,7 +2114,7 @@ function openDistrictListings(district){
   document.body.classList.add("search-results-mode");
   document.getElementById("adsHeading").innerHTML='District Listings <span>· '+escapeHtml(district)+'</span>';
   applyDistrictListingFilters();
-  window.scrollTo({top:0,behavior:"smooth"});
+  // No automatic page jump: the visitor scrolls the listings manually.
 }
 function applyDistrictListingFilters(){
   const keyword=document.getElementById("districtFilterKeyword").value.trim().toLowerCase();
@@ -2231,30 +2234,12 @@ function isVipAd(a){
   return !expiry || expiry>Date.now();
 }
 
-// Shuffle only today's active, real VIP listings once per visitor page load.
-// This gives each new visitor/page refresh a fresh order without changing the
-// order while the same visitor searches, filters, or moves between pages.
-function isTodayVipAd(a){
-  if(!isVipAd(a))return false;
-  const started=getAdStartTime(a);
-  if(!started)return false;
-  const d=new Date(started),today=new Date();
-  return d.getFullYear()===today.getFullYear()
-    && d.getMonth()===today.getMonth()
-    && d.getDate()===today.getDate();
-}
-// Shuffle active paid and free placements once per page load. The same ranks
-// remain stable while visitors change district/category filters.
+// Stable ad ranking: active paid VIP promotions first (newest payment first),
+// then free listings (newest published first). Never randomize listing order.
 const vipShuffleRank=new Map();
 const freeShuffleRank=new Map();
 function refreshVipShuffleOrder(list){
   vipShuffleRank.clear();freeShuffleRank.clear();
-  const paid=(list||[]).filter(isVipAd).slice();
-  const free=(list||[]).filter(ad=>!isVipAd(ad)).slice();
-  for(let i=paid.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[paid[i],paid[j]]=[paid[j],paid[i]];}
-  for(let i=free.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[free[i],free[j]]=[free[j],free[i]];}
-  paid.forEach((ad,index)=>vipShuffleRank.set(String(ad.id),index));
-  free.forEach((ad,index)=>freeShuffleRank.set(String(ad.id),index));
 }
 refreshVipShuffleOrder(ads);
 
@@ -2296,16 +2281,22 @@ function renderAds(items=ads,page=1){
     const vipActive=isVipAd(a) && !!expiry && expiry>now;
     a._activeVip=vipActive;
     return true;
-  }).sort((a,b)=>(Number(!!b._activeVip)-Number(!!a._activeVip)) || getAdStartTime(b)-getAdStartTime(a));
+  }).sort((a,b)=>{
+    const vipDiff=Number(!!b._activeVip)-Number(!!a._activeVip);
+    if(vipDiff)return vipDiff;
+    // VIP: latest successful promotion timestamp. Free: latest ad publish timestamp.
+    const aTime=Number(a._activeVip ? a.vipStartedAt : a.createdAt)||getAdStartTime(a);
+    const bTime=Number(b._activeVip ? b.vipStartedAt : b.createdAt)||getAdStartTime(b);
+    return bTime-aTime;
+  });
   adsCurrentItems=sorted;
-  adsCurrentPage=Math.max(1,Math.min(Number(page)||1,Math.max(1,Math.ceil(sorted.length/ADS_PAGE_SIZE))));
+  adsCurrentPage=1;
   const root=document.getElementById("adsList");
   const pagination=document.getElementById("adsPagination");
-  const pageStart=(adsCurrentPage-1)*ADS_PAGE_SIZE;
-  const pageItems=sorted.slice(pageStart,pageStart+ADS_PAGE_SIZE);
+  const pageItems=sorted.slice(0,ADS_BATCH_SIZE);
   adsLoadedCount=pageItems.length;
   document.getElementById("resultCount").textContent=sorted.length
-    ? "Showing "+(pageStart+1)+"–"+(pageStart+pageItems.length)+" of "+sorted.length+" listings"
+    ? "Showing "+pageItems.length+" of "+sorted.length+" listings"
     : "0 listings";
   if(!pageItems.length){
     root.classList.remove("vip-vertical-list");
@@ -2322,11 +2313,9 @@ function renderAds(items=ads,page=1){
     pagination.innerHTML="";
     return;
   }
-  const cards=pageItems.map(renderAdCard).join("");
-  root.classList.add("vip-vertical-list");
-  // Duplicate the same 25-card track once so the vertical animation loops seamlessly.
-  root.innerHTML='<div class="vip-vertical-track"><div class="vip-vertical-group">'+cards+'</div><div class="vip-vertical-group" aria-hidden="true">'+cards+'</div></div>';
-  updateAdsScrollAndPagination(pageItems,Math.max(1,Math.ceil(sorted.length/ADS_PAGE_SIZE)));
+  root.classList.remove("vip-vertical-list");
+  root.innerHTML=pageItems.map(renderAdCard).join("");
+  updateAdsScrollAndPagination();
 }
 function adContactPolicy(a){
   const main=String(a.category||"").trim().toLowerCase();
@@ -2361,59 +2350,48 @@ function openAdDetails(adId){
   body.appendChild(actions);modal.hidden=false;modal.setAttribute("aria-hidden","false");
 }
 function closeAdDetails(){const modal=document.getElementById("adDetailsModal");if(modal){modal.hidden=true;modal.setAttribute("aria-hidden","true");}}
-function updateAdsScrollAndPagination(pageItems,totalPages){
+function updateAdsScrollAndPagination(){
   const root=document.getElementById("adsList");
   const pagination=document.getElementById("adsPagination");
-  const hasMoreInPage=adsLoadedCount<pageItems.length;
-  if(hasMoreInPage){
-    const sentinel=document.createElement("div");
-    sentinel.className="ads-scroll-sentinel";
-    sentinel.setAttribute("aria-label","Scroll to load more advertisements");
-    root.appendChild(sentinel);
-    if("IntersectionObserver" in window){
-      adsScrollObserver=new IntersectionObserver(entries=>{
-        if(entries.some(entry=>entry.isIntersecting))loadMoreAds();
-      },{root:null,rootMargin:"180px 0px",threshold:0});
-      adsScrollObserver.observe(sentinel);
-    }else{
-      sentinel.textContent="Scroll down to load more";
-      sentinel.addEventListener("click",loadMoreAds,{once:true});
-    }
+  const oldSentinel=root.querySelector(".ads-scroll-sentinel");
+  if(oldSentinel)oldSentinel.remove();
+  if(adsLoadedCount>=adsCurrentItems.length){
     pagination.innerHTML="";
+    document.getElementById("resultCount").textContent=adsCurrentItems.length
+      ? "Showing all "+adsCurrentItems.length+" listings"
+      : "0 listings";
     return;
   }
-
-  // Show Back, a moving window of six numbered pages, and Next.
-  const current=adsCurrentPage;
-  const windowSize=6;
-  const start=Math.max(1,Math.min(current-2,totalPages-windowSize+1));
-  const end=Math.min(totalPages,start+windowSize-1);
-  let controls='<button type="button" class="page-nav" '+(current===1?'disabled':'')+
-    ' onclick="changeAdsPage('+Math.max(1,current-1)+')">← Back</button>';
-  for(let page=start;page<=end;page++){
-    controls+='<button type="button" class="page-number '+(page===current?'active':'')+
-      '" '+(page===current?'aria-current="page"':'')+
-      ' onclick="changeAdsPage('+page+')">'+page+'</button>';
+  const sentinel=document.createElement("div");
+  sentinel.className="ads-scroll-sentinel";
+  sentinel.setAttribute("aria-label","Scroll down to load more advertisements");
+  sentinel.textContent="Scroll down to view more ads";
+  root.appendChild(sentinel);
+  if("IntersectionObserver" in window){
+    adsScrollObserver=new IntersectionObserver(entries=>{
+      if(entries.some(entry=>entry.isIntersecting))loadMoreAds();
+    },{root:null,rootMargin:"180px 0px",threshold:0});
+    adsScrollObserver.observe(sentinel);
+  }else{
+    sentinel.addEventListener("click",loadMoreAds,{once:true});
   }
-  controls+='<button type="button" class="page-nav" '+(current===totalPages?'disabled':'')+
-    ' onclick="changeAdsPage('+Math.min(totalPages,current+1)+')">Next →</button>';
-  pagination.innerHTML=controls;
+  pagination.innerHTML="";
+  document.getElementById("resultCount").textContent=
+    "Showing "+adsLoadedCount+" of "+adsCurrentItems.length+" listings";
 }
 function loadMoreAds(){
-  const pageStart=(adsCurrentPage-1)*ADS_PAGE_SIZE;
-  const pageItems=adsCurrentItems.slice(pageStart,pageStart+ADS_PAGE_SIZE);
-  const nextCount=Math.min(adsLoadedCount+ADS_BATCH_SIZE,pageItems.length);
+  const nextCount=Math.min(adsLoadedCount+ADS_BATCH_SIZE,adsCurrentItems.length);
   if(nextCount<=adsLoadedCount)return;
   if(adsScrollObserver){adsScrollObserver.disconnect();adsScrollObserver=null;}
   const root=document.getElementById("adsList");
   root.querySelector(".ads-scroll-sentinel")?.remove();
-  root.insertAdjacentHTML("beforeend",pageItems.slice(adsLoadedCount,nextCount).map(renderAdCard).join(""));
+  root.insertAdjacentHTML("beforeend",adsCurrentItems.slice(adsLoadedCount,nextCount).map(renderAdCard).join(""));
   adsLoadedCount=nextCount;
-  updateAdsScrollAndPagination(pageItems,Math.max(1,Math.ceil(adsCurrentItems.length/ADS_PAGE_SIZE)));
+  updateAdsScrollAndPagination();
 }
 function changeAdsPage(page){
-  renderAds(adsCurrentItems,page);
-  document.getElementById("adsSection").scrollIntoView({behavior:"smooth",block:"start"});
+  // Kept as a compatibility shim for older homepage controls; no page jump.
+  renderAds(adsCurrentItems,1);
 }
 function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function escapeAttr(s){return escapeHtml(s)}
@@ -2480,6 +2458,61 @@ function clearRejectedImage(){
  const f=document.getElementById("clientAdImageFile");if(f)f.value="";
  const u=document.querySelector('#postForm [name="image"]');if(u)u.value="";
  document.getElementById("imageSafetyStatus").textContent="Rejected picture cleared. You can select another image.";
+}
+
+
+// Category-aware client Ad Post fields. Only the Post Ad form is enhanced.
+(function(){
+ const schemas={
+  "Cars":[["brand","Car Brand","text"],["model","Car Model","text"],["model_year","Model Year","number"],["condition","Condition","select","New,Used"],["fuel_type","Fuel Type","select","Petrol,Diesel,CNG,Electric,Hybrid"],["transmission","Transmission","select","Manual,Automatic"]],
+  "Bikes":[["brand","Bike Brand","text"],["model","Bike Model","text"],["model_year","Model Year","number"],["condition","Condition","select","New,Used"],["fuel_type","Fuel Type","select","Petrol,Electric"],["engine_cc","Engine CC","number"]],
+  "Mobiles":[["brand","Mobile Brand","text"],["model","Model","text"],["storage","Storage","select","32 GB,64 GB,128 GB,256 GB,512 GB,1 TB"],["ram","RAM","select","2 GB,4 GB,6 GB,8 GB,12 GB,16 GB"],["condition","Condition","select","New,Used"],["warranty","Warranty","select","Yes,No"]],
+  "Jobs":[["job_type","Job Type","select","Full-time,Part-time,Work from Home,Temporary"],["company","Company Name","text"],["salary","Salary","text"],["experience","Experience","text"],["qualification","Qualification","text"],["work_location","Work Location","text"]],
+  "Real Estate":[["property_type","Property Type","select","House,Apartment,Land,Commercial,PG/Hostel"],["bedrooms","Bedrooms","number"],["area_sqft","Built-up / Plot Area (sq.ft.)","number"],["furnishing","Furnishing","select","Furnished,Semi-Furnished,Unfurnished"],["availability","Availability","select","For Sale,For Rent"],["facing","Facing","select","East,West,North,South,North-East,North-West,South-East,South-West"]],
+  "Hotel Rooms":[["room_type","Room Type","select","AC,Non-AC,Family Room,Lodge,Service Apartment"],["occupancy","Occupancy","number"],["check_in","Check-in Time","text"],["check_out","Check-out Time","text"],["facilities","Facilities","text"]],
+  "Fashion & Beauty":[["item_type","Item / Service Type","text"],["brand","Brand","text"],["size","Size","text"],["condition","Condition","select","New,Used"],["service_area","Service Area","text"]],
+  "Personals":[["service_type","Service Type","text"],["availability","Availability","select","Available,By Appointment"],["service_location","Service Location","text"],["timing","Working Hours","text"]]
+ };
+ const wrap=document.getElementById("categorySpecificFields");
+ const category=document.getElementById("postCategory");
+ const subcategory=document.getElementById("postSubcategory");
+ if(!wrap||!category)return;
+ function render(){
+  const cat=category.value, fields=schemas[cat]||[];
+  wrap.innerHTML="";
+  if(!cat)return;
+  const heading=document.createElement("div");
+  heading.className="category-fields-heading";
+  heading.textContent="Details about your "+cat+" ad";
+  heading.style.cssText="grid-column:1/-1;font-weight:700;color:#ffad45;margin:4px 0 8px";
+  wrap.appendChild(heading);
+  fields.forEach(([key,label,type,opts])=>{
+   const id="category_detail_"+key,lab=document.createElement("label");
+   lab.htmlFor=id;lab.textContent=label;
+   let el;
+   if(type==="select"){
+    el=document.createElement("select");el.innerHTML='<option value="">Select '+label+'</option>';
+    String(opts||"").split(",").forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;el.appendChild(o)});
+   }else{el=document.createElement("input");el.type=type;el.min=type==="number"?"0":"";el.placeholder=label;}
+   el.className="field";el.id=id;el.name="category_detail_"+key;el.dataset.categoryDetail=key;
+   wrap.append(lab,el);
+  });
+ }
+ category.addEventListener("change",render);
+ subcategory?.addEventListener("change",render);
+ window.__24adzRenderCategoryFields=render;
+ render();
+})();
+function collectCategoryDetails(container){
+ const details={};
+ (container?.querySelectorAll("[data-category-detail]")||[]).forEach(el=>{
+  if(String(el.value||"").trim())details[el.dataset.categoryDetail]=String(el.value).trim();
+ });
+ // Include Admin-managed custom fields in the same saved details object.
+ document.querySelectorAll("#adminCustomFields [data-admin-field]").forEach(el=>{
+  if(String(el.value||"").trim())details[el.name]=String(el.value).trim();
+ });
+ return details;
 }
 
 document.getElementById("postForm").addEventListener("submit",async e=>{
@@ -2664,7 +2697,7 @@ function editClientAd(id){
  document.getElementById("editingAdId").value=a.id;document.getElementById("postAge").value=a.age||"";
  document.getElementById("agePickerTrigger").textContent=a.age?`Age ${a.age}`:"Select Age ▾";
  const district=document.getElementById("postDistrict");district.value=a.district||"";updatePostAreas();document.getElementById("postArea").value=a.area||"";
- populateSubcategories(document.getElementById("postCategory"),document.getElementById("postSubcategory"));document.getElementById("postSubcategory").value=a.subcategory||"";
+ populateSubcategories(document.getElementById("postCategory"),document.getElementById("postSubcategory"));document.getElementById("postSubcategory").value=a.subcategory||"";if(window.__24adzRenderCategoryFields)window.__24adzRenderCategoryFields();
  goPostStep(1);openModal("postModal");
 }
 function toggleClientAd(id){const c=getCurrentClient(),a=ads.find(x=>String(x.id)===String(id)&&digits(x.ownerPhone||x.phone)===digits(c?.phone));if(!a)return;a.status=String(a.status||"Active").toLowerCase()==="paused"?"Active":"Paused";saveAds();renderAds();openClientDashboard();toast("Advertisement status updated.");}
@@ -2934,7 +2967,7 @@ window.ADZ24_MAIN_CATEGORY_ICONS={Cars:'🚗',Bikes:'🏍️',Mobiles:'📱',Job
   }
   async function hmLoadPublicAds(){
     const remote=[];
-    for(let page=1;page<=20;page++){
+    for(let page=1;page<=100;page++){
       const d=await adz24Get("/api/public/ads?page="+page+"&limit=100");
       const batch=d.ads||[];
       batch.forEach(x=>remote.push({
