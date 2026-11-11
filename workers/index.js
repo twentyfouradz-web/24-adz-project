@@ -213,6 +213,14 @@ var index_default = { async fetch(req, env) {
       const generalKey = await sha256(`all:${ip}`);
       if (!await rateLimit(env.DB, generalKey, 180, 6e4)) return bad("Too many requests. Please try again in one minute.", 429);
     }
+    if (p === "/api/public/check-mobile" && req.method === "POST") {
+      const b = await readBody(req) || {}, mobile = digits(b.mobile);
+      if (!validMobile(mobile)) return bad("Enter a valid 10-digit mobile number.", 400);
+      const key = await sha256(`check-mobile:${mobile}:${ip}`);
+      if (!await rateLimit(env.DB, key, 20, 15 * 60 * 1000)) return bad("Too many attempts. Please try again later.", 429);
+      const existing = await first(env.DB, "SELECT id FROM client_accounts WHERE mobile=? LIMIT 1", mobile);
+      return out({ success: true, registered: !!existing });
+    }
     if (p === "/api/public/login-by-mobile" && req.method === "POST") {
       if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) return bad("Login service is not configured.", 503);
       const b = await readBody(req) || {}, mobile = digits(b.mobile), password = String(b.password || "");
@@ -254,6 +262,10 @@ var index_default = { async fetch(req, env) {
       if (mobile && !validMobile(mobile)) return bad("The registered mobile number is invalid.", 400);
       let row = await first(env.DB, "SELECT id,account_id,name,email,mobile FROM client_accounts WHERE supabase_uid=?", user.id);
       if (!row) row = await first(env.DB, "SELECT id,account_id,name,email,mobile FROM client_accounts WHERE LOWER(email)=LOWER(?)", email);
+      if (mobile) {
+        const mobileOwner = await first(env.DB, "SELECT id FROM client_accounts WHERE mobile=? AND (? IS NULL OR id<>?) LIMIT 1", mobile, row?.id || null, row?.id || null);
+        if (mobileOwner) return bad("This mobile number is already registered with another account. Please use your registered number.", 409);
+      }
       if (row) {
         await run(env.DB, "UPDATE client_accounts SET supabase_uid=?,email=?,name=?,mobile=CASE WHEN ?<>'' THEN ? ELSE mobile END,email_verified=1,updated_at=datetime('now') WHERE id=?", user.id, email, name, mobile, mobile, row.id);
         row = await first(env.DB, "SELECT id,account_id,name,email,mobile,email_verified FROM client_accounts WHERE id=?", row.id);
@@ -628,18 +640,10 @@ var index_default = { async fetch(req, env) {
         try { subcategory = String(JSON.parse(row.details_json || "{}").subcategory || "").trim().toLowerCase(); } catch {}
         const key = `${category}|${subcategory}`;
         const mainKey = `${category}|*`;
-        const chatOnlyCategories = ["cars","bikes","real estate","mobiles","jobs"];
-        const defaults = ["hotel rooms","fashion & beauty","personals"].includes(category);
-        const policy = contactPolicy[key] || contactPolicy[mainKey] || {call:defaults,whatsapp:defaults,chat:true};
-        if (chatOnlyCategories.includes(category)) {
-          row.can_chat = !!row.owner_client_id;
-          row.can_call = false;
-          row.can_whatsapp = false;
-        } else {
-          row.can_chat = !!row.owner_client_id && policy.chat !== false;
-          row.can_call = !!row.phone && policy.call === true;
-          row.can_whatsapp = !!row.whatsapp && policy.whatsapp === true;
-        }
+        const policy = contactPolicy[key] || contactPolicy[mainKey] || {chat:true};
+        row.can_chat = !!row.owner_client_id && policy.chat !== false;
+        row.can_call = !!row.phone;
+        row.can_whatsapp = !!(row.whatsapp || row.phone);
         delete row.owner_client_id;
         if (!row.can_call) row.phone = "";
         if (!row.can_whatsapp) row.whatsapp = "";
