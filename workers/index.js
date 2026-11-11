@@ -289,7 +289,29 @@ var index_default = { async fetch(req, env) {
     if (p === "/api/client/ads" && req.method === "GET") {
       const client = await clientAuth(req, env, env.DB);
       if (!client) return bad("Client login required", 401);
-      return out({ success: true, ads: await all(env.DB, "SELECT * FROM ads WHERE owner_client_id=? ORDER BY created_at DESC LIMIT 200", client.id) });
+      return out({ success: true, ads: await all(env.DB, "SELECT * FROM ads WHERE owner_client_id=? AND status='approved' ORDER BY created_at DESC LIMIT 200", client.id) });
+    }
+    const clientRenew = p.match(/^\/api\/client\/ads\/([^/]+)\/renew$/);
+    if (clientRenew && req.method === "POST") {
+      const client = await clientAuth(req, env, env.DB);
+      if (!client) return bad("Client login required", 401);
+      const adId = decodeURIComponent(clientRenew[1]), b = await readBody(req) || {}, days = Number(b.days);
+      if (![3,5,7].includes(days)) return bad("Choose 3, 5 or 7 days.");
+      const ad = await first(env.DB, "SELECT id,is_vip,expires_at,status FROM ads WHERE id=? AND owner_client_id=?", adId, client.id);
+      if (!ad || ad.status !== "approved") return bad("Only your published ads can be renewed.", 404);
+      let prices = {"3":300,"5":500,"7":700};
+      const pr = await first(env.DB, "SELECT value FROM settings WHERE key='vip_pricing'");
+      try { if (pr?.value) prices = {...prices,...JSON.parse(pr.value)}; } catch {}
+      const cost = Math.max(0, Number(prices[String(days)]) || 0);
+      const wallet = await first(env.DB, "SELECT balance FROM client_coin_wallets WHERE client_id=?", client.id);
+      const balance = Number(wallet?.balance) || 0;
+      if (balance < cost) return bad(`Not enough Coins. ${cost} Coins required; your balance is ${balance}.`, 402);
+      const newBalance = balance - cost;
+      await run(env.DB, "UPDATE client_coin_wallets SET balance=?,updated_at=datetime('now') WHERE client_id=?", newBalance, client.id);
+      await run(env.DB, "INSERT INTO coin_transactions(id,client_id,email,type,coins,balance_after,note) VALUES(?,?,?,?,?,?,?)", crypto.randomUUID(), client.id, client.email, "vip_debit", -cost, newBalance, `Auto Renew Ad ${adId} for ${days} days`);
+      await run(env.DB, "INSERT INTO vip_promotions(ad_id,days,amount,status,reference,created_at) VALUES(?,?,?,?,?,datetime('now'))", adId, days, cost, "active", "CLIENT_COIN_RENEW");
+      await run(env.DB, "UPDATE ads SET is_vip=1,expires_at=datetime(CASE WHEN expires_at IS NOT NULL AND datetime(expires_at)>datetime('now') THEN expires_at ELSE 'now' END, '+'||?||' days') WHERE id=? AND owner_client_id=?", days, adId, client.id);
+      return out({success:true,balance:newBalance,message:`Ad renewed for ${days} days.`});
     }
     if (p === "/api/client/profile" && req.method === "PUT") {
       const client = await clientAuth(req, env, env.DB);
@@ -397,12 +419,35 @@ var index_default = { async fetch(req, env) {
       if (!client) return bad("Client login required", 401);
       const ip2 = req.headers.get("CF-Connecting-IP") || "unknown";
       if (!await rateLimit(env.DB, await sha256(`chat:${client.id}:${ip2}`), 20, 6e4)) return bad("Message limit reached. Please wait.", 429);
-      const b = await readBody(req) || {}, ad2 = await first(env.DB, "SELECT id FROM ads WHERE id=? AND status='approved'", str(b.ad_id, 100)), message = str(b.message, 2e3);
+      const b = await readBody(req) || {}, ad2 = await first(env.DB, "SELECT id,owner_client_id,phone FROM ads WHERE id=? AND status='approved'", str(b.ad_id, 100)), message = str(b.message, 2e3);
       if (!ad2) return bad("Ad not found", 404);
       if (!message) return bad("Message required");
+      if (!ad2.owner_client_id) return bad("This advertiser does not have a client chat account.", 400);
+      if (String(ad2.owner_client_id) === String(client.id)) return bad("You cannot chat with yourself.", 400);
+      const adDetails = await first(env.DB, "SELECT category,details_json FROM ads WHERE id=?", ad2.id);
+      let chatPolicy = {};
+      try { const cfg = await first(env.DB, "SELECT value FROM settings WHERE key='contact_policy'"); if (cfg?.value) chatPolicy = JSON.parse(cfg.value); } catch {}
+      let sub = ""; try { sub = String(JSON.parse(adDetails?.details_json || "{}").subcategory || "").trim().toLowerCase(); } catch {}
+      const ckey = `${String(adDetails?.category||"").trim().toLowerCase()}|${sub}`;
+      const mkey = `${String(adDetails?.category||"").trim().toLowerCase()}|*`;
+      if ((chatPolicy[ckey] || chatPolicy[mkey] || {chat:true}).chat === false) return bad("Chat is disabled for this category.", 403);
       if ((message.match(/https?:\/\//gi) || []).length > 2 || /(buy now|click here|free money|crypto investment)/i.test(message)) return bad("Message blocked by spam protection", 400);
-      await run(env.DB, "INSERT INTO chat_messages(ad_id,sender_mobile,receiver_mobile,message,sender_client_id,receiver_client_id) VALUES(?,?,?,?,?,'ADMIN')", ad2.id, client.mobile, "ADMIN", message, client.id);
-      return out({ success: true, message: "Message sent to Admin." }, 201);
+      const owner = await first(env.DB, "SELECT mobile FROM client_accounts WHERE id=?", ad2.owner_client_id);
+      await run(env.DB, "INSERT INTO chat_messages(ad_id,sender_mobile,receiver_mobile,message,sender_client_id,receiver_client_id) VALUES(?,?,?,?,?,?)", ad2.id, client.mobile, owner?.mobile || "", message, client.id, ad2.owner_client_id);
+      return out({ success: true, message: "Message sent to advertiser." }, 201);
+    }
+    if (p === "/api/client/chat/reply" && req.method === "POST") {
+      const client = await clientAuth(req, env, env.DB);
+      if (!client) return bad("Client login required", 401);
+      const b = await readBody(req) || {}, adId = str(b.ad_id, 100), to = str(b.receiver_client_id, 100), message = str(b.message, 2e3);
+      if (!adId || !to || !message) return bad("Conversation, recipient and message are required");
+      const ad2 = await first(env.DB, "SELECT id,owner_client_id FROM ads WHERE id=? AND status='approved'", adId);
+      if (!ad2 || ![String(ad2.owner_client_id), to].includes(String(client.id))) return bad("Conversation not found", 404);
+      if (String(ad2.owner_client_id) === String(client.id) ? to === String(client.id) : String(ad2.owner_client_id) !== to) return bad("Invalid conversation recipient", 403);
+      const other = await first(env.DB, "SELECT mobile FROM client_accounts WHERE id=?", to);
+      if (!other) return bad("Customer not found", 404);
+      await run(env.DB, "INSERT INTO chat_messages(ad_id,sender_mobile,receiver_mobile,message,sender_client_id,receiver_client_id) VALUES(?,?,?,?,?,?)", adId, client.mobile, other.mobile, message, client.id, to);
+      return out({ success: true }, 201);
     }
     if (p === "/api/client/messages" && req.method === "GET") {
       const client = await clientAuth(req, env, env.DB);
@@ -424,6 +469,11 @@ var index_default = { async fetch(req, env) {
       if (!message) return bad("Reply message required");
       await run(env.DB, "INSERT INTO chat_messages(ad_id,sender_mobile,receiver_mobile,message,sender_client_id,receiver_client_id) VALUES(?,?,?,?, 'ADMIN',?)", original.ad_id, "ADMIN", original.sender_mobile, message, original.sender_client_id);
       return out({ success: true }, 201);
+    }
+    if (p === "/api/client/coin-transactions" && req.method === "GET") {
+      const client = await clientAuth(req, env, env.DB);
+      if (!client) return bad("Client login required", 401);
+      return out({success:true,transactions:await all(env.DB,"SELECT id,type,coins,balance_after,note,created_at FROM coin_transactions WHERE client_id=? ORDER BY created_at DESC LIMIT 100",client.id)});
     }
     if (p === "/api/client/coin-packages" && req.method === "GET") {
       let packages = [1e3, 2e3, 3e3, 4e3, 5e3].map((coins) => ({ coins, amount: coins }));
@@ -565,6 +615,8 @@ var index_default = { async fetch(req, env) {
       const vipOrder = vipTable ? `CASE WHEN EXISTS(SELECT 1 FROM vip_promotions p WHERE p.ad_id=ads.id AND LOWER(p.status)='active' AND datetime(p.created_at,'+'||p.days||' days')>datetime('now')) THEN 1 ELSE 0 END DESC, (SELECT MAX(p.created_at) FROM vip_promotions p WHERE p.ad_id=ads.id AND LOWER(p.status)='active' AND datetime(p.created_at,'+'||p.days||' days')>datetime('now')) DESC` : `0 DESC`;
       const order = vipOrder + `, ` + (url.searchParams.get("sort") === "price_low" || url.searchParams.get("sort") === "price_high" ? sort : "ads.created_at DESC");
       const rows = await all(env.DB, "SELECT ads.*" + vipSelect + " FROM ads WHERE " + w.join(" AND ") + ` ORDER BY ${order} LIMIT ? OFFSET ?`, ...a, limit, (page - 1) * limit);
+      let contactPolicy = {};
+      try { const cfg = await first(env.DB, "SELECT value FROM settings WHERE key='contact_policy'"); if (cfg?.value) contactPolicy = JSON.parse(cfg.value); } catch {}
       const ads = rows.map((row) => {
         try {
           row.subcategory = JSON.parse(row.details_json || "{}").subcategory || "";
@@ -574,17 +626,16 @@ var index_default = { async fetch(req, env) {
         const category = String(row.category || "").trim().toLowerCase();
         let subcategory = "";
         try { subcategory = String(JSON.parse(row.details_json || "{}").subcategory || "").trim().toLowerCase(); } catch {}
-        // Public phone/WhatsApp is enabled only for Car Rentals, Hotel Rooms,
-        // Fashion & Beauty and Personals. Other categories remain chat-only.
-        const publicContactAllowed =
-          (category === "cars" && subcategory === "car rentals") ||
-          ["hotel rooms", "fashion & beauty", "personals"].includes(category);
-        row.can_chat = !!row.owner_client_id;
+        const key = `${category}|${subcategory}`;
+        const mainKey = `${category}|*`;
+        const defaults = (category === "cars" && subcategory === "car rentals") || ["hotel rooms","fashion & beauty","personals"].includes(category);
+        const policy = contactPolicy[key] || contactPolicy[mainKey] || {call:defaults,whatsapp:defaults,chat:true};
+        row.can_chat = !!row.owner_client_id && policy.chat !== false;
+        row.can_call = !!row.phone && policy.call === true;
+        row.can_whatsapp = !!row.whatsapp && policy.whatsapp === true;
         delete row.owner_client_id;
-        if (!publicContactAllowed) {
-          row.phone = "";
-          row.whatsapp = "";
-        }
+        if (!row.can_call) row.phone = "";
+        if (!row.can_whatsapp) row.whatsapp = "";
         const days = Number(row.vip_days) || 0;
         const started = row.vip_started_at ? Date.parse(String(row.vip_started_at).replace(" ", "T") + "Z") : 0;
         const expires = row.vip_expires_at ? Date.parse(String(row.vip_expires_at).replace(" ", "T") + "Z") : 0;
