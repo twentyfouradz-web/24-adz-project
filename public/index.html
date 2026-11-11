@@ -2001,8 +2001,12 @@ function goHomeTop(){
     location.href="/";
     return;
   }
+  ["clientDashboardModal","adDetailsModal","adChatModal","postModal","loginModal","registerModal"].forEach(id=>{
+    const modal=document.getElementById(id);
+    if(modal&&modal.classList.contains("open"))closeModal(id);
+  });
   if(document.body.classList.contains("search-results-mode"))closeSearchResults();
-  else window.scrollTo({top:0,behavior:"smooth"});
+  window.scrollTo({top:0,behavior:"smooth"});
 }
 function openClientMessages(){
   if(typeof openClientDashboard==="function")openClientDashboard();
@@ -2319,10 +2323,10 @@ function renderAds(items=ads,page=1){
 }
 function adContactPolicy(a){
   const main=String(a.category||"").trim().toLowerCase();
-  const sub=String(a.subcategory||"").trim().toLowerCase();
-  const publicContact=(main==="cars" && sub==="car rentals") ||
-    ["hotel rooms","fashion & beauty","personals"].includes(main);
-  return {call:publicContact && !!a.phone, whatsapp:publicContact && !!(a.whatsapp||a.phone), chat:!!a.can_chat};
+  if(["cars","bikes","real estate","mobiles","jobs"].includes(main)){
+    return {call:false,whatsapp:false,chat:!!a.can_chat};
+  }
+  return {call:!!a.can_call,whatsapp:!!a.can_whatsapp,chat:!!a.can_chat};
 }
 function renderAdCard(a){
   const vip=isVipAd(a), contact=adContactPolicy(a);
@@ -3026,11 +3030,49 @@ async function clientLogout(){try{await a24InitAuth();if(a24Supabase)await a24Su
 function getCurrentClient(){try{return JSON.parse(localStorage.getItem("24adz_client")||"null")}catch{return null}}
 function startPostAd(){if(!a24Token()){openModal("loginModal");toast("Login or register to post an ad.");return}resetPostFormForNew();openModal("postModal")}
 function resetPostFormForNew(){const f=document.getElementById("postForm");f.reset();document.getElementById("editingAdId").value="";goPostStep(1);}
+function classifyMyAd(a){
+ const status=String(a.status||"").toLowerCase();
+ if(!["approved","published","active"].includes(status))return "inactive";
+ const raw=a.expires_at||a.vip_expires_at;
+ if(raw){
+  const expiry=Date.parse(String(raw).replace(" ","T")+(String(raw).includes("Z")?"":"Z"));
+  if(Number.isFinite(expiry)&&expiry<=Date.now())return "expired";
+  if(Number.isFinite(expiry)&&expiry-Date.now()<=3*86400000)return "expiring";
+ }
+ return "active";
+}
+function renderMyAdsTab(tab){
+ const all=window.__24adzOwnAds||[];
+ const tabs=["all","active","expiring","expired","inactive"];
+ const counts=Object.fromEntries(tabs.map(k=>[k,k==="all"?all.length:all.filter(a=>classifyMyAd(a)===k).length]));
+ const shown=tab==="all"?all:all.filter(a=>classifyMyAd(a)===tab);
+ const buttons=tabs.map(k=>`<button type="button" class="btn ${tab===k?"btn-primary":"btn-outline"}" style="padding:8px 11px" onclick="renderMyAdsTab('${k}')">${k[0].toUpperCase()+k.slice(1)} (${counts[k]})</button>`).join("");
+ const cards=shown.map(a=>{
+  const state=classifyMyAd(a), expiry=a.expires_at||a.vip_expires_at||"";
+  const statusLabel=state==="inactive"?(a.status||"Inactive"):state[0].toUpperCase()+state.slice(1);
+  return `<article class="ad-card" style="margin:12px 0;padding:12px">
+   <div style="display:flex;gap:12px;align-items:flex-start">${a.image_url?`<img src="${escapeDashboardText(a.image_url)}" alt="" style="width:88px;height:76px;object-fit:cover;border-radius:8px">`:""}
+    <div style="min-width:0;flex:1"><b>${escapeDashboardText(a.title||"Advertisement")}</b>
+     <p style="margin:6px 0">${escapeDashboardText(a.category||"")}${a.subcategory?" · "+escapeDashboardText(a.subcategory):""}</p>
+     <small>${escapeDashboardText(a.district||"")} / ${escapeDashboardText(a.area||"")}</small><br>
+     <small>${a.is_vip?"VIP":"Standard"} · ${escapeDashboardText(statusLabel)}${expiry?" · Expires "+escapeDashboardText(expiry):""}</small>
+    </div>
+   </div>
+   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+    <button class="btn btn-outline" onclick="editServerAd('${String(a.id)}')">Edit</button>
+    <button class="btn btn-outline" onclick="deleteServerAd('${String(a.id)}')">Delete</button>
+    <button class="btn btn-primary" onclick="renewClientAd('${String(a.id)}')">Auto Renew</button>
+   </div>
+  </article>`;
+ }).join("");
+ const root=document.getElementById("myAdsPanel");
+ if(root)root.innerHTML=`<div style="display:flex;gap:7px;flex-wrap:wrap;margin:10px 0 14px">${buttons}</div>${cards||"<p>No ads in this section.</p>"}`;
+}
 async function openClientDashboard(){
  if(!a24Token()){openModal("loginModal");return}
  try{
   const [me,own,msgs,coinHistory]=await Promise.all([a24Call("/api/client/me"),a24Call("/api/client/ads"),a24Call("/api/client/messages"),a24Call("/api/client/coin-transactions")]);
-  const c=me.client,w=me.wallet,limits=me.freeAds,transactions=coinHistory.transactions||[],ads=(own.ads||[]).filter(a=>String(a.status).toLowerCase()==="approved"),messages=msgs.messages||[];
+  const c=me.client,w=me.wallet,limits=me.freeAds,transactions=coinHistory.transactions||[],ads=own.ads||[],messages=msgs.messages||[];
   window.__24adzOwnAds=ads;
   const threads={};messages.forEach(m=>{const peer=String(m.sender_client_id)===String(c.id)?m.receiver_client_id:m.sender_client_id;if(!peer||peer==="ADMIN")return;const k=String(m.ad_id)+"|"+String(peer);(threads[k]??={ad_id:m.ad_id,peer,messages:[]}).messages.push(m)});
   const chatHtml=Object.values(threads).map(t=>{const last=t.messages[t.messages.length-1];return `<article class="ad-card"><b>Ad conversation</b><p>${escapeDashboardText(last.message||"")}</p><small>${escapeDashboardText(last.created_at||"")}</small><button class="btn btn-outline" onclick="openClientThread('${String(t.ad_id)}','${String(t.peer)}')">Open Chat</button></article>`}).join("")||"<p>No customer conversations yet.</p>";
@@ -3040,9 +3082,10 @@ async function openClientDashboard(){
    <label>Mobile Number</label><input class="field" id="my24Mobile" inputmode="numeric" maxlength="10" value="${escapeDashboardText(c.mobile||"")}">
    <button class="btn btn-primary" onclick="saveMy24Profile()">Save Profile</button></section>
    <section class="panel"><h3>Coins Dashboard</h3><p><b>Available Coins:</b> ${Number(w.balance)||0}</p><p>Free Ads Used: ${limits.mobileUsed}/${limits.mobileLimit} · ${limits.periodDays} days</p><button class="btn btn-primary" onclick="showCoinPackages()">Purchase Coins</button><h4>Coin Transactions</h4>${transactions.map(t=>`<p>${escapeDashboardText(t.note||t.type)} · ${Number(t.coins)>0?"+":""}${Number(t.coins)} Coins · Balance ${Number(t.balance_after)} · ${escapeDashboardText(t.created_at||"")}</p>`).join("")||"<p>No coin transactions yet.</p>"}</section>
-   <section class="panel"><h3>My Ads — Published Only</h3>${ads.map(a=>`<article class="ad-card"><b>${escapeDashboardText(a.title)}</b><p>${escapeDashboardText(a.category)} · ${escapeDashboardText(a.district)} / ${escapeDashboardText(a.area)}</p><small>${a.is_vip?"VIP":"Standard"} · Published</small><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn btn-outline" onclick="editServerAd('${String(a.id)}')">Edit</button><button class="btn btn-outline" onclick="deleteServerAd('${String(a.id)}')">Delete</button><button class="btn btn-primary" onclick="renewClientAd('${String(a.id)}')">Auto Renew</button></div></article>`).join("")||"<p>No published ads found.</p>"}</section>
+   <section class="panel"><h3>My Ads</h3><div id="myAdsPanel"></div></section>
    <section class="panel"><h3>Messages</h3>${chatHtml}</section>
    <button class="btn btn-outline" onclick="clientLogout()">Logout</button>`;
+  renderMyAdsTab("all");
   openModal("clientDashboardModal");
  }catch(e){toast(e.message)}
 }
