@@ -289,7 +289,7 @@ var index_default = { async fetch(req, env) {
     if (p === "/api/client/ads" && req.method === "GET") {
       const client = await clientAuth(req, env, env.DB);
       if (!client) return bad("Client login required", 401);
-      return out({ success: true, ads: await all(env.DB, "SELECT * FROM ads WHERE owner_client_id=? AND status='approved' ORDER BY created_at DESC LIMIT 200", client.id) });
+      return out({ success: true, ads: await all(env.DB, "SELECT * FROM ads WHERE owner_client_id=? ORDER BY created_at DESC LIMIT 200", client.id) });
     }
     const clientRenew = p.match(/^\/api\/client\/ads\/([^/]+)\/renew$/);
     if (clientRenew && req.method === "POST") {
@@ -628,11 +628,18 @@ var index_default = { async fetch(req, env) {
         try { subcategory = String(JSON.parse(row.details_json || "{}").subcategory || "").trim().toLowerCase(); } catch {}
         const key = `${category}|${subcategory}`;
         const mainKey = `${category}|*`;
-        const defaults = (category === "cars" && subcategory === "car rentals") || ["hotel rooms","fashion & beauty","personals"].includes(category);
+        const chatOnlyCategories = ["cars","bikes","real estate","mobiles","jobs"];
+        const defaults = ["hotel rooms","fashion & beauty","personals"].includes(category);
         const policy = contactPolicy[key] || contactPolicy[mainKey] || {call:defaults,whatsapp:defaults,chat:true};
-        row.can_chat = !!row.owner_client_id && policy.chat !== false;
-        row.can_call = !!row.phone && policy.call === true;
-        row.can_whatsapp = !!row.whatsapp && policy.whatsapp === true;
+        if (chatOnlyCategories.includes(category)) {
+          row.can_chat = !!row.owner_client_id;
+          row.can_call = false;
+          row.can_whatsapp = false;
+        } else {
+          row.can_chat = !!row.owner_client_id && policy.chat !== false;
+          row.can_call = !!row.phone && policy.call === true;
+          row.can_whatsapp = !!row.whatsapp && policy.whatsapp === true;
+        }
         delete row.owner_client_id;
         if (!row.can_call) row.phone = "";
         if (!row.can_whatsapp) row.whatsapp = "";
