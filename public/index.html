@@ -2290,22 +2290,23 @@ function renderAds(items=ads,page=1){
   const homepageCategories=new Set(["cars","bikes","mobiles","real estate","jobs","hotel rooms","fashion & beauty"]);
   const now=Date.now();
   const sorted=[...items].filter(a=>{
-    const category=String(a.category||"").trim().toLowerCase();
-    if(!homepageCategories.has(category))return false;
     if(String(a.status||"Active").toLowerCase()==="paused")return false;
-    if(!isVipAd(a))return false;
+    // Show every approved public listing; VIP ads are ranked first, not used as an access gate.
     const expiry=getAdExpiryTime(a);
-    return !!expiry && expiry>now;
-  }).sort((a,b)=>getAdStartTime(b)-getAdStartTime(a)).slice(0,25);
+    const vipActive=isVipAd(a) && !!expiry && expiry>now;
+    a._activeVip=vipActive;
+    return true;
+  }).sort((a,b)=>(Number(!!b._activeVip)-Number(!!a._activeVip)) || getAdStartTime(b)-getAdStartTime(a));
   adsCurrentItems=sorted;
-  adsCurrentPage=1;
+  adsCurrentPage=Math.max(1,Math.min(Number(page)||1,Math.max(1,Math.ceil(sorted.length/ADS_PAGE_SIZE))));
   const root=document.getElementById("adsList");
   const pagination=document.getElementById("adsPagination");
-  const pageItems=sorted;
+  const pageStart=(adsCurrentPage-1)*ADS_PAGE_SIZE;
+  const pageItems=sorted.slice(pageStart,pageStart+ADS_PAGE_SIZE);
   adsLoadedCount=pageItems.length;
-  document.getElementById("resultCount").textContent=pageItems.length
-    ? "Showing "+pageItems.length+" of 25 VIP listings"
-    : "0 VIP listings";
+  document.getElementById("resultCount").textContent=sorted.length
+    ? "Showing "+(pageStart+1)+"–"+(pageStart+pageItems.length)+" of "+sorted.length+" listings"
+    : "0 listings";
   if(!pageItems.length){
     root.classList.remove("vip-vertical-list");
     const selectedArea=document.getElementById("searchArea")?.value||"this area";
@@ -2325,7 +2326,7 @@ function renderAds(items=ads,page=1){
   root.classList.add("vip-vertical-list");
   // Duplicate the same 25-card track once so the vertical animation loops seamlessly.
   root.innerHTML='<div class="vip-vertical-track"><div class="vip-vertical-group">'+cards+'</div><div class="vip-vertical-group" aria-hidden="true">'+cards+'</div></div>';
-  pagination.innerHTML="";
+  updateAdsScrollAndPagination(pageItems,Math.max(1,Math.ceil(sorted.length/ADS_PAGE_SIZE)));
 }
 function adContactPolicy(a){
   const main=String(a.category||"").trim().toLowerCase();
@@ -2934,7 +2935,7 @@ window.ADZ24_MAIN_CATEGORY_ICONS={Cars:'🚗',Bikes:'🏍️',Mobiles:'📱',Job
   async function hmLoadPublicAds(){
     const remote=[];
     for(let page=1;page<=20;page++){
-      const d=await adz24Get("/api/public/ads?homepage=1&page="+page+"&limit=100");
+      const d=await adz24Get("/api/public/ads?page="+page+"&limit=100");
       const batch=d.ads||[];
       batch.forEach(x=>remote.push({
         id:String(x.id),title:x.title||"",description:x.description||"",category:x.category||"",
