@@ -239,11 +239,8 @@ export default {async fetch(req,env){
    const wallet=await first(env.DB,"SELECT balance FROM client_coin_wallets WHERE client_id=?",client.id);
    const freeCfg=await first(env.DB,"SELECT value FROM settings WHERE key='free_ads'");let free={limit:3,period_days:30};try{if(freeCfg?.value)free={...free,...JSON.parse(freeCfg.value)}}catch{}
    const period=Math.max(1,Math.min(365,Number(free.period_days)||30)),limit=Math.max(0,Math.min(1000,Number(free.limit)||0));
-   const [emailCount,phoneCount]=await Promise.all([
-    first(env.DB,"SELECT COUNT(*) n FROM ads WHERE owner_client_id=? AND created_at>=datetime('now','-'||?||' days')",client.id,period),
-    first(env.DB,"SELECT COUNT(*) n FROM ads a LEFT JOIN client_accounts c ON c.id=a.owner_client_id WHERE (c.mobile=? OR a.phone=?) AND a.created_at>=datetime('now','-'||?||' days')",client.mobile,client.mobile,period)
-   ]);
-   return out({success:true,client,wallet:{balance:Number(wallet?.balance)||0},freeAds:{emailUsed:Number(emailCount?.n)||0,emailLimit:limit,phoneUsedThisMonth:Number(phoneCount?.n)||0,phoneMonthlyLimit:limit,periodDays:period}});
+   const emailCount=await first(env.DB,"SELECT COUNT(*) n FROM ads WHERE owner_client_id=? AND created_at>=datetime('now','-'||?||' days')",client.id,period);
+   return out({success:true,client,wallet:{balance:Number(wallet?.balance)||0},freeAds:{emailUsed:Number(emailCount?.n)||0,emailLimit:limit,periodDays:period}});
   }
   if(p==="/api/client/ads"&&req.method==="GET"){
    const client=await clientAuth(req,env,env.DB);if(!client)return bad("Client login required",401);
@@ -274,10 +271,7 @@ export default {async fetch(req,env){
    const categoryError=await validateAdCategory(env.DB,a.category,a.details_json);if(categoryError)return bad(categoryError);const contentError=await validateAdContent(env.DB,a);if(contentError)return bad(contentError);
    const freeCfgRow=await first(env.DB,"SELECT value FROM settings WHERE key='free_ads'");let freeCfg={limit:3,period_days:30};try{if(freeCfgRow?.value)freeCfg={...freeCfg,...JSON.parse(freeCfgRow.value)}}catch{}
    const freeLimit=Math.max(0,Math.min(1000,Number(freeCfg.limit)||0)),period=Math.max(1,Math.min(365,Number(freeCfg.period_days)||30));
-   const [emailCount,phoneCount]=await Promise.all([
-    first(env.DB,"SELECT COUNT(*) n FROM ads WHERE owner_client_id=? AND created_at>=datetime('now','-'||?||' days')",client.id,period),
-    first(env.DB,"SELECT COUNT(*) n FROM ads a LEFT JOIN client_accounts c ON c.id=a.owner_client_id WHERE (c.mobile=? OR a.phone=?) AND a.created_at>=datetime('now','-'||?||' days')",client.mobile,client.mobile,period)
-   ]);
+   const emailCount=await first(env.DB,"SELECT COUNT(*) n FROM ads WHERE owner_client_id=? AND created_at>=datetime('now','-'||?||' days')",client.id,period);
    const freeAllowed=Number(emailCount?.n||0)<freeLimit;
    const plan=str(b.plan||"free",20),days=plan==="vip3"?3:plan==="vip5"?5:plan==="vip7"?7:0;
    let pricing={"3":300,"5":500,"7":700};try{const pr=await first(env.DB,"SELECT value FROM settings WHERE key='vip_pricing'");if(pr?.value)pricing={...pricing,...JSON.parse(pr.value)}}catch{}
