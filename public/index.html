@@ -2886,7 +2886,14 @@ window.ADZ24_MAIN_CATEGORY_ICONS={Cars:'🚗',Bikes:'🏍️',Mobiles:'📱',Job
 const A24_API="";let a24Client=null;
 function a24Token(){return a24Session?.access_token||""}
 async function a24Call(path,method="GET",body){await a24InitAuth();const token=a24Token();const r=await fetch(A24_API+path,{method,headers:{...(body?{"Content-Type":"application/json"}:{}),...(token?{Authorization:"Bearer "+token}:{})},body:body?JSON.stringify(body):undefined});const d=await r.json().catch(()=>({}));if(!r.ok||d.success===false){const e=new Error(d.error||"Request failed");e.status=r.status;throw e}return d}
-function updateAccountNav(){const logged=!!a24Token();for(const id of ["navLoginBtn","navRegisterBtn"])document.getElementById(id).hidden=logged;for(const id of ["navDashboardBtn","navLogoutBtn"])document.getElementById(id).hidden=!logged;}
+function updateAccountNav(){
+  const logged=!!a24Token();
+  const states={navLoginBtn:logged,navRegisterBtn:logged,navDashboardBtn:!logged,navLogoutBtn:!logged};
+  for(const [id,hidden] of Object.entries(states)){
+    const element=document.getElementById(id);
+    if(element) element.hidden=hidden;
+  }
+}
 async function clientLogout(){try{await a24InitAuth();if(a24Supabase)await a24Supabase.auth.signOut();}catch(e){console.warn(e)}a24Session=null;a24Client=null;localStorage.removeItem("24adz_client");updateAccountNav();toast("Logged out.");}
 function getCurrentClient(){try{return JSON.parse(localStorage.getItem("24adz_client")||"null")}catch{return null}}
 function startPostAd(){if(!a24Token()){openModal("loginModal");toast("Login or register to post an ad.");return}resetPostFormForNew();openModal("postModal")}
