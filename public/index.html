@@ -376,6 +376,15 @@ footer{background:linear-gradient(180deg,transparent,rgba(255,104,0,.035));borde
 .ad-detail-actions a,.ad-detail-actions button{padding:12px 18px;border-radius:9px;text-decoration:none;border:0;cursor:pointer}
 #adDetailsModal .ad-details-box{box-sizing:border-box}
 @media(max-width:600px){.ad-details-box{padding:15px;max-height:92vh}}
+/* Video-style ad detail page: scrollable content with fixed contact/message bar */
+.ad-details-box{overflow:hidden!important;display:flex!important;flex-direction:column!important}
+#adDetailsBody{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-top:22px;padding-bottom:10px}
+.ad-details-box .modal-close{position:absolute!important;right:12px!important;top:10px!important;z-index:4}
+.ad-details-sticky-actions{flex:0 0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(95px,1fr));gap:8px;padding:12px 0 0;margin-top:8px;border-top:1px solid rgba(255,158,48,.25);background:#15110d}
+.ad-details-sticky-actions a,.ad-details-sticky-actions button{display:flex;align-items:center;justify-content:center;min-height:46px;padding:10px 5px;border:0;border-radius:8px;text-decoration:none;font-size:13px;font-weight:850;cursor:pointer;background:#f4f4f4;color:#171717}
+.ad-details-sticky-actions .detail-whatsapp{background:#168b4b;color:#fff}
+.ad-details-sticky-actions .detail-chat{background:#f28a18;color:#160b00}
+@media(max-width:600px){.ad-details-box{padding:14px!important;max-height:92vh!important}.ad-details-sticky-actions{position:sticky;bottom:0}.ad-details-sticky-actions a,.ad-details-sticky-actions button{font-size:12px;min-height:44px}}
 /* Contact action buttons: Call and WhatsApp only */
 .ad-actions > :nth-child(1){
   background:#f5f5f5!important;color:#171717!important;border-color:#f5f5f5!important;
@@ -2380,7 +2389,12 @@ function renderAds(items=ads,page=1){
   updateAdsScrollAndPagination();
 }
 function adContactPolicy(a){
-  return {call:!!(a.phone||a.can_call),whatsapp:!!(a.whatsapp||a.phone||a.can_whatsapp),chat:!!a.can_chat};
+  const category=String(a.category||"").trim().toLowerCase().replace(/\s+/g," ");
+  const chatCategories=["cars","bikes","houses","house","jobs","mobiles","real estate","realestate"];
+  // Chat is offered for the requested categories when the listing belongs to a
+  // registered client account; the API remains the authority for permission.
+  const chatAllowed=chatCategories.includes(category) && !!a.can_chat;
+  return {call:!!(a.phone||a.can_call),whatsapp:!!(a.whatsapp||a.phone||a.can_whatsapp),chat:chatAllowed};
 }
 function renderAdCard(a){
   const vip=isVipAd(a), contact=adContactPolicy(a);
@@ -2395,17 +2409,17 @@ function renderAdCard(a){
 function openAdDetails(adId){
   const a=(ads||[]).find(x=>String(x.id)===String(adId)) || (adsCurrentItems||[]).find(x=>String(x.id)===String(adId));
   if(!a)return;
-  const contact=adContactPolicy(a), modal=document.getElementById("adDetailsModal"), body=document.getElementById("adDetailsBody");
+  const contact=adContactPolicy(a), modal=document.getElementById("adDetailsModal"), body=document.getElementById("adDetailsBody"), actions=document.getElementById("adDetailsActions");
   const rows=[["Category",a.category],["Subcategory",a.subcategory],["Location",[a.area,a.district].filter(Boolean).join(", ")],["Price",a.price?"₹"+a.price:"Contact for price"],["Description",a.description],["Posted by",a.contact],["Age",a.age?String(a.age):""]];
-  body.innerHTML="";
+  body.innerHTML="";actions.innerHTML="";
   if(a.image){const image=document.createElement("img");image.src=a.image;image.alt=a.title||"Advertisement";image.className="ad-detail-image";body.appendChild(image);}
   const title=document.createElement("h2");title.textContent=a.title||"Advertisement";body.appendChild(title);
   rows.forEach(([label,value])=>{if(!value)return;const p=document.createElement("p");const strong=document.createElement("strong");strong.textContent=label+": ";p.append(strong,document.createTextNode(String(value)));body.appendChild(p);});
-  const actions=document.createElement("div");actions.className="ad-actions ad-detail-actions";
-  if(contact.call){const x=document.createElement("a");x.href="tel:"+a.phone;x.textContent="☎ Call";actions.appendChild(x);}
-  if(contact.whatsapp){const x=document.createElement("a");x.href="https://wa.me/"+digits(a.whatsapp||a.phone);x.target="_blank";x.rel="noopener";x.textContent="WhatsApp";actions.appendChild(x);}
-  if(contact.chat){const x=document.createElement("button");x.type="button";x.textContent="Chat with Advertiser";x.onclick=()=>openAdChat(a.id);actions.appendChild(x);}
-  body.appendChild(actions);modal.hidden=false;modal.setAttribute("aria-hidden","false");
+  if(contact.call){const x=document.createElement("a");x.href="tel:"+String(a.phone||"").replace(/[^+0-9]/g,"");x.textContent="☎ Call";x.className="detail-call";actions.appendChild(x);}
+  if(contact.whatsapp){const x=document.createElement("a");x.href="https://wa.me/"+digits(a.whatsapp||a.phone);x.target="_blank";x.rel="noopener";x.textContent="WhatsApp";x.className="detail-whatsapp";actions.appendChild(x);}
+  if(contact.chat){const x=document.createElement("button");x.type="button";x.textContent="Chat";x.className="detail-chat";x.onclick=()=>{closeAdDetails();openAdChat(a.id);};actions.appendChild(x);}
+  if(!actions.children.length){const note=document.createElement("span");note.textContent="Contact details are not available for this advertisement.";note.style.cssText="grid-column:1/-1;color:#bbb;font-size:13px;text-align:center";actions.appendChild(note);}
+  modal.hidden=false;modal.setAttribute("aria-hidden","false");
 }
 function closeAdDetails(){const modal=document.getElementById("adDetailsModal");if(modal){modal.hidden=true;modal.setAttribute("aria-hidden","true");}}
 function updateAdsScrollAndPagination(){
@@ -3367,6 +3381,6 @@ a24InitAuth().catch(e=>{console.warn("24Adz Supabase Auth:",e.message);toast(e.m
 
 
 </div>
-<div id="adDetailsModal" class="modal" hidden aria-hidden="true" onclick="if(event.target===this)closeAdDetails()"><div class="modal-box ad-details-box"><button type="button" class="modal-close" aria-label="Close" onclick="closeAdDetails()">×</button><div id="adDetailsBody"></div></div></div>
+<div id="adDetailsModal" class="modal" hidden aria-hidden="true" onclick="if(event.target===this)closeAdDetails()"><div class="modal-box ad-details-box"><button type="button" class="modal-close" aria-label="Close" onclick="closeAdDetails()">×</button><div id="adDetailsBody"></div><div id="adDetailsActions" class="ad-details-sticky-actions" aria-label="Advertisement contact options"></div></div></div>
 </body>
 </html>
