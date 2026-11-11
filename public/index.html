@@ -1472,8 +1472,18 @@ header .premium-24adz-logo .brand-dot{
         <ul id="pricePlanFeatures"></ul>
       </div>
     </div>
-    <p class="plan-note">Plan prices are displayed for the website preview. Online payment and automatic VIP activation will be connected through the payment backend later.</p>
-  </section>
+    <p class="plan-note">Plan prices are displayed for the website preview. Coin purchases are handled through 24Adz WhatsApp support; coins are credited to your account after payment confirmation.</p>
+    <div class="price-card" id="coinPurchaseContact" style="margin-top:16px;padding:18px;border:1px solid rgba(255,145,0,.45);border-radius:14px">
+      <h3 style="margin:0 0 8px">Buy Coins through WhatsApp</h3>
+      <p style="margin:0 0 10px">After using your 3 free ads, contact Admin on WhatsApp to purchase Coins and continue posting or renew VIP ads.</p>
+      <p style="margin:0 0 12px"><strong>WhatsApp Contact: <span id="coinPurchaseWhatsAppNumber">+91 8870017424</span></strong></p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button type="button" class="btn btn-primary" onclick="showCoinPackages()">Buy Coins on WhatsApp</button>
+        <a class="btn btn-outline" id="coinPurchaseWhatsAppLink" href="https://wa.me/918870017424?text=Hello%2024Adz%20Admin%2C%20I%20want%20to%20buy%20Coins." target="_blank" rel="noopener">Chat with Admin</a>
+      </div>
+      <p class="small-note" style="margin-top:10px">Available packages: 1,000 / 2,000 / 3,000 / 4,000 / 5,000 Coins. Admin confirms payment and credits Coins to your My24adz wallet.</p>
+    </div>
+   </section>
   <section class="district-quick-search" id="districtQuickSearch" aria-label="Search by district">
     <div class="district-search-heading">
       <span class="district-search-kicker">EXPLORE TAMIL NADU</span>
@@ -2499,7 +2509,16 @@ document.getElementById("postForm").addEventListener("submit",async e=>{
   e.target.reset();document.getElementById("editingAdId").value="";document.getElementById("postAge").value="";
   fillAreas(document.getElementById("postDistrict"),document.getElementById("postArea"));populateSubcategories(document.getElementById("postCategory"),document.getElementById("postSubcategory"));goPostStep(1);closeModal("postModal");toast(result.message||(editingId?"Advertisement updated.":"Advertisement published."));
   if(typeof openClientDashboard==="function")openClientDashboard();
- }catch(err){toast(err.message||"Unable to save advertisement.");}
+ }catch(err){
+  const message=String(err.message||"Unable to save advertisement.");
+  if(err.status===402 && /used all .* free ads/i.test(message)){
+   closeModal("postModal");
+   const plan=document.getElementById("pricePlanSelect");if(plan)plan.value="free";
+   if(typeof showPricePlan==="function")showPricePlan();
+   const section=document.getElementById("listingPlans");if(section)section.scrollIntoView({behavior:"smooth",block:"start"});
+   toast("You have used your 3 free ads. See the Price List below and contact Admin on WhatsApp to buy Coins.");
+  }else{toast(message);}
+ }
 });
 // Show / hide password controls for both Register and Login.
 document.querySelectorAll("[data-password-target]").forEach(button=>{
@@ -2973,16 +2992,39 @@ async function clientLogout(){try{await a24InitAuth();if(a24Supabase)await a24Su
 function getCurrentClient(){try{return JSON.parse(localStorage.getItem("24adz_client")||"null")}catch{return null}}
 function startPostAd(){if(!a24Token()){openModal("loginModal");toast("Login or register to post an ad.");return}resetPostFormForNew();openModal("postModal")}
 function resetPostFormForNew(){const f=document.getElementById("postForm");f.reset();document.getElementById("editingAdId").value="";goPostStep(1);}
-async function openClientDashboard(){if(!a24Token()){openModal("loginModal");return}try{const [me,own]=await Promise.all([a24Call("/api/client/me"),a24Call("/api/client/ads")]);const c=me.client,w=me.wallet,limits=me.freeAds;document.getElementById("clientDashboardContent").innerHTML=`<p><b>Account ID:</b> ${c.account_id}</p><p><b>Email:</b> ${c.email}</p><p><b>Coin Balance:</b> ${w.balance}</p><p><b>Free Ads Used:</b> ${limits.mobileUsed}/${limits.mobileLimit} per registered mobile number in ${limits.periodDays} days</p><button class="btn btn-primary" onclick="showCoinPackages()">Purchase Coins</button><h3>My Ads</h3>${own.ads.map(a=>`<article class="ad-card"><b>${escapeDashboardText(a.title)}</b><p>${escapeDashboardText(a.category)} · ${escapeDashboardText(a.district)} / ${escapeDashboardText(a.area)}</p><small>${a.is_vip?"VIP":"Standard"} · ${escapeDashboardText(a.status)}</small><div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-outline" onclick="editServerAd('${String(a.id).replace(/'/g,"\'")}')">Edit</button><button class="btn btn-outline" onclick="deleteServerAd('${String(a.id).replace(/'/g,"\'")}')">Delete</button></div></article>`).join("")||"No ads yet."}`;window.__24adzOwnAds=own.ads;openModal("clientDashboardModal")}catch(e){toast(e.message)}}
+async function openClientDashboard(){
+ if(!a24Token()){openModal("loginModal");return}
+ try{
+  const [me,own,msgs,coinHistory]=await Promise.all([a24Call("/api/client/me"),a24Call("/api/client/ads"),a24Call("/api/client/messages"),a24Call("/api/client/coin-transactions")]);
+  const c=me.client,w=me.wallet,limits=me.freeAds,transactions=coinHistory.transactions||[],ads=(own.ads||[]).filter(a=>String(a.status).toLowerCase()==="approved"),messages=msgs.messages||[];
+  window.__24adzOwnAds=ads;
+  const threads={};messages.forEach(m=>{const peer=String(m.sender_client_id)===String(c.id)?m.receiver_client_id:m.sender_client_id;if(!peer||peer==="ADMIN")return;const k=String(m.ad_id)+"|"+String(peer);(threads[k]??={ad_id:m.ad_id,peer,messages:[]}).messages.push(m)});
+  const chatHtml=Object.values(threads).map(t=>{const last=t.messages[t.messages.length-1];return `<article class="ad-card"><b>Ad conversation</b><p>${escapeDashboardText(last.message||"")}</p><small>${escapeDashboardText(last.created_at||"")}</small><button class="btn btn-outline" onclick="openClientThread('${String(t.ad_id)}','${String(t.peer)}')">Open Chat</button></article>`}).join("")||"<p>No customer conversations yet.</p>";
+  document.getElementById("clientDashboardContent").innerHTML=`
+   <section class="panel"><h3>My24adz Account</h3><p><b>Account ID:</b> ${escapeDashboardText(c.account_id)}</p><p><b>Email:</b> ${escapeDashboardText(c.email)}</p>
+   <label>Full Name</label><input class="field" id="my24Name" value="${escapeDashboardText(c.name||"")}">
+   <label>Mobile Number</label><input class="field" id="my24Mobile" inputmode="numeric" maxlength="10" value="${escapeDashboardText(c.mobile||"")}">
+   <button class="btn btn-primary" onclick="saveMy24Profile()">Save Profile</button></section>
+   <section class="panel"><h3>Coins Dashboard</h3><p><b>Available Coins:</b> ${Number(w.balance)||0}</p><p>Free Ads Used: ${limits.mobileUsed}/${limits.mobileLimit} · ${limits.periodDays} days</p><button class="btn btn-primary" onclick="showCoinPackages()">Purchase Coins</button><h4>Coin Transactions</h4>${transactions.map(t=>`<p>${escapeDashboardText(t.note||t.type)} · ${Number(t.coins)>0?"+":""}${Number(t.coins)} Coins · Balance ${Number(t.balance_after)} · ${escapeDashboardText(t.created_at||"")}</p>`).join("")||"<p>No coin transactions yet.</p>"}</section>
+   <section class="panel"><h3>My Ads — Published Only</h3>${ads.map(a=>`<article class="ad-card"><b>${escapeDashboardText(a.title)}</b><p>${escapeDashboardText(a.category)} · ${escapeDashboardText(a.district)} / ${escapeDashboardText(a.area)}</p><small>${a.is_vip?"VIP":"Standard"} · Published</small><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn btn-outline" onclick="editServerAd('${String(a.id)}')">Edit</button><button class="btn btn-outline" onclick="deleteServerAd('${String(a.id)}')">Delete</button><button class="btn btn-primary" onclick="renewClientAd('${String(a.id)}')">Auto Renew</button></div></article>`).join("")||"<p>No published ads found.</p>"}</section>
+   <section class="panel"><h3>Messages</h3>${chatHtml}</section>
+   <button class="btn btn-outline" onclick="clientLogout()">Logout</button>`;
+  openModal("clientDashboardModal");
+ }catch(e){toast(e.message)}
+}
+async function saveMy24Profile(){try{const r=await a24Call("/api/client/profile","PUT",{name:document.getElementById("my24Name").value,mobile:document.getElementById("my24Mobile").value});toast("Profile updated.");}catch(e){toast(e.message)}}
+async function renewClientAd(id){const days=Number(prompt("Auto Renew VIP duration\\nEnter 3, 5 or 7 days:","3"));if(![3,5,7].includes(days))return;if(!confirm(`Renew this published ad for ${days} days using Coins?`))return;try{const r=await a24Call("/api/client/ads/"+encodeURIComponent(id)+"/renew","POST",{days});toast(r.message||"Ad renewed.");openClientDashboard()}catch(e){toast(e.message)}}
+async function openClientThread(adId,peer){try{const r=await a24Call("/api/client/messages"),rows=(r.messages||[]).filter(m=>String(m.ad_id)===String(adId)&&([String(m.sender_client_id),String(m.receiver_client_id)].includes(String(peer))));document.getElementById("chatAdId").value=adId;document.getElementById("adChatHistory").innerHTML=rows.map(m=>`<p><b>${String(m.sender_client_id)===String(peer)?"Advertiser":"You"}:</b> ${escapeDashboardText(m.message)}</p>`).join("")||"Start this conversation.";document.getElementById("adChatForm").dataset.receiver=peer;openModal("adChatModal")}catch(e){toast(e.message)}}
+
 function editServerAd(id){const a=(window.__24adzOwnAds||[]).find(x=>String(x.id)===String(id));if(!a)return;closeModal("clientDashboardModal");resetPostFormForNew();const f=document.getElementById("postForm");for(const k of ["title","description","category","district","area","price","phone","whatsapp"])if(f.elements[k])f.elements[k].value=a[k]||"";let details={};try{details=JSON.parse(a.details_json||"{}")}catch{};populateSubcategories(document.getElementById("postCategory"),document.getElementById("postSubcategory"));document.getElementById("postSubcategory").value=details.subcategory||"";document.getElementById("postSubcategory").dispatchEvent(new Event("change"));document.querySelectorAll("#categorySpecificFields [data-detail-key]").forEach(el=>{if(details[el.dataset.detailKey]!==undefined)el.value=details[el.dataset.detailKey]});document.getElementById("postAge").value=details.age||"";document.getElementById("editingAdId").value=a.id;updatePostAreas();document.getElementById("postArea").value=a.area||"";goPostStep(1);openModal("postModal");}
 async function deleteServerAd(id){if(!confirm("Delete this advertisement permanently?"))return;try{await a24Call("/api/client/ads/"+encodeURIComponent(id),"DELETE");toast("Advertisement deleted.");openClientDashboard();}catch(e){toast(e.message)}}
 async function getAdminWhatsApp(){try{const r=await fetch("/api/public/settings"),d=await r.json();return String(d.settings?.contact?.whatsapp_number||"8870017424").replace(/\D/g,"")}catch{return "8870017424"}}
-async function syncAdminWhatsAppLinks(){const n=await getAdminWhatsApp(),link=document.getElementById("promoAdminWhatsApp");if(link)link.href="https://wa.me/91"+n+"?text="+encodeURIComponent("Hello Admin, I want to advertise on 24Adz.com. Please share the details.");}
+async function syncAdminWhatsAppLinks(){const n=await getAdminWhatsApp(),link=document.getElementById("promoAdminWhatsApp"),coinLink=document.getElementById("coinPurchaseWhatsAppLink"),numberLabel=document.getElementById("coinPurchaseWhatsAppNumber");if(link)link.href="https://wa.me/91"+n+"?text="+encodeURIComponent("Hello Admin, I want to advertise on 24Adz.com. Please share the details.");if(coinLink)coinLink.href="https://wa.me/91"+n+"?text="+encodeURIComponent("Hello 24Adz Admin, I want to buy Coins.");if(numberLabel)numberLabel.textContent="+91 "+n;}
 syncAdminWhatsAppLinks();
-async function showCoinPackages(){try{const data=await a24Call("/api/client/coin-packages"),packages=data.packages||[];const promptText="24Adz Coin Packages\n"+packages.map(x=>Number(x.coins).toLocaleString("en-IN")+" Coins – ₹"+Number(x.amount).toLocaleString("en-IN")).join("\n")+"\n\nEnter coin amount to purchase:";const coins=Number(prompt(promptText));if(!packages.some(x=>Number(x.coins)===coins))return;const r=await a24Call("/api/client/coin-requests","POST",{coins});const number=await getAdminWhatsApp();const message=`Hello 24Adz Admin, I want to purchase ${coins} Coins. Request ID: ${r.request_id}. Please share the official payment details.`;window.open("https://wa.me/91"+number+"?text="+encodeURIComponent(message),"_blank");toast("WhatsApp opened. Admin will credit coins after payment confirmation.")}catch(e){toast(e.message)}}
+async function showCoinPackages(){if(!a24Token()){openModal("loginModal");toast("Please log in to request Coins for your My24adz wallet.");return;}const waWindow=window.open("about:blank","_blank");try{const data=await a24Call("/api/client/coin-packages"),packages=data.packages||[];const promptText="24Adz Coin Packages\n"+packages.map(x=>Number(x.coins).toLocaleString("en-IN")+" Coins – ₹"+Number(x.amount).toLocaleString("en-IN")).join("\n")+"\n\nEnter coin amount to purchase:";const coins=Number(prompt(promptText));if(!packages.some(x=>Number(x.coins)===coins)){if(waWindow)waWindow.close();return;}const r=await a24Call("/api/client/coin-requests","POST",{coins});const number=await getAdminWhatsApp();const message=`Hello 24Adz Admin, I want to purchase ${coins} Coins. Request ID: ${r.request_id}. Please share the official payment details.`;const waUrl="https://wa.me/91"+number+"?text="+encodeURIComponent(message);if(waWindow)waWindow.location.href=waUrl;else window.location.href=waUrl;toast("WhatsApp opened. Admin will credit coins after payment confirmation.")}catch(e){if(waWindow)waWindow.close();toast(e.message)}}
 function openMessages(){if(!a24Token()){openModal("loginModal");return}openClientDashboard();}
-function openAdChat(adId){if(!a24Token()){openModal("loginModal");toast("Login to chat with the advertiser.");return}document.getElementById("chatAdId").value=adId;document.getElementById("adChatHistory").textContent="Send a message to start this conversation.";openModal("adChatModal");}
-document.getElementById("adChatForm").addEventListener("submit",async e=>{e.preventDefault();try{await a24Call("/api/client/chat","POST",{ad_id:document.getElementById("chatAdId").value,message:document.getElementById("chatMessage").value});document.getElementById("chatMessage").value="";document.getElementById("adChatHistory").textContent="Message sent. Check Messages in My 24Adz for replies.";toast("Message sent.")}catch(x){toast(x.message)}});
+function openAdChat(adId){if(!a24Token()){openModal("loginModal");toast("Login to chat with the advertiser.");return}document.getElementById("adChatForm").dataset.receiver="";document.getElementById("chatAdId").value=adId;document.getElementById("adChatHistory").textContent="Send a message to start this conversation.";openModal("adChatModal");}
+document.getElementById("adChatForm").addEventListener("submit",async e=>{e.preventDefault();try{const form=e.currentTarget,ad_id=document.getElementById("chatAdId").value,message=document.getElementById("chatMessage").value,peer=form.dataset.receiver;await a24Call(peer?"/api/client/chat/reply":"/api/client/chat","POST",peer?{ad_id,receiver_client_id:peer,message}:{ad_id,message});document.getElementById("chatMessage").value="";toast("Message sent.");if(peer)await openClientThread(ad_id,peer);else document.getElementById("adChatHistory").textContent="Message sent to advertiser. Check Messages in My24adz for replies."}catch(x){toast(x.message)}});
 updateAccountNav();
 a24InitAuth().catch(e=>{console.warn("24Adz Supabase Auth:",e.message);toast(e.message);});
 </script>
