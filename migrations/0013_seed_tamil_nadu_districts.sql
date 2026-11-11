@@ -1,0 +1,47 @@
+-- 24Adz.com: ensure the Tamil Nadu district directory exists for public filters and admin area management.
+-- Existing district rows are retained; missing names are added without replacing IDs.
+CREATE TABLE IF NOT EXISTS districts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL UNIQUE,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+INSERT OR IGNORE INTO districts(name) VALUES
+  ('Ariyalur'),
+  ('Chengalpattu'),
+  ('Chennai'),
+  ('Coimbatore'),
+  ('Cuddalore'),
+  ('Dharmapuri'),
+  ('Dindigul'),
+  ('Erode'),
+  ('Kallakurichi'),
+  ('Kanchipuram'),
+  ('Kanniyakumari'),
+  ('Karur'),
+  ('Krishnagiri'),
+  ('Madurai'),
+  ('Mayiladuthurai'),
+  ('Nagapattinam'),
+  ('Namakkal'),
+  ('Nilgiris'),
+  ('Perambalur'),
+  ('Pudukkottai'),
+  ('Ramanathapuram'),
+  ('Ranipet'),
+  ('Salem'),
+  ('Sivaganga'),
+  ('Tenkasi'),
+  ('Thanjavur'),
+  ('Theni'),
+  ('Thoothukudi'),
+  ('Tiruchirappalli'),
+  ('Tirunelveli'),
+  ('Tirupattur'),
+  ('Tiruppur'),
+  ('Tiruvallur'),
+  ('Tiruvannamalai'),
+  ('Tiruvarur'),
+  ('Vellore'),
+  ('Viluppuram'),
+  ('Virudhunagar');
