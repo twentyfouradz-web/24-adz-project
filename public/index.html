@@ -1691,7 +1691,17 @@ function updateDistrictFilterSubcategories(){
   const cat=document.getElementById("districtFilterCategory").value;
   const sub=document.getElementById("districtFilterSubcategory");
   sub.innerHTML='<option value="">All Subcategories</option>';
-  (categories[cat]||[]).forEach(name=>{const o=document.createElement("option");o.value=name;o.textContent=name;sub.appendChild(o);});
+  // "Cars" is the first selectable Cars subcategory and means every Cars ad,
+  // including New Cars, Used Cars, Car Rentals and Car Services.
+  if(cat==="Cars"){
+    const allCars=document.createElement("option");
+    allCars.value="Cars";
+    allCars.textContent="Cars";
+    sub.appendChild(allCars);
+  }
+  (categories[cat]||[]).forEach(name=>{
+    const o=document.createElement("option");o.value=name;o.textContent=name;sub.appendChild(o);
+  });
 }
 function updateDistrictFilterAreas(){
   fillAreas(document.getElementById("districtFilterDistrict"),document.getElementById("districtFilterArea"));
@@ -2069,7 +2079,7 @@ function applyDistrictListingFilters(){
     );
     return (!keyword||text.includes(keyword)) &&
       (!category||a.category===category) &&
-      (!subcategory||a.subcategory===subcategory) &&
+      (!subcategory||subcategory===category||a.subcategory===subcategory||(()=>{try{return JSON.parse(a.details_json||"{}").subcategory===subcategory}catch(_){return false}})()) &&
       (!district||normalizeDistrict(a.district)===normalizeDistrict(district)) &&
       (!area||String(a.area||"").trim()===area) &&
       (min===null||price>=min) && (max===null||price<=max) && withinDistance;
