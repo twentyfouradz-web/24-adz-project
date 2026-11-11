@@ -13,9 +13,14 @@
 .bulk-ad-card{border:1px solid #39332c;border-radius:12px;padding:14px;margin:12px 0;background:#171411}
 .bulk-ad-card h4{margin:0 0 8px;color:#ff9b38}.bulk-ad-card .bulk-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.bulk-ad-card textarea{min-height:74px}.bulk-ad-card .remove{background:#333;color:#fff}
 @media(max-width:700px){.bulk-ad-card .bulk-fields{grid-template-columns:1fr}}
+
+.admin-password-wrap{position:relative;display:flex;align-items:center}
+.admin-password-wrap input{padding-right:54px}
+.admin-password-eye{position:absolute;right:7px;top:50%;transform:translateY(-50%);width:40px;height:36px;padding:0;border:1px solid #55402c;border-radius:8px;background:#21170f;color:#ffb04b;font-size:18px;display:grid;place-items:center}
+.admin-password-eye:focus-visible{outline:2px solid #ffb04b;outline-offset:2px}
 </style></head><body><div class="shell">
 <div class="top"><div class="brand">24ADZ.COM / MASTER ADMIN</div><div class="row" style="max-width:360px"><input id="api" placeholder="Worker API URL (https://...)" /><button onclick="saveApi()">Save API</button></div></div>
-<div id="login" class="panel login"><h2>Admin Login</h2><label>Admin Password</label><input id="password" type="password"><p><button onclick="login()">Login</button></p><div id="loginMsg" class="muted"></div></div>
+<div id="login" class="panel login"><h2>Admin Login</h2><label>Admin Password</label><div class="admin-password-wrap"><input id="password" type="password" autocomplete="current-password"><button class="admin-password-eye" type="button" aria-label="Show password" aria-pressed="false" onclick="toggleAdminPassword(this)">👁</button></div><p><button onclick="login()">Login</button></p><div id="loginMsg" class="muted"></div></div>
 <div id="app" class="layout hidden"><nav class="side">
 <button class="active" data-tab="dashboard" onclick="tab('dashboard',this)">Dashboard</button><button data-tab="ads" onclick="tab('ads',this)">Ads Management</button><button data-tab="categories" onclick="tab('categories',this)">Categories</button><button data-tab="districts" onclick="tab('districts',this)">District Management</button><button data-tab="areas" onclick="tab('areas',this)">Area Management</button><button data-tab="forms" onclick="tab('forms',this)">Post Ad Form Builder</button><button data-tab="settings" onclick="tab('settings',this)">Website Settings</button><button data-tab="vip" onclick="tab('vip',this)">VIP Promotions</button><button data-tab="clients" onclick="tab('clients',this)">Clients & Coins</button><button onclick="logout()">Logout</button>
 </nav><main>
@@ -80,6 +85,15 @@ let categoryCache=[];
 document.getElementById('api').value=API;
 function saveApi(){API=document.getElementById('api').value.trim().replace(/\/$/,'');localStorage.setItem('24adz_api_url',API);alert('API URL saved');}
 async function call(path,method='GET',data){let r=await fetch(API+path,{method,headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},...(data?{body:JSON.stringify(data)}:{})});let j=await r.json();if(!r.ok)throw Error(j.error||'Request failed');return j}
+function toggleAdminPassword(button){
+ const field=document.getElementById('password');
+ if(!field)return;
+ const show=field.type==='password';
+ field.type=show?'text':'password';
+ button.textContent=show?'🙈':'👁';
+ button.setAttribute('aria-label',show?'Hide password':'Show password');
+ button.setAttribute('aria-pressed',String(show));
+}
 async function login(){try{let j=await call('/api/admin/login','POST',{password:document.getElementById('password').value});token=j.token;localStorage.setItem('24adz_admin_token',token);document.getElementById('login').classList.add('hidden');document.getElementById('app').classList.remove('hidden');loadAll()}catch(e){document.getElementById('loginMsg').textContent=e.message}}
 function logout(){token='';localStorage.removeItem('24adz_admin_token');location.reload()}
 function tab(id,el){document.querySelectorAll('main section').forEach(x=>x.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');document.querySelectorAll('.side button').forEach(x=>x.classList.remove('active'));if(el)el.classList.add('active');loadTab(id)}

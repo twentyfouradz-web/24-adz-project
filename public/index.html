@@ -1270,6 +1270,16 @@ footer{background:#080706!important;color:#b9aaa0!important;border-top:1px solid
   .hero h1{animation:none!important}
 }
 
+
+/* Homepage VIP-only vertical rotation: 25 unique listings, continuously moving upward. */
+#adsSection #adsList.vip-vertical-list{display:block;position:relative;height:min(900px,78vh);min-height:300px;overflow:hidden;overscroll-behavior:contain;margin-bottom:24px;mask-image:linear-gradient(to bottom,transparent 0,#000 4%,#000 96%,transparent 100%)}
+#adsSection #adsList.vip-vertical-list .vip-vertical-track{display:flex;flex-direction:column;gap:0;will-change:transform;animation:adzVipVerticalMove 75s linear infinite}
+#adsSection #adsList.vip-vertical-list .vip-vertical-group{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;flex:0 0 auto}
+#adsSection #adsList.vip-vertical-list:hover .vip-vertical-track{animation-play-state:paused}
+#adsSection #adsList.vip-vertical-list .vip-vertical-copy{pointer-events:auto}
+@keyframes adzVipVerticalMove{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+@media(max-width:600px){#adsSection #adsList.vip-vertical-list{height:76vh;min-height:320px}#adsSection #adsList.vip-vertical-list .vip-vertical-group{grid-template-columns:1fr;gap:14px}}
+@media(prefers-reduced-motion:reduce){#adsSection #adsList.vip-vertical-list{overflow-y:auto;mask-image:none}#adsSection #adsList.vip-vertical-list .vip-vertical-track{animation:none}}
 </style>
 <style id="adz24PromoStyles">
 .cinematic-ad-promo{position:relative;isolation:isolate;overflow:hidden;width:min(900px,100%);min-height:230px;margin:26px auto 0;padding:28px 20px;box-sizing:border-box;border:1px solid rgba(255,166,52,.72);border-radius:22px;background:radial-gradient(ellipse at 15% 20%,rgba(255,130,0,.28),transparent 42%),linear-gradient(115deg,#090706 0%,#241006 48%,#080706 100%);box-shadow:0 18px 55px rgba(0,0,0,.58),0 0 35px rgba(255,102,0,.16);text-align:center}
@@ -1581,7 +1591,7 @@ header .premium-24adz-logo .brand-dot{
     <label>Full Name *</label><input class="field" name="name" required autocomplete="name" placeholder="Your full name">
     <label>Email Address *</label><input class="field" name="email" type="email" required autocomplete="email" placeholder="name@example.com">
     <label>Mobile Number *</label><input class="field" id="registerPhone" name="mobile" type="tel" required inputmode="numeric" pattern="[6-9][0-9]{9}" maxlength="10" placeholder="10-digit mobile number">
-    <label>Password *</label><input class="field" name="password" type="password" minlength="10" pattern="(?=.*[A-Za-z])(?=.*[0-9]).{10,}" required autocomplete="new-password" placeholder="10+ characters, include a number">
+    <label>Password *</label><div class="auth-password-wrap"><input class="field" id="clientRegisterPassword" name="password" type="password" minlength="10" pattern="(?=.*[A-Za-z])(?=.*[0-9]).{10,}" required autocomplete="new-password" placeholder="10+ characters, include a number"><button class="password-eye" type="button" aria-label="Show password" aria-pressed="false" onclick="togglePasswordVisibility('clientRegisterPassword',this)">👁</button></div>
     <button class="btn btn-primary" type="submit">Register</button>
     <p class="small-note">Your email is your login ID. Verify your email to activate your account. Mobile OTP is not required.</p>
   </form>
@@ -1592,7 +1602,7 @@ header .premium-24adz-logo .brand-dot{
   <div class="modal-top"><h2>Login</h2><button class="close" onclick="closeModal('loginModal')">×</button></div>
   <form id="loginForm">
     <label>Email Address *</label><input class="field" name="email" type="email" required autocomplete="email" placeholder="Registered email address">
-    <label>Password *</label><input class="field" name="password" type="password" required autocomplete="current-password" placeholder="Password">
+    <label>Password *</label><div class="auth-password-wrap"><input class="field" id="clientLoginPassword" name="password" type="password" required autocomplete="current-password" placeholder="Password"><button class="password-eye" type="button" aria-label="Show password" aria-pressed="false" onclick="togglePasswordVisibility('clientLoginPassword',this)">👁</button></div>
     <button class="btn btn-primary">Login</button>
     <p class="small-note">Login with your verified email address and password. <a href="#" onclick="openForgotPassword();return false">Forgot password?</a></p>
   </form>
@@ -1603,6 +1613,17 @@ header .premium-24adz-logo .brand-dot{
 <div class="modal" id="adChatModal"><div class="modal-box"><div class="modal-top"><h2>Chat with Advertiser</h2><button class="close" type="button" onclick="closeModal('adChatModal')">×</button></div><div id="adChatHistory" style="max-height:300px;overflow:auto"></div><form id="adChatForm"><input type="hidden" id="chatAdId"><label>Message</label><textarea class="field" id="chatMessage" required maxlength="2000" placeholder="Write your message"></textarea><button class="btn btn-primary" type="submit">Send Message</button></form></div></div><div class="toast" id="toast"></div>
 
 <script>
+function togglePasswordVisibility(inputId, button){
+  const field=document.getElementById(inputId);
+  if(!field) return;
+  const show=field.type==='password';
+  field.type=show?'text':'password';
+  if(button){
+    button.textContent=show?'🙈':'👁';
+    button.setAttribute('aria-label',show?'Hide password':'Show password');
+    button.setAttribute('aria-pressed',String(show));
+  }
+}
 const districtAreas = {
 "Ariyalur":["Andimadam", "Ariyalur", "Gangaikonda Cholapuram", "Jayankondam", "Keezhapazhur", "Melapazhur", "Sendurai", "Suthamalli", "T. Pazhur", "Thirumanur", "Udayarpalayam", "Varadarajanpettai", "Vikramangalam"],
 "Chengalpattu":["Acharapakkam", "Chengalpattu", "Cheyyur", "Chromepet", "Guduvancheri", "Kelambakkam", "Maduranthakam", "Mamallapuram", "Maraimalai Nagar", "Nandivaram", "Pallavaram", "Perungalathur", "Singaperumal Koil", "Tambaram", "Thirukazhukundram", "Thiruporur", "Vandalur"],
@@ -2241,55 +2262,28 @@ function categoryArtwork(category){
 
 function renderAds(items=ads,page=1){
   if(adsScrollObserver){adsScrollObserver.disconnect();adsScrollObserver=null;}
-  // Active paid ads are pinned above standard ads. Within the paid group,
-  // the latest paid placement is first; each older VIP remains visible until
-  // its own expiry. Price sorting applies only to standard listings.
-  const sort=document.getElementById("sortListings")?.value || "newest";
+  // Homepage/public listing area is intentionally VIP-only and limited to the seven approved categories.
+  const homepageCategories=new Set(["cars","bikes","mobiles","real estate","jobs","hotel rooms","fashion & beauty"]);
   const now=Date.now();
   const sorted=[...items].filter(a=>{
+    const category=String(a.category||"").trim().toLowerCase();
+    if(!homepageCategories.has(category))return false;
     if(String(a.status||"Active").toLowerCase()==="paused")return false;
-    if(!a.plan || String(a.plan).toLowerCase()==="free")return true;
+    if(!isVipAd(a))return false;
     const expiry=getAdExpiryTime(a);
-    return !expiry || expiry>now;
-  }).sort((a,b)=>{
-    const av=isVipAd(a),bv=isVipAd(b);
-    if(av!==bv)return Number(bv)-Number(av);
-
-    // Keep the VIP pool newest-first as its base order. Older active VIP ads
-    // remain in the same VIP pool until their own expiry.
-    if(av && bv)return getAdStartTime(b)-getAdStartTime(a);
-
-    if(sort==="price-low")return (Number(a.price)||0)-(Number(b.price)||0);
-    if(sort==="price-high")return (Number(b.price)||0)-(Number(a.price)||0);
-    // Free/standard ads remain below VIP and show newest first by default.
-    return getAdStartTime(b)-getAdStartTime(a);
-  });
-
-  // Rotate the entire active VIP group together every 30 seconds. This lets
-  // newer and older VIP ads take turns at the top without ever moving a VIP
-  // below a Free ad. Rotation is scoped to the already-filtered district/
-  // category result set and expired VIP ads are excluded above.
-  const vipItems=sorted.filter(isVipAd);
-  const freeItems=sorted.filter(ad=>!isVipAd(ad));
-  if(vipItems.length>1){
-    const rotationStep=Math.floor(now/30000)%vipItems.length;
-    const rotatedVip=vipItems.slice(rotationStep).concat(vipItems.slice(0,rotationStep));
-    sorted.splice(0,sorted.length,...rotatedVip,...freeItems);
-  }
+    return !!expiry && expiry>now;
+  }).sort((a,b)=>getAdStartTime(b)-getAdStartTime(a)).slice(0,25);
   adsCurrentItems=sorted;
-  const totalPages=Math.max(1,Math.ceil(sorted.length/ADS_PAGE_SIZE));
-  adsCurrentPage=Math.min(Math.max(1,page),totalPages);
+  adsCurrentPage=1;
   const root=document.getElementById("adsList");
   const pagination=document.getElementById("adsPagination");
-  const pageStart=(adsCurrentPage-1)*ADS_PAGE_SIZE;
-  const pageItems=sorted.slice(pageStart,pageStart+ADS_PAGE_SIZE);
-  adsLoadedCount=Math.min(ADS_BATCH_SIZE,pageItems.length);
-  const shownStart=pageItems.length?pageStart+1:0;
-  const shownEnd=pageStart+pageItems.length;
+  const pageItems=sorted;
+  adsLoadedCount=pageItems.length;
   document.getElementById("resultCount").textContent=pageItems.length
-    ? "Showing "+shownStart+"–"+shownEnd+" of "+sorted.length
-    : "0 listings";
+    ? "Showing "+pageItems.length+" of 25 VIP listings"
+    : "0 VIP listings";
   if(!pageItems.length){
+    root.classList.remove("vip-vertical-list");
     const selectedArea=document.getElementById("searchArea")?.value||"this area";
     const selectedDistrict=activeDistrictListing
       || document.getElementById("districtFilterDistrict")?.value
@@ -2303,8 +2297,11 @@ function renderAds(items=ads,page=1){
     pagination.innerHTML="";
     return;
   }
-  root.innerHTML=pageItems.slice(0,adsLoadedCount).map(renderAdCard).join("");
-  updateAdsScrollAndPagination(pageItems,totalPages);
+  const cards=pageItems.map(renderAdCard).join("");
+  root.classList.add("vip-vertical-list");
+  // Duplicate the same 25-card track once so the vertical animation loops seamlessly.
+  root.innerHTML='<div class="vip-vertical-track"><div class="vip-vertical-group">'+cards+'</div><div class="vip-vertical-group" aria-hidden="true">'+cards+'</div></div>';
+  pagination.innerHTML="";
 }
 function renderAdCard(a){
   const vip=isVipAd(a);
@@ -2798,7 +2795,7 @@ window.ADZ24_MAIN_CATEGORY_ICONS={Cars:'🚗',Bikes:'🏍️',Mobiles:'📱',Job
   async function hmLoadPublicAds(){
     const remote=[];
     for(let page=1;page<=20;page++){
-      const d=await adz24Get("/api/public/ads?page="+page+"&limit=100");
+      const d=await adz24Get("/api/public/ads?homepage=1&page="+page+"&limit=100");
       const batch=d.ads||[];
       batch.forEach(x=>remote.push({
         id:String(x.id),title:x.title||"",description:x.description||"",category:x.category||"",
