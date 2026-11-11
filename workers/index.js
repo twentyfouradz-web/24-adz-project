@@ -47,12 +47,6 @@ async function isAdmin(req, env) {
   return (await claims(req, env.ADMIN_SESSION_SECRET))?.role === "admin";
 }
 __name(isAdmin, "isAdmin");
-async function passwordHash(password, salt) {
-  const material = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
-  const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", salt: new TextEncoder().encode(salt), iterations: 15e4, hash: "SHA-256" }, material, 256);
-  return enc(bits);
-}
-__name(passwordHash, "passwordHash");
 async function supabaseUser(req, env) {
   const accessToken = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
   if (!accessToken || !env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) return null;
@@ -69,14 +63,12 @@ async function supabaseUser(req, env) {
 }
 __name(supabaseUser, "supabaseUser");
 async function clientAuth(req, env, db) {
-  // Homepage client login stores the Worker-issued Bearer token.
-  // Validate that same signed client session here (not a Supabase access token).
-  const session = await claims(req, env.CLIENT_SESSION_SECRET || env.ADMIN_SESSION_SECRET);
-  if (!session || session.role !== "client" || !session.sub) return null;
+  const user = await supabaseUser(req, env);
+  if (!user) return null;
   return await first(
     db,
-    "SELECT id,name,email,mobile,account_id,email_verified FROM client_accounts WHERE id=? AND email_verified=1",
-    session.sub
+    "SELECT id,name,email,mobile,account_id,email_verified FROM client_accounts WHERE supabase_uid=? AND email_verified=1",
+    user.id
   );
 }
 __name(clientAuth, "clientAuth");
@@ -95,22 +87,6 @@ async function rateLimit(db, key, max, windowMs) {
   return true;
 }
 __name(rateLimit, "rateLimit");
-async function sendEmail(env, to, subject, html) {
-  if (!env.RESEND_API_KEY || !env.RESEND_FROM) return false;
-  const r = await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" }, body: JSON.stringify({ from: env.RESEND_FROM, to: [to], subject, html }) });
-  return r.ok;
-}
-__name(sendEmail, "sendEmail");
-async function issueEmailToken(db, env, client, action, baseUrl) {
-  const raw = uid() + uid(), hash = await sha256(raw), expires = new Date(Date.now() + (action === "verify_email" ? 24 : 1) * 36e5).toISOString();
-  await run(db, "UPDATE email_action_tokens SET used_at=datetime('now') WHERE client_id=? AND action=? AND used_at IS NULL", client.id, action);
-  await run(db, "INSERT INTO email_action_tokens(id,client_id,token_hash,action,expires_at) VALUES(?,?,?,?,?)", uid(), client.id, hash, action, expires);
-  const link = `${baseUrl}/?${action === "verify_email" ? "verify_email" : "reset_password"}=${encodeURIComponent(raw)}`;
-  const subject = action === "verify_email" ? "Verify your 24Adz email" : "Reset your 24Adz password";
-  const html = `<p>Hello ${str(client.name, 100)},</p><p>${action === "verify_email" ? "Verify your email address to activate your 24Adz account." : "Use the link below to choose a new password."}</p><p><a href="${link}">${action === "verify_email" ? "Verify Email" : "Reset Password"}</a></p><p>This link expires in ${action === "verify_email" ? "24 hours" : "1 hour"}. If you did not request this, ignore this email.</p>`;
-  return await sendEmail(env, client.email, subject, html);
-}
-__name(issueEmailToken, "issueEmailToken");
 async function table(db, t) {
   return !!await first(db, "SELECT name FROM sqlite_master WHERE type='table' AND name=?", t);
 }
@@ -232,7 +208,7 @@ var index_default = { async fetch(req, env) {
     }
     if (p === "/api/health" && req.method === "GET") {
       const x = await first(env.DB, "SELECT 1 AS ok");
-      return out({ success: true, database: x?.ok === 1 ? "connected" : "error", app: "24Adz.com", features: { emailVerification: await table(env.DB, "email_action_tokens"), emailSendingConfigured: !!(env.RESEND_API_KEY && env.RESEND_FROM), clientSessionConfigured: !!(env.CLIENT_SESSION_SECRET || env.ADMIN_SESSION_SECRET), rateLimiting: await table(env.DB, "api_rate_limits"), chat: await table(env.DB, "chat_messages") } });
+      return out({ success: true, database: x?.ok === 1 ? "connected" : "error", app: "24Adz.com", features: { supabaseAuthConfigured: !!(env.SUPABASE_URL && env.SUPABASE_ANON_KEY), clientEmailVerification: "supabase", rateLimiting: await table(env.DB, "api_rate_limits"), chat: await table(env.DB, "chat_messages") } });
     }
     if (p === "/api/admin/login" && req.method === "POST") {
       const b = await readBody(req);
@@ -262,87 +238,8 @@ var index_default = { async fetch(req, env) {
       await run(env.DB, "INSERT OR IGNORE INTO client_coin_wallets(client_id,email,balance) VALUES(?,?,0)", row.id, email);
       return out({ success: true, client: row });
     }
-    if (p === "/api/client/register" && req.method === "POST") {
-      const ip2 = req.headers.get("CF-Connecting-IP") || "unknown", key = await sha256(`register:${ip2}`);
-      if (!await rateLimit(env.DB, key, 5, 36e5)) return bad("Registration limit reached. Try again later.", 429);
-      const b = await readBody(req) || {}, name = str(b.name, 100), email = str(b.email, 254).toLowerCase(), mobile = digits(b.mobile || b.phone), password = String(b.password || "");
-      if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !validMobile(mobile) || password.length < 10 || !/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) return bad("Enter name, valid email, 10-digit mobile and a password with at least 10 characters including a number.");
-      if (!env.RESEND_API_KEY || !env.RESEND_FROM) return bad("Email verification is not configured. Admin must add RESEND_API_KEY and RESEND_FROM in the 24adz-api Worker settings.", 503);
-      if (await first(env.DB, "SELECT id FROM client_accounts WHERE LOWER(email)=LOWER(?)", email)) return bad("This email is already registered. If you have not received the verification email, use the resend-verification API after email service is configured.", 409);
-      const id = uid(), accountId = "24A-" + uid().slice(0, 8).toUpperCase(), salt = uid(), hash = salt + ":" + await passwordHash(password, salt);
-      await run(env.DB, "INSERT INTO client_accounts(id,account_id,name,email,mobile,password_hash,email_verified,created_at) VALUES(?,?,?,?,?,?,0,datetime('now'))", id, accountId, name, email, mobile, hash);
-      await run(env.DB, "INSERT INTO client_coin_wallets(client_id,email,balance) VALUES(?,?,0)", id, email);
-      const client = { id, account_id: accountId, name, email, mobile };
-      let sent = false;
-      try {
-        sent = await issueEmailToken(env.DB, env, client, "verify_email", env.PUBLIC_SITE_URL || url.origin);
-      } catch (e) {
-        sent = false;
-      }
-      if (!sent) {
-        await run(env.DB, "DELETE FROM email_action_tokens WHERE client_id=? AND action='verify_email' AND used_at IS NULL", id);
-        await run(env.DB, "DELETE FROM client_coin_wallets WHERE client_id=?", id);
-        await run(env.DB, "DELETE FROM client_accounts WHERE id=?", id);
-        return bad("Verification email could not be sent. Check the Resend API key, verified sender address and Worker logs, then try again.", 502);
-      }
-      return out({ success: true, verification_required: true, email_sent: true, message: "Registration successful. Check your email and verify your account before logging in." }, 201);
-    }
-    if (p === "/api/client/resend-verification" && req.method === "POST") {
-      if (!env.RESEND_API_KEY || !env.RESEND_FROM) return bad("Email verification is not configured. Admin must add RESEND_API_KEY and RESEND_FROM.", 503);
-      const b = await readBody(req) || {}, email = str(b.email, 254).toLowerCase();
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return bad("Enter a valid email address.");
-      const ip2 = req.headers.get("CF-Connecting-IP") || "unknown", key = await sha256(`resend:${ip2}`);
-      if (!await rateLimit(env.DB, key, 5, 36e5)) return bad("Too many verification requests. Try again later.", 429);
-      const client = await first(env.DB, "SELECT id,account_id,name,email,mobile FROM client_accounts WHERE LOWER(email)=LOWER(?) AND email_verified=0", email);
-      if (client) {
-        const sent = await issueEmailToken(env.DB, env, client, "verify_email", env.PUBLIC_SITE_URL || url.origin);
-        if (!sent) return bad("Verification email could not be sent. Check the Resend configuration.", 502);
-      }
-      return out({ success: true, message: "If this email belongs to an unverified account, a new verification link has been sent." });
-    }
-    if (p === "/api/client/verify-email" && req.method === "POST") {
-      const b = await readBody(req) || {}, raw = str(b.token, 200), hash = await sha256(raw);
-      if (!raw) return bad("Verification token is required");
-      const item = await first(env.DB, "SELECT id,client_id FROM email_action_tokens WHERE token_hash=? AND action='verify_email' AND used_at IS NULL AND datetime(expires_at)>datetime('now')", hash);
-      if (!item) return bad("Verification link is invalid or expired", 400);
-      await run(env.DB, "UPDATE client_accounts SET email_verified=1,updated_at=datetime('now') WHERE id=?", item.client_id);
-      await run(env.DB, "UPDATE email_action_tokens SET used_at=datetime('now') WHERE id=?", item.id);
-      return out({ success: true, message: "Email verified. You can now log in." });
-    }
-    if (p === "/api/client/login" && req.method === "POST") {
-      const ip2 = req.headers.get("CF-Connecting-IP") || "unknown", key = await sha256(`login:${ip2}`);
-      if (!await rateLimit(env.DB, key, 10, 9e5)) return bad("Too many login attempts. Try again in 15 minutes.", 429);
-      const b = await readBody(req) || {}, email = str(b.email, 254).toLowerCase(), password = String(b.password || "");
-      const row = await first(env.DB, "SELECT id,name,email,mobile,account_id,password_hash,email_verified FROM client_accounts WHERE LOWER(email)=LOWER(?)", email);
-      if (!row?.password_hash) return bad("Invalid email or password", 401);
-      const [salt, stored] = String(row.password_hash).split(":");
-      if (!salt || await passwordHash(password, salt) !== stored) return bad("Invalid email or password", 401);
-      if (!row.email_verified) return bad("Please verify your email before logging in. Check your inbox.", 403);
-      const secret = env.CLIENT_SESSION_SECRET || env.ADMIN_SESSION_SECRET;
-      if (!secret) return bad("Set CLIENT_SESSION_SECRET Worker secret", 503);
-      const { password_hash, ...client } = row;
-      return out({ success: true, client, token: await token({ role: "client", sub: row.id, email: row.email, exp: Date.now() + 30 * 864e5 }, secret) });
-    }
-    if (p === "/api/client/forgot-password" && req.method === "POST") {
-      const b = await readBody(req) || {}, email = str(b.email, 254).toLowerCase();
-      if (!/^\S+@\S+\.\S+$/.test(email)) return bad("Enter a valid email address");
-      const c = await first(env.DB, "SELECT id,name,email FROM client_accounts WHERE LOWER(email)=LOWER(?)", email);
-      if (c) {
-        const sent = await issueEmailToken(env.DB, env, c, "password_reset", env.PUBLIC_SITE_URL || url.origin);
-        if (!sent) return bad("Password reset email service is not configured. Contact Admin.", 503);
-      }
-      return out({ success: true, message: "If the account exists, a password reset link has been sent." });
-    }
-    if (p === "/api/client/reset-password" && req.method === "POST") {
-      const b = await readBody(req) || {}, raw = str(b.token, 200), password = String(b.password || "");
-      if (password.length < 10 || !/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) return bad("Password must be at least 10 characters and include a number.");
-      const item = await first(env.DB, "SELECT id,client_id FROM email_action_tokens WHERE token_hash=? AND action='password_reset' AND used_at IS NULL AND datetime(expires_at)>datetime('now')", await sha256(raw));
-      if (!item) return bad("Reset link is invalid or expired", 400);
-      const salt = uid(), hash = salt + ":" + await passwordHash(password, salt);
-      await run(env.DB, "UPDATE client_accounts SET password_hash=?,updated_at=datetime('now') WHERE id=?", hash, item.client_id);
-      await run(env.DB, "UPDATE email_action_tokens SET used_at=datetime('now') WHERE client_id=? AND action='password_reset' AND used_at IS NULL", item.client_id);
-      return out({ success: true, message: "Password updated. Please log in again." });
-    }
+    // Client credentials and email verification are handled only by Supabase Auth.
+    // The legacy D1 password/Resend endpoints have been removed.
     if (p === "/api/client/me" && req.method === "GET") {
       const client = await clientAuth(req, env, env.DB);
       if (!client) return bad("Client login required", 401);
