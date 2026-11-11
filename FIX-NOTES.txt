@@ -54,18 +54,18 @@ CATEGORY AND FORM FIXES IN THIS UPDATE
 - Newest-first sorting uses timestamps, not numeric conversion of UUID ad IDs.
 
 AUTHENTICATION AND EMAIL
-- Homepage uses Supabase JavaScript v2 for email/password registration/login,
-  email confirmation, password recovery and session handling.
-- Worker reads SUPABASE_URL and SUPABASE_ANON_KEY to provide public auth config
-  and verify Supabase bearer tokens.
-- SUPABASE_SERVICE_ROLE_KEY is not required by the current browser auth flow and
-  must never be exposed in homepage HTML. Keeping it as a Worker secret is safe,
-  but the current Worker does not need it for these routes.
-- Supabase confirmation and password recovery emails are sent by Supabase Auth.
-  Configure Resend as SMTP in Supabase Dashboard if Resend is the chosen provider.
-- RESEND_API_KEY and RESEND_FROM remain in the Worker settings for legacy email
-  helper code; the legacy client auth endpoints are short-circuited with HTTP 410
-  and are not the current Supabase confirmation flow.
+- Homepage loads Supabase JavaScript v2 and uses Supabase Auth signUp,
+  signInWithPassword, resetPasswordForEmail, updateUser and signOut.
+- Supabase email confirmation is required; mobile OTP is not used.
+- Worker exposes /api/public/auth-config and /api/client/sync, then validates
+  Supabase bearer tokens for all client API operations and maps the Supabase user
+  to the D1 client profile using supabase_uid.
+- Legacy D1 password hashing, Resend verification-token delivery, and custom
+  client register/login/verify/reset endpoints have been removed from active code.
+- SUPABASE_SERVICE_ROLE_KEY is not needed by the current browser auth flow and
+  must never be exposed in homepage HTML.
+- Supabase sends confirmation and password recovery emails. Configure SMTP in
+  Supabase Dashboard (for example, Resend SMTP) for reliable delivery.
 
 WRANGLER AND EXISTING CLOUDFLARE RESOURCES
 - Worker name: 24adz-api
@@ -96,10 +96,11 @@ DEPLOYMENT SAFETY
 
 CREDENTIALS / SECRETS
 Expected current Worker values include ADMIN_PASSWORD, ADMIN_SESSION_SECRET,
-CLIENT_SESSION_SECRET, SUPABASE_URL, SUPABASE_ANON_KEY, RESEND_API_KEY and
-RESEND_FROM. Never put secret values in GitHub or in this ZIP. Set them only in
-Cloudflare Worker Settings > Variables and Secrets. The screenshots showed the
-names exist, but encrypted secret values cannot be verified from screenshots.
+SUPABASE_URL and SUPABASE_ANON_KEY. CLIENT_SESSION_SECRET, RESEND_API_KEY and
+RESEND_FROM are not required by the current client authentication flow. Never put
+secret values in GitHub or in this ZIP. Set them only in Cloudflare Worker
+Settings > Variables and Secrets. Encrypted secret values cannot be verified
+from source files or screenshots.
 
 VALIDATION PERFORMED FOR THIS ZIP
 - Node syntax check: workers/index.js passed.
@@ -150,3 +151,13 @@ DEPLOYMENT WARNING
 - Live Supabase credentials, confirmation email delivery, Cloudflare bindings,
   production D1 schema, and actual browser workflows cannot be verified from
   uploaded source files alone.
+
+
+AUTH SOURCE-CODE ALIGNMENT — 11 November 2026
+- Client Register/Login and password recovery now use Supabase Auth directly.
+- Worker client API authorization validates the Supabase access token and requires
+  a confirmed email; the D1 profile is resolved by supabase_uid.
+- Removed legacy Worker D1 password/Resend auth routes and helpers.
+- Admin login remains the existing independent ADMIN_PASSWORD session flow.
+- No homepage design, category, listing, admin UI or other business feature was
+  intentionally redesigned as part of this authentication-only correction.

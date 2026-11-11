@@ -17,3 +17,14 @@
 [ ] Verify 38 districts and 652 unique local areas are available in production D1.
 [ ] Verify SUPABASE_URL and SUPABASE_ANON_KEY Worker variables are valid.
 [ ] Test Supabase email registration, confirmation, login, password reset and logout.
+
+
+CLIENT AUTHENTICATION (CURRENT)
+- Client Register/Login uses Supabase Auth (email + password).
+- Supabase email confirmation must be enabled; mobile OTP is not used.
+- Worker secrets required: SUPABASE_URL and SUPABASE_ANON_KEY.
+- Configure Supabase Auth Site URL and redirect URLs for both www.24adz.com and 24adz.com.
+- Configure SMTP in Supabase for confirmation and password recovery emails.
+- Client API calls use the Supabase access token; /api/client/sync links the
+  verified Supabase user to the D1 client profile.
+- Admin login remains separate and uses ADMIN_PASSWORD / ADMIN_SESSION_SECRET.
