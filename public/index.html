@@ -3209,6 +3209,8 @@ function renderAdCard(a){
         <div><strong>Area:</strong> ${escapeHtml(area||"—")}</div>
         ${a.age?`<div><strong>Age:</strong> ${escapeHtml(a.age)} years</div>`:""}
         ${a.posted_by?`<div><strong>Posted by:</strong> ${escapeHtml(a.posted_by)}</div>`:""}
+        ${a.description?`<div class="ad-card-description">${escapeHtml(String(a.description).slice(0,150))}${String(a.description).length>150?"…":""}</div>`:""}
+        ${Object.entries(details).filter(([k,v])=>!["subcategory"].includes(k)&&v!==null&&v!==undefined&&String(v).trim()!=="").slice(0,4).map(([k,v])=>`<div><strong>${escapeHtml(k.replace(/[_-]+/g," "))}:</strong> ${escapeHtml(typeof v==="object"?JSON.stringify(v):v)}</div>`).join("")}
       </div>
       <div class="ad-price">${a.price? "₹"+escapeHtml(a.price):"Contact for price"}</div>
       <div class="ad-actions">
@@ -4016,6 +4018,9 @@ function renderMyAdsTab(tab){
       📍 ${escapeDashboardText(a.area||"")}${a.area?", ":""}${escapeDashboardText(a.district||"")}<br>
       <strong>Publish Date:</strong> ${published}<br>
       <strong>Expiry Date:</strong> ${expires}
+      ${a.price?`<br><strong>Price:</strong> ₹${escapeDashboardText(a.price)}`:""}
+      ${a.description?`<br><strong>Description:</strong> ${escapeDashboardText(a.description)}`:""}
+      ${(()=>{let d={};try{d=JSON.parse(a.details_json||"{}")}catch(_){};return Object.entries(d).filter(([k,v])=>!["subcategory"].includes(k)&&v!==null&&v!==undefined&&String(v).trim()!=="").slice(0,5).map(([k,v])=>`<br><strong>${escapeDashboardText(k.replace(/[_-]+/g," "))}:</strong> ${escapeDashboardText(typeof v==="object"?JSON.stringify(v):v)}`).join("")})()}
     </div>
     <div class="my24-ad-actions" style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px">
       <button class="btn btn-outline" style="padding:7px 11px;font-size:12px" onclick="editServerAd('${id}')">Edit</button>
@@ -5442,6 +5447,99 @@ body.category-subcategory-mode #homeCategories>#categories{display:none!importan
 }
 #clientDashboardContent #myAdsPanel .my24-ads-scroll>.my24-ad-card .my24-ad-actions button{
   min-height:42px!important;touch-action:manipulation!important;
+}
+</style>
+
+
+<style id="24adz-v8-published-details-mobile-scroll-category">
+/* Published listing cards: show useful details in the card; full description remains in detail modal. */
+#adsSection .ad-card .ad-body,
+#adsList .ad-card .ad-body{min-width:0!important;overflow:visible!important}
+#adsSection .ad-card .ad-meta,
+#adsList .ad-card .ad-meta{display:block!important;white-space:normal!important;overflow:visible!important;max-height:none!important;line-height:1.5!important;overflow-wrap:anywhere!important}
+#adsSection .ad-card .ad-card-description,
+#adsList .ad-card .ad-card-description{display:block!important;margin-top:6px!important;color:#ead8c6!important;font-size:13px!important;line-height:1.45!important;white-space:normal!important;overflow-wrap:anywhere!important}
+#adsSection .ad-card .ad-price,
+#adsList .ad-card .ad-price{display:block!important;margin-top:8px!important;font-size:18px!important;font-weight:850!important;color:#ffad32!important}
+#adsSection .ad-card .ad-actions,
+#adsList .ad-card .ad-actions{display:flex!important;flex-wrap:wrap!important;gap:8px!important}
+
+/* My Ads: remove internal horizontal and vertical scrollers; use ordinary page scroll. */
+#my24Ads #myAdsPanel .my24-ads-scroll,
+#my24Ads #myAdsPanel .my24-ads-scroll,
+#clientDashboardContent #my24Ads #myAdsPanel .my24-ads-scroll{
+ display:flex!important;flex-direction:column!important;flex-wrap:nowrap!important;
+ align-items:stretch!important;gap:16px!important;
+ width:100%!important;max-width:100%!important;min-width:0!important;
+ height:auto!important;min-height:0!important;max-height:none!important;
+ overflow:visible!important;overflow-x:visible!important;overflow-y:visible!important;
+ padding:4px 0 24px!important;margin:0!important;
+ grid-template-columns:none!important;touch-action:pan-y!important;
+}
+#my24Ads #myAdsPanel .my24-ads-scroll>.my24-ad-card,
+#clientDashboardContent #my24Ads #myAdsPanel .my24-ads-scroll>.my24-ad-card{
+ display:flex!important;flex:0 0 auto!important;flex-direction:column!important;
+ width:100%!important;max-width:100%!important;min-width:0!important;
+ height:auto!important;min-height:0!important;max-height:none!important;
+ margin:0!important;overflow:hidden!important;box-sizing:border-box!important;
+ touch-action:pan-y!important;contain:none!important;
+}
+#my24Ads #myAdsPanel .my24-ads-scroll>.my24-ad-card>.ad-image{
+ display:block!important;flex:0 0 auto!important;width:100%!important;
+ height:clamp(190px,58vw,280px)!important;min-height:190px!important;max-height:280px!important;
+ border:0!important;border-bottom:2px solid rgba(255,158,48,.5)!important;overflow:hidden!important;
+}
+#my24Ads #myAdsPanel .my24-ads-scroll>.my24-ad-card>.ad-image img{
+ display:block!important;width:100%!important;height:100%!important;object-fit:contain!important;
+}
+#my24Ads #myAdsPanel .my24-ads-scroll>.my24-ad-card>.ad-body{
+ display:block!important;flex:0 0 auto!important;width:100%!important;min-width:0!important;
+ height:auto!important;min-height:0!important;max-height:none!important;
+ padding:14px!important;overflow:visible!important;box-sizing:border-box!important;
+}
+#my24Ads #myAdsPanel .my24-ads-scroll>.my24-ad-card h3{
+ display:block!important;white-space:normal!important;overflow:visible!important;max-height:none!important;
+ overflow-wrap:anywhere!important;font-size:18px!important;line-height:1.35!important;
+}
+#my24Ads #myAdsPanel .my24-ads-scroll>.my24-ad-card .ad-meta{
+ display:block!important;white-space:normal!important;overflow:visible!important;max-height:none!important;
+ overflow-wrap:anywhere!important;font-size:14px!important;line-height:1.6!important;
+}
+#my24Ads #myAdsPanel .my24-ads-scroll>.my24-ad-card .my24-ad-actions{
+ display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ gap:9px!important;margin-top:14px!important;
+}
+#my24Ads #myAdsPanel .my24-ads-scroll>.my24-ad-card .my24-ad-actions button{
+ min-width:0!important;min-height:44px!important;font-size:13px!important;
+}
+
+/* Natural page scrolling across the mobile viewport; fixed bottom navigation remains usable. */
+html,body{max-width:100%!important;overflow-x:hidden!important}
+body{overflow-y:auto!important;touch-action:pan-y!important;-webkit-overflow-scrolling:touch!important}
+#my24Ads,#my24Ads .panel,#myAdsPanel{max-height:none!important;overflow:visible!important;overscroll-behavior:auto!important}
+#my24Ads #myAdsPanel .my24-ads-scroll>*{touch-action:pan-y!important}
+
+/* Category subcategory screen must remain visible outside the hidden main category grid. */
+body.category-subcategory-mode #homeCategories{display:block!important;visibility:visible!important;min-height:75vh!important}
+body.category-subcategory-mode #homeCategories>#personalsSubcategories,
+body.category-subcategory-mode #homeCategories #personalsSubcategories{
+ display:block!important;visibility:visible!important;opacity:1!important;
+ position:relative!important;width:100%!important;min-height:50vh!important;
+ background:linear-gradient(145deg,#120b07,#1b1009)!important;
+}
+body.category-subcategory-mode #personalsSubcategories .subcategory-screen-heading{display:flex!important;align-items:center!important;gap:12px!important}
+body.category-subcategory-mode #personalsSubcategories .personals-subcategories{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:12px!important;width:100%!important;
+}
+body.category-subcategory-mode #personalsSubcategories .personals-subcategories .category{
+ display:flex!important;visibility:visible!important;opacity:1!important;min-height:112px!important;
+ flex-direction:column!important;align-items:center!important;justify-content:center!important;
+ background:#211308!important;border:1px solid rgba(255,150,35,.55)!important;
+ color:#fff0dd!important;border-radius:14px!important;
+}
+@media(max-width:420px){
+ body.category-subcategory-mode #personalsSubcategories .personals-subcategories{gap:9px!important}
 }
 </style>
 
