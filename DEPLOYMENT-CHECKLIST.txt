@@ -1,30 +1,36 @@
-24Adz.com — Safe Deployment Checklist
+24Adz.com — Clean Source Deployment Checklist
 
-[ ] Extract the ZIP and upload the CONTENTS to the root of the connected GitHub repo.
-[ ] Confirm wrangler.toml, package.json, workers/, public/ and migrations/ are at repo root.
-[ ] Keep Cloudflare Build command = None.
-[ ] Keep Cloudflare Deploy command = npx wrangler deploy.
-[ ] Keep Root directory = .
-[ ] Do not manually add another ASSETS binding; wrangler.toml declares it.
-[ ] Keep D1 binding DB pointed to hey-mr-database.
-[ ] Keep R2 binding IMAGES pointed to hey-mr-images.
-[ ] Inspect remote D1 migration history before applying any migration.
-[ ] Apply only migrations that are not already recorded as applied.
-[ ] Verify Worker secrets/variables names; never expose secret values.
-[ ] Deploy and test health, categories, ads, auth, post/edit/delete and images.
+SOURCE STRUCTURE
+[ ] Upload the ZIP contents to the connected GitHub repository root.
+[ ] Confirm wrangler.toml, package.json, workers/, public/ and migrations/ are
+    directly under the repository root.
+[ ] Preserve public/index.html and public/admin.html.
+[ ] Do not delete historical SQL migrations.
 
-[ ] Inspect production D1 schema/history before applying pending 0013/0014 migrations.
-[ ] Verify 38 districts and 652 unique local areas are available in production D1.
-[ ] Verify SUPABASE_URL and SUPABASE_ANON_KEY Worker variables are valid.
-[ ] Test Supabase email registration, confirmation, login, password reset and logout.
+CLOUDFLARE
+[ ] Worker name: 24adz-api.
+[ ] Main entry: workers/index.js.
+[ ] Deploy command: npx wrangler deploy.
+[ ] D1 binding: DB -> existing hey-mr-database resource.
+[ ] R2 binding: IMAGES -> existing hey-mr-images resource.
+[ ] Do not create a duplicate manual ASSETS binding; wrangler.toml declares it.
+[ ] Verify required Worker secrets: ADMIN_PASSWORD, ADMIN_SESSION_SECRET,
+    SUPABASE_URL and SUPABASE_ANON_KEY. Never expose secret values.
 
+DATABASE SAFETY
+[ ] Run: npx wrangler d1 migrations list hey-mr-database --remote
+[ ] Compare remote migration history before applying anything.
+[ ] Apply only migrations not already recorded as applied.
+[ ] Verify the production districts/areas schema before applying migrations
+    0013 or 0014. Do not blindly replay the full migration history.
 
-CLIENT AUTHENTICATION (CURRENT)
-- Client Register/Login uses Supabase Auth (email + password).
-- Supabase email confirmation must be enabled; mobile OTP is not used.
-- Worker secrets required: SUPABASE_URL and SUPABASE_ANON_KEY.
-- Configure Supabase Auth Site URL and redirect URLs for both www.24adz.com and 24adz.com.
-- Configure SMTP in Supabase for confirmation and password recovery emails.
-- Client API calls use the Supabase access token; /api/client/sync links the
-  verified Supabase user to the D1 client profile.
-- Admin login remains separate and uses ADMIN_PASSWORD / ADMIN_SESSION_SECRET.
+LIVE WEBSITE TESTS
+[ ] Homepage loads on www.24adz.com and 24adz.com.
+[ ] Register, email confirmation, login, logout and password reset work.
+[ ] My Ads opens and displays the signed-in user's ads.
+[ ] Post Ad opens, validates, uploads images and publishes successfully.
+[ ] Published ads remain visible after refresh.
+[ ] Edit and delete work for the correct owner.
+[ ] Chat and My24adz open and work.
+[ ] Category, subcategory, district and area navigation work.
+[ ] SEO URLs resolve to the correct page.

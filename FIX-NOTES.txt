@@ -1,264 +1,62 @@
-24Adz.com — Full Website + API Worker Update
-Updated: 11 November 2026
+24Adz.com — Source Audit and Cleanup Record
+Updated: 12 November 2026
 
-PROJECT CONTENTS
-- public/index.html: public homepage, client register/login via Supabase Auth,
-  email confirmation flow, client dashboard, Post Ad forms, category directory,
-  search/filter UI and district/area selection.
-- public/admin.html: existing admin panel; preserved.
-- workers/index.js: API Worker for public ads/search, client account sync,
-  client ad create/edit/delete, admin endpoints, D1 and R2 operations.
-- migrations/*.sql: ordered D1 migration history, including category hierarchy
-  and Supabase user ID linking.
-- wrangler.toml: Worker deployment, existing D1, existing R2 and static assets.
-- package.json: Wrangler scripts and syntax-check command.
+PROJECT IDENTITY
+This package is the 24Adz.com project. No separate Hey Mr website homepage,
+admin panel, frontend bundle, or active legacy authentication implementation
+was found in the supplied source package.
 
-APPROVED MAIN CATEGORIES (8)
-1. Cars
-2. Bikes
-3. Mobiles
-4. Jobs
-5. Personals
-6. Hotel Rooms
-7. Real Estate
-8. Fashion & Beauty
+CURRENT PROJECT FILES
+- public/index.html: 24Adz public homepage and client interface.
+- public/admin.html: 24Adz admin panel.
+- public/sitemap.xml: public sitemap.
+- workers/index.js: 24Adz API Worker.
+- workers/seo.js: 24Adz SEO routing.
+- migrations/: ordered D1 schema/data migrations.
+- wrangler.toml: deployment configuration and existing Cloudflare bindings.
+- package.json: Wrangler scripts and source syntax check.
 
-ACTIVE SUBCATEGORIES (44)
-Cars (4): New Cars, Used Cars, Car Rentals, Car Services.
-Bikes (3): New Bikes, Used Bikes, Bike Services.
-Mobiles (4): New Mobiles, Used Mobiles, Mobile Accessories, Mobile Services.
-Jobs (4): Full-time Jobs, Part-time Jobs, Work from Home, Temporary Jobs.
-Personals (7): Massage & Spa, Full Body Massage, Head Massage, Foot Massage,
-Spa & Wellness, Beauty & Wellness, Other Services.
-Hotel Rooms (7): Budget Hotel Rooms, Luxury Hotel Rooms, AC Rooms, Non-AC Rooms,
-Family Rooms, Lodges, Service Apartments.
-Real Estate (7): Residential Properties, Commercial Spaces, Houses for Sale,
-Houses for Rent, Apartments & Flats, Land & Plots, PG & Hostels.
-Fashion & Beauty (8): Beauty Parlour Ads, Dresses, Men's Fashion,
-Women's Fashion, Men's & Women's Clothing, Beauty Products,
-Makeup & Cosmetics, Accessories.
+PRESERVED CLOUD RESOURCES
+The D1 database resource is currently named hey-mr-database and the R2 bucket
+resource is currently named hey-mr-images. These are existing Cloudflare resource
+identifiers, not evidence of old website frontend code. They are intentionally
+preserved because the current Worker configuration depends on them. Do not
+rename, delete, or replace these resources as part of source cleanup.
 
-CATEGORY AND FORM FIXES IN THIS UPDATE
-- Homepage main category directory explicitly displays all eight main categories.
-- Category/subcategory search selection resolves a clicked subcategory to its
-  parent main category, then filters using both values.
-- Post Ad form has all eight main categories and category-specific form fields.
-- Client-created ads now persist details_json, including the selected subcategory
-  and category-specific values; client edits also update details_json.
-- Admin-managed category hierarchy remains D1-driven. Worker validates the active
-  main category and verifies that a selected active subcategory belongs to it.
-- Future active main categories/subcategories added through the admin category
-  manager are read from D1; Worker category validation does not use a fixed list.
-- Free listing rule defaults to 3 ads per email account every 30 days. Admin
-  settings can change the limit and period. Error/UI wording now says per email.
-- Newest-first sorting uses timestamps, not numeric conversion of UUID ad IDs.
+SOURCE AUDIT
+- No Hey Mr-branded homepage, admin page, stylesheet, or standalone frontend
+  application was present in the supplied ZIP.
+- No active legacy D1-password / Resend client registration or login flow was
+  found. Client authentication in the current source uses Supabase Auth.
+- Admin authentication remains separate.
+- No old website asset directory or duplicate frontend project was present.
+- The existing homepage and admin panel source files were preserved unchanged.
+- The Worker source and SEO routing source were preserved unchanged.
+- The historical SQL migrations were preserved. They are required to describe
+  the D1 schema evolution and must not be deleted merely because earlier
+  migration names or category changes appear in their history.
+- The current free-ad quota implementation counts by registered mobile number.
+  The homepage copy and API error wording also describe the mobile-number limit.
+- The current package contains 8 main categories, 44 subcategories, 38 districts
+  and 652 seeded district/area pairs according to the included migrations.
 
-AUTHENTICATION AND EMAIL
-- Homepage loads Supabase JavaScript v2 and uses Supabase Auth signUp,
-  signInWithPassword, resetPasswordForEmail, updateUser and signOut.
-- Supabase email confirmation is required; mobile OTP is not used.
-- Worker exposes /api/public/auth-config and /api/client/sync, then validates
-  Supabase bearer tokens for all client API operations and maps the Supabase user
-  to the D1 client profile using supabase_uid.
-- Legacy D1 password hashing, Resend verification-token delivery, and custom
-  client register/login/verify/reset endpoints have been removed from active code.
-- SUPABASE_SERVICE_ROLE_KEY is not needed by the current browser auth flow and
-  must never be exposed in homepage HTML.
-- Supabase sends confirmation and password recovery emails. Configure SMTP in
-  Supabase Dashboard (for example, Resend SMTP) for reliable delivery.
+VALIDATION
+- workers/index.js passed Node syntax validation.
+- All 5 inline JavaScript blocks in public/index.html passed Node syntax checks.
+- All 14 SQL migrations applied in order to a clean SQLite validation database.
+- This confirms source syntax and clean-database migration compatibility only.
+  It does not prove live Cloudflare deployment, production D1 migration state,
+  Worker secrets, Supabase email delivery, or live browser workflows.
 
-WRANGLER AND EXISTING CLOUDFLARE RESOURCES
-- Worker name: 24adz-api
-- Main: workers/index.js
-- D1 binding: DB -> hey-mr-database
-- R2 binding: IMAGES -> hey-mr-images
-- Static assets: [assets] directory = ./public, binding = ASSETS
-- Do not create another manual Assets binding. Wrangler's [assets] configuration
-  owns the ASSETS binding when this Worker version is deployed from this repo.
-- Existing D1 and R2 resources are reused; this project does not create new ones.
-- Do not delete, rename or replace the existing DB or IMAGES bindings.
-
-DEPLOYMENT SAFETY
-1. Upload/commit the complete ZIP contents to the connected GitHub repository,
-   preserving the repository root structure (wrangler.toml, package.json,
-   workers/, public/, migrations/).
-2. Cloudflare Worker Build settings expected for this repository root:
-   Build command: None; Deploy command: npx wrangler deploy; Root directory: .
-3. Before any remote migration, inspect production history:
-   npx wrangler d1 migrations list hey-mr-database --remote
-4. Apply only pending migrations. Do not blindly replay the complete migration
-   history against the reused production database.
-5. Deploy Worker only after checking bindings and secrets. Do not change the
-   existing DB or IMAGES resource selections.
-6. After deployment, test /api/health, /api/public/categories,
-   /api/public/ads, Supabase registration + confirmation + login, posting,
-   editing, deletion, image upload, and category/search filters.
-
-CREDENTIALS / SECRETS
-Expected current Worker values include ADMIN_PASSWORD, ADMIN_SESSION_SECRET,
-SUPABASE_URL and SUPABASE_ANON_KEY. CLIENT_SESSION_SECRET, RESEND_API_KEY and
-RESEND_FROM are not required by the current client authentication flow. Never put
-secret values in GitHub or in this ZIP. Set them only in Cloudflare Worker
-Settings > Variables and Secrets. Encrypted secret values cannot be verified
-from source files or screenshots.
-
-VALIDATION PERFORMED FOR THIS ZIP
-- Node syntax check: workers/index.js passed.
-- All inline scripts extracted from public/index.html passed Node syntax checks.
-- All SQL migrations applied in filename order to a clean SQLite validation DB.
-- Validation DB result: exactly 8 active main categories and 44 active
-  subcategories (counts listed above).
-- Static homepage category markup includes all eight approved main categories.
-
-LIMITATION
-These are source-code and clean-database checks only. They do not prove that the
-live Cloudflare Worker has deployed this ZIP, that production D1 migration history
-matches this package, that secrets contain valid values, or that Supabase email
-and end-to-end browser flows succeed. Those require post-deployment live tests.
-
-
-POST-AUDIT CORRECTIONS — 11 November 2026
-- Replaced the Homepage's legacy client register/login/password-reset handlers.
-  They called Worker endpoints that intentionally return HTTP 410 because
-  Supabase Auth is the configured identity provider. Homepage now loads
-  Supabase JS v2, fetches /api/public/auth-config, registers and signs in with
-  Supabase, synchronizes verified sessions through /api/client/sync, uses
-  Supabase password recovery/update, and signs out of Supabase.
-- Updated the client dashboard free-ad wording to match the per-email rule.
-- Removed obsolete phone-based quota counting from Worker free-ad checks and
-  /api/client/me. The active rule remains 3 free ads per verified email in
-  30 days by default (admin setting can change it).
-- Found that the Worker and Admin Panel expected a D1 districts table, but the
-  supplied migration history did not create or seed it. Added migration
-  0013_seed_tamil_nadu_districts.sql with the 38 districts used by Homepage.
-- Found that Admin-managed local areas depended on D1 rows but the supplied
-  migration history did not seed the Homepage's local-area directory. Added
-  migration 0014_seed_tamil_nadu_areas.sql with 652 unique district/area pairs.
-- Replaced public/index.html with the separately uploaded index.html as
-  requested. The old ZIP homepage was not retained as the deployment homepage.
-- Revalidated Worker and inline Homepage/Admin JavaScript syntax; all passed.
-- Replayed all 14 migrations in order against a clean SQLite validation DB:
-  8 active main categories, 44 active subcategories, 38 districts and
-  652 unique areas were present.
-
-DEPLOYMENT WARNING
-- Before applying migrations 0013 and 0014 to the reused production D1 database,
-  run `npx wrangler d1 migrations list hey-mr-database --remote` and inspect
-  the existing districts/areas schema and migration history. Apply only pending
-  migrations. If production already has a districts table whose district-name
-  column is not named `name`, reconcile migration 0013 to that schema before
-  applying it; do not blindly run it.
-- Live Supabase credentials, confirmation email delivery, Cloudflare bindings,
-  production D1 schema, and actual browser workflows cannot be verified from
-  uploaded source files alone.
-
-
-AUTH SOURCE-CODE ALIGNMENT — 11 November 2026
-- Client Register/Login and password recovery now use Supabase Auth directly.
-- Worker client API authorization validates the Supabase access token and requires
-  a confirmed email; the D1 profile is resolved by supabase_uid.
-- Removed legacy Worker D1 password/Resend auth routes and helpers.
-- Admin login remains the existing independent ADMIN_PASSWORD session flow.
-- No homepage design, category, listing, admin UI or other business feature was
-  intentionally redesigned as part of this authentication-only correction.
-
-
-AUTH + CATEGORY FORM REPAIR — 11 November 2026
-- Register no longer keeps a newly-created Supabase session. The page tells the
-  user to open the confirmation email and then explicitly log in.
-- The confirmation return URL is /?email_confirm=1. On a verified signup return,
-  the Homepage syncs the verified Supabase identity to D1, signs out that
-  temporary confirmation session, pre-fills the same email in Login, and asks
-  the user to log in manually.
-- Login accepts either the registered email address or the registered
-  10-digit mobile number. Mobile login is resolved inside the Worker and the
-  email address is never returned to the browser. Login attempts are rate
-  limited. Both methods still require Supabase password authentication and a
-  confirmed email.
-- Worker category validation no longer treats legacy unscoped form_fields rows
-  as mandatory for every category. Category-scoped required fields are enforced
-  only when the form_fields schema has an explicit category/category_name field.
-- Post Ad form now uses one consistent main-category list and renders the
-  correct category fields for Cars, Bikes, Mobiles, Jobs, Personals, Hotel Rooms,
-  Real Estate, and Fashion & Beauty. Removed the duplicate generic Model Year
-  input; Model Year is shown only in the relevant category form. Age is shown
-  only for Personals. Personals age and contact name are included in the saved
-  ad details. Editing an ad restores its selected subcategory and category data.
-- Replaced the fixed 4-inch Post Ad modal with a responsive, viewport-height
-  modal and clearer field spacing. Enlarged the main Post Ad action while
-  retaining the existing visual theme and homepage structure.
-- Corrected the Client Dashboard free-ad usage display to match the Worker
-  response: the shared quota is counted by registered mobile number over the
-  configured period.
-
-VALIDATION AFTER REPAIR
-- `node --check workers/index.js`: passed.
-- All five inline JavaScript blocks in public/index.html: passed Node syntax
-  checks.
-- All 14 SQL migrations applied in order to a clean SQLite validation database:
-  passed; 8 active main categories, 38 districts and 652 areas were present.
-- Admin Panel, Wrangler bindings, migration files and homepage layout/theme
-  were preserved. Only public/index.html, workers/index.js and this note file
-  were changed.
-- Live Supabase email delivery, confirmation settings, deployed Worker, and
-  production D1 data cannot be verified from this ZIP. Before testing live,
-  enable Supabase Auth > Email > Confirm email, configure a working SMTP sender,
-  and allow https://24adz.com/?email_confirm=1 and https://www.24adz.com/?email_confirm=1
-  in Supabase Auth URL Configuration. Deploy the updated Worker and static
-  Homepage together so the mobile-login route is available.
-
-
-CONTACT ACTION + AD DETAIL REPAIR — 11 November 2026
-- Advertisement cards now open a full detail view when the card/image is tapped.
-- Detail view shows available image, title, category, subcategory, location, price,
-  description and advertiser information, with the permitted contact actions.
-- Customer-to-client chat is shown for every client-owned ad across all categories.
-- Call and WhatsApp are publicly enabled only for Cars > Car Rentals,
-  Hotel Rooms (all subcategories), Fashion & Beauty (all subcategories), and
-  Personals (all subcategories). Cars' other subcategories, Bikes, Real Estate,
-  Mobiles and Jobs remain chat-only.
-- Worker public-ad response now applies the same contact policy and hides
-  phone/WhatsApp fields for chat-only categories.
-- Registration success message now explicitly asks the customer to check the
-  email inbox for the verification link. On successful email confirmation,
-  the site displays “Registration Successfully!” and asks the customer to log in.
-- Validation: Worker syntax passed; all five inline homepage scripts passed;
-  all 14 migrations applied to a clean SQLite database with no errors.
-- Live email delivery, production deployment and real customer-to-client chat
-  still require end-to-end testing after deployment.
-
-CLIENT DASHBOARD, CUSTOMER CHAT AND CONTACT CONTROLS — 11 November 2026
-- My Ads API now returns only the logged-in customer's approved/published ads.
-  The existing owner-checked Edit and Delete endpoints remain in use.
-- My24adz dashboard now includes editable name/mobile profile fields, published
-  My Ads, Messages, wallet balance, coin purchase and coin transaction history.
-- Added customer-to-customer chat delivery to the owner of the selected approved
-  ad. Added authenticated reply handling and conversation access for both the
-  advertiser and the interested customer. Existing Admin messages remain separate.
-- Added customer Auto Renew action for 3, 5 or 7 days. Renewal checks ownership,
-  approved status and coin balance, debits the configured VIP coin cost, records
-  the coin transaction and activates a VIP promotion.
-- Added per-subcategory Call / WhatsApp / Chat ON/OFF controls to Admin Panel
-  Website Settings for all eight approved categories and their 44 current
-  subcategories. Defaults: Cars > Car Rentals, Personals, Hotel Rooms, and
-  Fashion & Beauty have Call + WhatsApp + Chat ON; all other categories have
-  Chat ON and Call + WhatsApp OFF.
-- Public ad responses apply the saved per-subcategory policy and suppress
-  disabled contact details. Chat send API also checks the saved Chat setting.
-- No new D1 migration is required: contact policies use the existing settings
-  key/value table; chat and wallet tables already exist in migration history.
-- Validation: Worker syntax check passed; all Homepage and Admin inline
-  JavaScript blocks passed Node syntax checks; all 14 migrations applied in
-  order to a clean SQLite database (8 main categories, 44 subcategories).
-- Live Cloudflare deployment, production D1 settings, Supabase login and
-  real-time customer chat still require end-to-end testing after uploading
-  this complete project ZIP to the connected GitHub repository and deploying.
-
-
-PRICE LIST + WHATSAPP COIN PURCHASE UPDATE — 11 November 2026
-- Preserved the existing homepage design and added a Coin Purchase WhatsApp contact directly below the Listing Plans price list.
-- The displayed WhatsApp number defaults to +91 8870017424 and syncs from Admin > Website Settings > Client Coin Purchase WhatsApp Number.
-- When the API blocks a new ad because the registered mobile number has used its 3 free ads in the configured 30-day period, the homepage now closes the Post Ad form and opens/scrolls to the Listing Plans price list and WhatsApp Coin Purchase section.
-- The Buy Coins button requires client login, creates a coin purchase request using the existing API, then opens WhatsApp with the package and request ID. Admin confirms payment in Admin > Clients & Coins to credit the wallet.
-- Existing coin package settings, VIP prices, ad forms, categories, dashboard, Admin panel and database migrations were not changed.
-- Validation performed: homepage inline JavaScript syntax checked; Worker and Admin source files unchanged. Live behavior still requires deployment and browser testing.
+DEPLOYMENT NOTES
+- Keep the repository root structure: wrangler.toml, package.json, workers/,
+  public/, and migrations/.
+- Cloudflare Worker deploy command: npx wrangler deploy.
+- Keep the existing D1 binding DB and R2 binding IMAGES unchanged.
+- Inspect remote migration history before applying any migration.
+- This ZIP does not include package-lock.json. Do not configure a package-lock
+  dependent npm ci build step for this Worker package unless a matching lockfile
+  is intentionally generated and committed.
+- Deploying source is separate from verifying live user journeys. Test login,
+  registration, My Ads, Post Ad, Chat, My24adz, image upload/publish, edit/delete,
+  category navigation, district/area filters and SEO URLs after deployment.
