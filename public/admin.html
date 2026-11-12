@@ -185,8 +185,42 @@ async function addAd(){try{
  ['adTitle','adDesc','adCat','adSubcategory','adArea','adPrice','adPhone','adWhats','adImage'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
  renderCategoryAdFields();loadAds();loadVip()
  }catch(e){alert(e.message)}}
-async function loadAds(){let a=(await call('/api/admin/ads')).ads;adsList.innerHTML='<table><tr><th>Ad</th><th>Publishing</th><th>Actions</th></tr>'+a.map(x=>`<tr><td>${esc(x.title)}<br><small>${esc(x.district||'')}</small></td><td>${x.status==='approved'?'Published':esc(x.status)}</td><td><button onclick="delAd('${x.id}')">Delete</button></td></tr>`).join('')+'</table>'}
-async function setAd(id,status){await call('/api/admin/ads/'+id,'PATCH',{status});loadAds()}async function delAd(id){if(confirm('Delete this ad?')){await call('/api/admin/ads/'+id,'DELETE');loadAds()}}
+async function loadAds(){
+ try{
+  const a=(await call('/api/admin/ads')).ads||[];
+  adsList.innerHTML='<table><tr><th>Ad</th><th>Publishing</th><th>Actions</th></tr>'+a.map(x=>`<tr id="managed-ad-${esc(x.id)}"><td>${esc(x.title)}<br><small>${esc(x.district||'')}</small></td><td>${x.status==='approved'?'Published':esc(x.status)}</td><td><button type="button" onclick="editAd('${esc(x.id)}')">Edit</button> <button type="button" onclick="delAd('${esc(x.id)}')">Delete</button></td></tr>`).join('')+'</table>';
+ }catch(e){adsList.textContent='Could not load ads: '+e.message}
+}
+async function editAd(id){
+ try{
+  const rows=(await call('/api/admin/ads')).ads||[], ad=rows.find(x=>String(x.id)===String(id));
+  if(!ad)throw new Error('Ad not found. Refresh the list.');
+  const ask=(label,value)=>{const v=prompt('Edit '+label, value==null?'':String(value));return v===null?null:v.trim()};
+  const title=ask('Title',ad.title);if(title===null)return;
+  const description=ask('Description',ad.description);if(description===null)return;
+  const category=ask('Category',ad.category);if(category===null)return;
+  const district=ask('District',ad.district);if(district===null)return;
+  const area=ask('Area',ad.area);if(area===null)return;
+  const price=ask('Price',ad.price);if(price===null)return;
+  const phone=ask('Phone',ad.phone);if(phone===null)return;
+  const whatsapp=ask('WhatsApp',ad.whatsapp);if(whatsapp===null)return;
+  const image_url=ask('Image URL',ad.image_url);if(image_url===null)return;
+  let details={};try{details=JSON.parse(ad.details_json||'{}')}catch{}
+  await call('/api/admin/ads/'+encodeURIComponent(id),'PATCH',{title,description,category,district,area,price,phone,whatsapp,image_url,category_details:details});
+  alert('Ad updated successfully.');await loadAds();
+ }catch(e){alert('Edit failed: '+e.message)}
+}
+async function setAd(id,status){try{await call('/api/admin/ads/'+id,'PATCH',{status});await loadAds()}catch(e){alert('Update failed: '+e.message)}}
+async function delAd(id){
+ if(!confirm('Delete this ad permanently?'))return;
+ const row=document.getElementById('managed-ad-'+id);
+ try{
+  await call('/api/admin/ads/'+encodeURIComponent(id),'DELETE');
+  if(row)row.remove();
+  alert('Ad deleted successfully.');
+  await loadAds();
+ }catch(e){alert('Delete failed: '+e.message);await loadAds()}
+}
 let bulkDistricts=[];
 function categoryOptionsHtml(){
  const active=categoryCache.filter(x=>Number(x.active)!==0);
