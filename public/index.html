@@ -2040,7 +2040,7 @@ header .nav{min-height:88px!important;padding-top:8px!important;padding-bottom:8
 
 </style>
 
-
+<style id="24adz-premium-select-treatment">
 /* 24Adz premium single-select dropdown treatment — consistent across the site */
 select, select.field, .modal select, form select {
   -webkit-appearance:none !important;
@@ -3962,7 +3962,7 @@ function renderMyAdsTab(tab){
    </div></article>`;
  }).join("");
  const root=document.getElementById("myAdsPanel");
- if(root)root.innerHTML=`<div class="myads-intro"><span class="myads-intro-icon">📢</span><div><b>My Ads</b><p>Manage all your ads in one place, renew expiring or expired ads, or add Premium Features.</p></div></div><div class="myads-tabs" role="tablist" aria-label="Filter my ads">${buttons}</div><div class="my24-ads-scroll">${cards||`<div class="myads-empty"><span>ⓘ</span><p>You currently have no ${tab==="all"?"published":tab} ads</p><button class="btn btn-primary" type="button" onclick="startPostAd()">＋ Post free ad</button></div>`}</div>`;
+ if(root)root.innerHTML=`<div class="myads-intro"><span class="myads-intro-icon">📢</span><div><b>My Ads</b><p>Manage all your ads in one place, renew expiring or expired ads, or add Premium Features.</p></div></div><button class="btn btn-primary myads-post-action" type="button" onclick="startPostAd()">＋ Post free ad</button><div class="myads-tabs" role="tablist" aria-label="Filter my ads">${buttons}</div><div class="my24-ads-scroll">${cards||`<div class="myads-empty"><span>ⓘ</span><p>You currently have no ${tab==="all"?"published":tab} ads</p><button class="btn btn-primary" type="button" onclick="startPostAd()">＋ Post free ad</button></div>`}</div>`;
 }
 async function openClientDashboard(){
  try{
@@ -4739,6 +4739,13 @@ img { -webkit-user-drag: none; user-drag: none; }
 })();
 </script>
 
+
+<style id="24adz-myads-empty-and-post-action-fix">
+#myAdsPanel .myads-post-action{display:flex!important;align-items:center;justify-content:center;width:100%;min-height:48px;margin:12px 0 16px!important;font-size:16px;font-weight:800;border-radius:12px}
+#myAdsPanel .my24-ads-scroll>.myads-empty{grid-column:1 / -1!important;width:100%!important;max-width:none!important;min-width:0!important;box-sizing:border-box!important;text-align:center!important;padding:30px 12px!important;overflow-wrap:anywhere}
+#myAdsPanel .my24-ads-scroll>.myads-empty p{max-width:100%!important;margin:0 auto 18px!important;line-height:1.5!important}
+#myAdsPanel .my24-ads-scroll>.myads-empty .btn{display:inline-flex!important;width:auto!important;max-width:100%!important;white-space:normal!important}
+</style>
 </body>
 </html>
 
