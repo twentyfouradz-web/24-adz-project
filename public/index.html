@@ -2147,18 +2147,18 @@ function showCategoryListingResults(mainCategory,subcategory=""){
   // Keep the visitor at the current scroll position; listings are explored manually.
 }
 function chooseCategory(cat,el){
-  // Selecting any category (including a Personal subcategory) closes the
-  // Personals panel so unrelated categories are never left open together.
   closePersonalsCategories();
   const personalsTrigger=document.getElementById("personalsCategory");
-  if(personalsTrigger && el!==personalsTrigger)personalsTrigger.classList.remove("active");
-  document.getElementById("searchCategory").value=cat;
-  populateSearchSubcategories(cat);
-  if(document.getElementById("searchSubcategory"))document.getElementById("searchSubcategory").value="";
+  if(personalsTrigger)personalsTrigger.classList.remove("active");
+  const isPersonalChild=["Massage & Spa","Full Body Massage","Head Massage","Foot Massage","Spa & Wellness","Beauty & Wellness","Other Services"].includes(cat);
+  const parent=isPersonalChild?"Personals":cat;
+  document.getElementById("searchCategory").value=parent;
+  populateSearchSubcategories(parent);
+  if(document.getElementById("searchSubcategory"))document.getElementById("searchSubcategory").value=isPersonalChild?cat:"";
   updateSearchFilterSteps();
   document.querySelectorAll(".category").forEach(x=>x.classList.remove("active"));
-  el.classList.add("active");
-  showCategoryListingResults(cat,"");
+  if(el)el.classList.add("active");
+  showCategoryListingResults(parent,isPersonalChild?cat:"");
 }
 function goHomeTop(){
   // Home always returns to the main website homepage.
@@ -2315,8 +2315,10 @@ function applyDistrictListingFilters(){
       distanceKm(districtViewerLocation.latitude,districtViewerLocation.longitude,Number(a.latitude),Number(a.longitude))<=maxDistance
     );
     return (!keyword||text.includes(keyword)) &&
-      (!category||String(a.category||"").trim().toLowerCase()===String(category).trim().toLowerCase()) &&
+      (!category||String(a.category||"").trim().toLowerCase()===String(category).trim().toLowerCase()||
+        (String(category).trim().toLowerCase()==="personals"&&String(a.category||"").trim().toLowerCase()===String(subcategory||"").trim().toLowerCase())) &&
       (!subcategory||String(subcategory).trim().toLowerCase()===String(category).trim().toLowerCase()||
+        String(a.category||"").trim().toLowerCase()===String(subcategory).trim().toLowerCase()||
         [a.subcategory,(()=>{try{return JSON.parse(a.details_json||"{}").subcategory}catch(_){return ""}})()].some(v=>{
           const norm=x=>String(x||"").trim().toLowerCase().replace(/\s+/g," ");
           const aliases=x=>norm(x)==="cars rentals"?"car rentals":norm(x);
@@ -3248,41 +3250,39 @@ async function startPostAd(){try{await a24InitAuth();if(!a24Token()){openModal("
 function resetPostFormForNew(){const f=document.getElementById("postForm");f.reset();document.getElementById("editingAdId").value="";goPostStep(1);}
 function classifyMyAd(a){
  const status=String(a.status||"").toLowerCase();
- if(!["approved","published","active"].includes(status))return "inactive";
+ if(status==="expired")return "expired";
+ if(status==="expiring")return "expiring";
+ if(["inactive","paused","rejected","draft","pending","removed","disabled"].includes(status))return "inactive";
  const raw=a.expires_at||a.vip_expires_at;
  if(raw){
-  const expiry=Date.parse(String(raw).replace(" ","T")+(String(raw).includes("Z")?"":"Z"));
+  const value=String(raw),normalized=value.includes("T")?value:value.replace(" ","T");
+  const expiry=Date.parse(normalized+(value.includes("Z")||/[+-]\d\d:\d\d$/.test(value)?"":"Z"));
   if(Number.isFinite(expiry)&&expiry<=Date.now())return "expired";
   if(Number.isFinite(expiry)&&expiry-Date.now()<=3*86400000)return "expiring";
  }
- return "active";
+ if(["approved","published","active"].includes(status))return "active";
+ return "inactive";
 }
 function renderMyAdsTab(tab){
  const clientId=String(window.__24adzCurrentClientId||"");
- const all=(window.__24adzOwnAds||[]).filter(a=>String(a.owner_client_id||"")===clientId&&["approved","published","active"].includes(String(a.status||"").toLowerCase()));
- const tabs=["all","active","expiring","expired"];
+ const all=(window.__24adzOwnAds||[]).filter(a=>String(a.owner_client_id||"")===clientId);
+ const tabs=["all","active","expiring","expired","inactive"];
  const counts=Object.fromEntries(tabs.map(k=>[k,k==="all"?all.length:all.filter(a=>classifyMyAd(a)===k).length]));
  const shown=tab==="all"?all:all.filter(a=>classifyMyAd(a)===tab);
- const buttons=tabs.map(k=>`<button type="button" class="btn ${tab===k?"btn-primary":"btn-outline"}" style="padding:8px 11px" onclick="renderMyAdsTab('${k}')">${k[0].toUpperCase()+k.slice(1)} (${counts[k]})</button>`).join("");
+ const buttons=tabs.map(k=>`<button type="button" class="btn ${tab===k?"btn-primary":"btn-outline"}" style="padding:8px 11px;white-space:nowrap" onclick="renderMyAdsTab('${k}')">${k[0].toUpperCase()+k.slice(1)} (${counts[k]})</button>`).join("");
  const cards=shown.map(a=>{
-  const state=classifyMyAd(a), expiry=a.expires_at||a.vip_expires_at||"";
-  const statusLabel=state[0].toUpperCase()+state.slice(1);
-  return `<article class="ad-card my24-ad-card" style="height:288px;min-height:288px;max-height:288px;overflow:hidden;margin:0;position:relative">
-   <div class="ad-image" style="height:112px">${a.image_url?`<img loading="lazy" decoding="async" src="${escapeDashboardText(a.image_url)}" alt="" style="width:100%;height:100%;object-fit:cover">`:`<div style="height:100%;display:grid;place-items:center;font-size:34px">📢</div>`}</div>
-   <div class="ad-body" style="padding:10px 12px">
-    <span class="vip-ribbon" style="margin-bottom:5px">${a.is_vip?"VIP PREMIUM":"STANDARD LISTING"}</span>
+  const state=classifyMyAd(a),expiry=a.expires_at||a.vip_expires_at||"",statusLabel=state[0].toUpperCase()+state.slice(1);
+  const id=String(a.id).replace(/['"\\]/g,"");
+  return `<article class="ad-card my24-ad-card" style="height:auto;min-height:288px;max-height:none;overflow:hidden;margin:0;position:relative">
+   <div class="ad-image" style="height:145px">${a.image_url?`<img loading="lazy" decoding="async" src="${escapeDashboardText(a.image_url)}" alt="" style="width:100%;height:100%;object-fit:cover">`:`<div style="height:100%;display:grid;place-items:center;font-size:34px">📢</div>`}</div>
+   <div class="ad-body" style="padding:10px 12px"><span class="vip-ribbon" style="margin-bottom:5px">${a.is_vip?"VIP PREMIUM":"STANDARD LISTING"}</span>
     <h3 style="font-size:15px;margin:4px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeDashboardText(a.title||"Advertisement")}</h3>
-    <div class="ad-meta" style="font-size:11px;line-height:1.45">${escapeDashboardText(a.category||"")}${a.subcategory?" · "+escapeDashboardText(a.subcategory):""}<br>📍 ${escapeDashboardText(a.area||"")}, ${escapeDashboardText(a.district||"")}<br>${escapeDashboardText(statusLabel)}${expiry?" · Expires "+escapeDashboardText(expiry):""}</div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
-     <button class="btn btn-outline" style="padding:6px 10px;font-size:12px" onclick="editServerAd('${String(a.id)}')">Edit</button>
-     <button class="btn btn-outline" style="padding:6px 10px;font-size:12px" onclick="deleteServerAd('${String(a.id)}')">Delete</button>
-     <button class="btn btn-primary" style="padding:6px 10px;font-size:12px" onclick="renewClientAd('${String(a.id)}')">Renew</button>
-    </div>
-   </div>
-  </article>`;
+    <div class="ad-meta" style="font-size:11px;line-height:1.45">${escapeDashboardText(a.category||"")}${a.subcategory?" · "+escapeDashboardText(a.subcategory):""}<br>📍 ${escapeDashboardText(a.area||"")}${a.area?", ":""}${escapeDashboardText(a.district||"")}<br>${escapeDashboardText(statusLabel)}${expiry?" · Expires "+escapeDashboardText(expiry):""}</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button class="btn btn-outline" style="padding:6px 10px;font-size:12px" onclick="editServerAd('${id}')">Edit</button><button class="btn btn-outline" style="padding:6px 10px;font-size:12px" onclick="deleteServerAd('${id}')">Delete</button>${state!=="inactive"?`<button class="btn btn-primary" style="padding:6px 10px;font-size:12px" onclick="renewClientAd('${id}')">Renew</button>`:""}</div>
+   </div></article>`;
  }).join("");
  const root=document.getElementById("myAdsPanel");
- if(root)root.innerHTML=`<div style="display:flex;gap:7px;flex-wrap:wrap;margin:10px 0 14px">${buttons}</div><div class="my24-ads-scroll">${cards||"<p>No published ads found in your account.</p>"}</div>`;
+ if(root)root.innerHTML=`<div class="myads-intro"><span class="myads-intro-icon">📢</span><div><b>My Ads</b><p>Manage all your ads in one place, renew expiring or expired ads, or add Premium Features.</p></div></div><div class="myads-tabs" role="tablist" aria-label="Filter my ads">${buttons}</div><div class="my24-ads-scroll">${cards||`<div class="myads-empty"><span>ⓘ</span><p>You currently have no ${tab==="all"?"published":tab} ads</p><button class="btn btn-primary" type="button" onclick="startPostAd()">＋ Post free ad</button></div>`}</div>`;
 }
 async function openClientDashboard(){
  try{
@@ -3290,7 +3290,7 @@ async function openClientDashboard(){
   if(!a24Token()){openModal("loginModal");return}
   const [me,own,msgs,coinHistory]=await Promise.all([a24Call("/api/client/me"),a24Call("/api/client/ads"),a24Call("/api/client/messages"),a24Call("/api/client/coin-transactions")]);
   const c=me.client,w=me.wallet,limits=me.freeAds,transactions=coinHistory.transactions||[];
-  const ads=(own.ads||[]).filter(a=>String(a.owner_client_id||"")===String(c.id)&&["approved","published","active"].includes(String(a.status||"").toLowerCase()));
+  const ads=(own.ads||[]).filter(a=>String(a.owner_client_id||"")===String(c.id));
   const messages=msgs.messages||[];window.__24adzCurrentClientId=c.id;window.__24adzOwnAds=ads;
   const threads={};
   messages.forEach(m=>{
@@ -3299,7 +3299,7 @@ async function openClientDashboard(){
    const k=String(m.ad_id)+"|"+String(peer);
    (threads[k]??={ad_id:m.ad_id,peer,messages:[]}).messages.push(m);
   });
-  const chatHtml=Object.values(threads).map(t=>{
+  const chatHtml=Object.values(threads).sort((a,b)=>Number(b.messages[b.messages.length-1]?.id||0)-Number(a.messages[a.messages.length-1]?.id||0)).map(t=>{
    const last=t.messages[t.messages.length-1];
    return `<article class="ad-card" style="padding:12px;margin:10px 0">
     <b>${escapeDashboardText(last.ad_title||("Ad conversation · "+String(t.ad_id)))}</b>
@@ -3311,19 +3311,23 @@ async function openClientDashboard(){
     </div></article>`;
   }).join("")||"<p>No customer conversations yet.</p>";
   document.getElementById("clientDashboardContent").innerHTML=`
-   <section class="panel" id="my24Menu"><h3>My24adz</h3><div class="my24-menu-grid my24-clean-menu">
-    <button class="btn btn-outline" onclick="my24Go('my24Profile')">Profile</button>
-    <button class="btn btn-outline" onclick="my24Go('my24Ads')">My Ads</button>
-    <button class="btn btn-primary" onclick="my24Go('my24Coins')">Coin Purchase</button>
-    <button class="btn btn-outline" onclick="clientLogout()">Logout</button>
-   </div></section>
-   <section class="panel my24-section" id="my24Profile" hidden><h3>Profile</h3><p><b>Account ID:</b> ${escapeDashboardText(c.account_id)}</p><p><b>Email:</b> ${escapeDashboardText(c.email)}</p>
+   <section class="panel my24-account-panel" id="my24Menu"><h3>My 24Adz</h3>
+    <div class="my24-account-hero"><span class="my24-avatar">${escapeDashboardText((c.name||c.email||"U").trim().charAt(0).toUpperCase())}</span><b>${escapeDashboardText(c.name||"24Adz Member")}</b><small>${escapeDashboardText(c.email||"")}</small><button type="button" class="btn btn-outline" onclick="my24Go('my24Profile')">View my profile</button></div>
+    <button class="my24-primary-action" type="button" onclick="startPostAd()">＋ &nbsp; Post a free ad <span>→</span></button>
+    <button class="my24-vip-action" type="button" onclick="my24Go('my24Coins')">♛ &nbsp; VIP / Coin Purchase <span>→</span></button>
+    <button class="my24-menu-row" type="button" onclick="my24Go('my24Profile')"><span>👤</span> Profile <b>›</b></button>
+    <button class="my24-menu-row" type="button" onclick="my24Go('my24Ads')"><span>📢</span> My Ads <b>›</b></button>
+    <button class="my24-menu-row" type="button" onclick="my24Go('my24Coins')"><span>👛</span> My Wallet <b>›</b></button>
+    <button class="my24-menu-row" type="button" onclick="my24Go('my24Messages')"><span>💬</span> Messages <b>›</b></button>
+    <button class="my24-menu-row" type="button" onclick="clientLogout()"><span>↪</span> Logout <b>›</b></button>
+   </section>
+   <section class="panel my24-section" id="my24Profile" hidden><button class="my24-back" type="button" onclick="my24Back()">← My 24Adz</button><h3>Profile</h3><p><b>Account ID:</b> ${escapeDashboardText(c.account_id)}</p><p><b>Email:</b> ${escapeDashboardText(c.email)}</p>
    <label>Full Name</label><input class="field" id="my24Name" value="${escapeDashboardText(c.name||"")}">
    <label>Registered Mobile Number (cannot be changed here)</label><input class="field" id="my24Mobile" type="tel" inputmode="numeric" maxlength="10" value="${escapeDashboardText(c.mobile||"")}" readonly aria-readonly="true">
    <button class="btn btn-primary" onclick="saveMy24Profile()">Save Profile</button></section>
-   <section class="panel my24-section" id="my24Coins" hidden><h3>Coin Purchase</h3><p><b>Available Coins:</b> ${Number(w.balance)||0}</p><p>Free Ads Used: ${Number(limits.mobileUsed)||0}/${Number(limits.mobileLimit)||0} · ${Number(limits.periodDays)||30} days</p><button class="btn btn-primary" onclick="showCoinPackages()">Purchase Coins</button><h4>Coin Transactions</h4>${transactions.map(t=>`<p>${escapeDashboardText(t.note||t.type)} · ${Number(t.coins)>0?"+":""}${Number(t.coins)} Coins · Balance ${Number(t.balance_after)} · ${escapeDashboardText(t.created_at||"")}</p>`).join("")||"<p>No coin transactions yet.</p>"}</section>
-   <section class="panel my24-section" id="my24Ads" hidden><h3>My Published Ads</h3><div id="myAdsPanel"></div></section>
-   <section class="panel my24-section" id="my24Messages" hidden><h3>Messages</h3><p class="muted">Customer and advertiser messages stay saved when either person is offline.</p>${chatHtml}</section>`;
+   <section class="panel my24-section" id="my24Coins" hidden><button class="my24-back" type="button" onclick="my24Back()">← My 24Adz</button><h3>My Wallet</h3><p><b>Available Coins:</b> ${Number(w.balance)||0}</p><p>Free Ads Used: ${Number(limits.mobileUsed)||0}/${Number(limits.mobileLimit)||0} · ${Number(limits.periodDays)||30} days</p><button class="btn btn-primary" onclick="showCoinPackages()">Purchase Coins</button><h4>Coin Transactions</h4>${transactions.map(t=>`<p>${escapeDashboardText(t.note||t.type)} · ${Number(t.coins)>0?"+":""}${Number(t.coins)} Coins · Balance ${Number(t.balance_after)} · ${escapeDashboardText(t.created_at||"")}</p>`).join("")||"<p>No coin transactions yet.</p>"}</section>
+   <section class="panel my24-section" id="my24Ads" hidden><button class="my24-back" type="button" onclick="my24Back()">← My 24Adz</button><h3>My Ads</h3><div id="myAdsPanel"></div></section>
+   <section class="panel my24-section" id="my24Messages" hidden><button class="my24-back" type="button" onclick="my24Back()">← My 24Adz</button><h3>Messages</h3><p class="muted">Customer and advertiser messages stay saved when either person is offline.</p>${chatHtml}</section>`;
   renderMyAdsTab("all");
   openModal("clientDashboardModal");
  }catch(e){toast(e.message||"Unable to open My24adz.")}
@@ -3331,9 +3335,18 @@ async function openClientDashboard(){
 function my24Go(id){
  const menu=document.getElementById("my24Menu");
  document.querySelectorAll("#clientDashboardContent .my24-section").forEach(el=>{el.hidden=el.id!==id;});
- if(menu)menu.hidden=false;
+ if(menu)menu.hidden=true;
  const target=document.getElementById(id);
- if(target)target.scrollIntoView({behavior:"smooth",block:"start"});
+ if(target){target.hidden=false;target.scrollIntoView({behavior:"smooth",block:"start"});}
+}
+function my24Back(){
+ document.querySelectorAll("#clientDashboardContent .my24-section").forEach(el=>el.hidden=true);
+ const menu=document.getElementById("my24Menu");
+ if(menu){menu.hidden=false;menu.scrollIntoView({behavior:"smooth",block:"start"});}
+}
+async function openMyAdsOnly(){
+ try{await openClientDashboard();if(a24Token())my24Go("my24Ads");}
+ catch(e){toast(e.message||"Unable to open My Ads.");}
 }
 async function saveMy24Profile(){try{await a24Call("/api/client/profile","PUT",{name:document.getElementById("my24Name").value});toast("Profile updated.");}catch(e){toast(e.message)}}
 async function renewClientAd(id){const days=Number(prompt("Auto Renew VIP duration\\nEnter 3, 5 or 7 days:","3"));if(![3,5,7].includes(days))return;if(!confirm(`Renew this published ad for ${days} days using Coins?`))return;try{const r=await a24Call("/api/client/ads/"+encodeURIComponent(id)+"/renew","POST",{days});toast(r.message||"Ad renewed.");openClientDashboard()}catch(e){toast(e.message)}}
@@ -3343,9 +3356,10 @@ async function renderCurrentChat(){
   const adId=document.getElementById("chatAdId").value,me=String(window.__24adzCurrentClientId||"");
   if(!adId||!me)return;
   const r=await a24Call("/api/client/messages");
-  const rows=(r.messages||[]).filter(m=>String(m.ad_id)===String(adId)&&[String(m.sender_client_id),String(m.receiver_client_id)].includes(me));
-  const peer=String(form.dataset.receiver||rows.map(m=>String(m.sender_client_id)===me?m.receiver_client_id:m.sender_client_id).find(Boolean)||"");
+  const conversationRows=(r.messages||[]).filter(m=>String(m.ad_id)===String(adId)&&[String(m.sender_client_id),String(m.receiver_client_id)].includes(me));
+  const peer=String(form.dataset.receiver||conversationRows.map(m=>String(m.sender_client_id)===me?m.receiver_client_id:m.sender_client_id).find(Boolean)||"");
   if(peer)form.dataset.receiver=peer;
+  const rows=peer?conversationRows.filter(m=>[String(m.sender_client_id),String(m.receiver_client_id)].includes(peer)):conversationRows;
   window.__24adzChatPeer=peer;
   document.getElementById("adChatHistory").innerHTML=rows.map(m=>`<p style="padding:7px 9px;margin:6px 0;border-radius:8px;background:${String(m.sender_client_id)===me?"rgba(255,145,0,.16)":"rgba(255,255,255,.07)"}"><b>${String(m.sender_client_id)===me?"You":"Customer / Advertiser"}:</b> ${escapeDashboardText(m.message)}<br><small>${escapeDashboardText(m.created_at||"")}</small></p>`).join("")||"Start this conversation.";
   document.getElementById("adChatHistory").scrollTop=document.getElementById("adChatHistory").scrollHeight;
@@ -3391,7 +3405,7 @@ async function getAdminWhatsApp(){try{const r=await fetch("/api/public/settings"
 async function syncAdminWhatsAppLinks(){const n=await getAdminWhatsApp(),link=document.getElementById("promoAdminWhatsApp"),coinLink=document.getElementById("coinPurchaseWhatsAppLink"),numberLabel=document.getElementById("coinPurchaseWhatsAppNumber");if(link)link.href="https://wa.me/91"+n+"?text="+encodeURIComponent("Hello Admin, I want to advertise on 24Adz.com. Please share the details.");if(coinLink)coinLink.href="https://wa.me/91"+n+"?text="+encodeURIComponent("Hello 24Adz Admin, I want to buy Coins.");if(numberLabel)numberLabel.textContent="+91 "+n;}
 syncAdminWhatsAppLinks();
 async function showCoinPackages(){if(!a24Token()){openModal("loginModal");toast("Please log in to request Coins for your My24adz wallet.");return;}const waWindow=window.open("about:blank","_blank");try{const data=await a24Call("/api/client/coin-packages"),packages=data.packages||[];const promptText="24Adz Coin Packages\n"+packages.map(x=>Number(x.coins).toLocaleString("en-IN")+" Coins – ₹"+Number(x.amount).toLocaleString("en-IN")).join("\n")+"\n\nEnter coin amount to purchase:";const coins=Number(prompt(promptText));if(!packages.some(x=>Number(x.coins)===coins)){if(waWindow)waWindow.close();return;}const r=await a24Call("/api/client/coin-requests","POST",{coins});const number=await getAdminWhatsApp();const message=`Hello 24Adz Admin, I want to purchase ${coins} Coins. Request ID: ${r.request_id}. Please share the official payment details.`;const waUrl="https://wa.me/91"+number+"?text="+encodeURIComponent(message);if(waWindow)waWindow.location.href=waUrl;else window.location.href=waUrl;toast("WhatsApp opened. Admin will credit coins after payment confirmation.")}catch(e){if(waWindow)waWindow.close();toast(e.message)}}
-async function openMessages(){try{await a24InitAuth();if(!a24Token()){openModal("loginModal");return}await openClientDashboard();setTimeout(()=>my24Go("my24Messages"),120)}catch(e){toast(e.message||"Unable to open Messages.")}}
+async function openMessages(){try{await a24InitAuth();if(!a24Token()){openModal("loginModal");return}await openClientDashboard();if(a24Token()&&document.getElementById("my24Messages"))my24Go("my24Messages")}catch(e){toast(e.message||"Unable to open Messages.")}}
 async function openAdChat(adId){try{await a24InitAuth();if(!a24Token()){openModal("loginModal");toast("Login to chat with the advertiser.");return}const me=await a24Call("/api/client/me");window.__24adzCurrentClientId=me.client?.id;window.__24adzChatPeer="";document.getElementById("adChatForm").dataset.receiver="";document.getElementById("chatAdId").value=adId;document.getElementById("chatMessage").disabled=false;document.getElementById("adChatForm").querySelector('[type="submit"]').disabled=false;document.getElementById("chatBlockButton").hidden=true;document.getElementById("adChatHistory").textContent="Send a message to start this conversation.";openModal("adChatModal");await renderCurrentChat()}catch(e){toast(e.message||"Chat is unavailable.")}}
 document.getElementById("adChatForm").addEventListener("submit",async e=>{e.preventDefault();try{const form=e.currentTarget,ad_id=document.getElementById("chatAdId").value,message=document.getElementById("chatMessage").value,peer=form.dataset.receiver;await a24Call(peer?"/api/client/chat/reply":"/api/client/chat","POST",peer?{ad_id,receiver_client_id:peer,message}:{ad_id,message});document.getElementById("chatMessage").value="";toast("Message sent.");await renderCurrentChat()}catch(x){toast(x.message)}});
 setInterval(()=>{const modal=document.getElementById("adChatModal");if(modal&&modal.classList.contains("open"))renderCurrentChat()},4000);
@@ -3601,6 +3615,13 @@ a24InitAuth().catch(e=>{console.warn("24Adz Supabase Auth:",e.message);toast(e.m
 
 </div>
 <div id="adDetailsModal" class="modal" hidden aria-hidden="true" onclick="if(event.target===this)closeAdDetails()"><div class="modal-box ad-details-box"><button type="button" class="modal-close" aria-label="Close" onclick="closeAdDetails()">×</button><div id="adDetailsBody"></div><div id="adDetailsActions" class="ad-details-sticky-actions" aria-label="Advertisement contact options"></div></div></div>
+<style id="24adz-locanto-navigation-fix">
+.myads-intro{display:flex;align-items:center;gap:14px;background:#eaf4fb;border-radius:10px;padding:16px;margin:8px 0 18px;color:#174e78}.myads-intro-icon{display:grid;place-items:center;flex:0 0 48px;height:48px;border-radius:12px;background:#075b98;color:white;font-size:25px}.myads-intro b{display:block;font-size:20px}.myads-intro p{margin:5px 0 0;line-height:1.45;color:#354b5b}
+.myads-tabs{display:flex;gap:0;overflow-x:auto;white-space:nowrap;border-bottom:1px solid #ddd;margin:0 0 16px;scrollbar-width:thin}.myads-tabs .btn{border:0!important;border-radius:0!important;background:transparent!important;color:#42484e!important;box-shadow:none!important;padding:12px 14px!important}.myads-tabs .btn-primary{color:#075b98!important;border-bottom:3px solid #075b98!important;font-weight:800}.myads-empty{text-align:center;padding:48px 12px;min-height:250px;color:#444}.myads-empty>span{display:block;font-size:46px;margin-bottom:16px}.myads-empty p{font-size:17px;margin:0 0 18px}
+.my24-account-panel{padding:0!important;overflow:hidden}.my24-account-panel>h3{padding:16px 18px;margin:0;background:#075b98;color:#fff}.my24-account-hero{display:flex;align-items:center;flex-direction:column;gap:7px;padding:22px 12px;background:linear-gradient(145deg,#182c42,#425a70);color:white;text-align:center}.my24-avatar{width:76px;height:76px;border-radius:50%;display:grid;place-items:center;background:#075b98;border:2px solid #fff;font-size:30px;font-weight:800}.my24-account-hero small{opacity:.85;overflow-wrap:anywhere}.my24-account-hero .btn{color:white;border-color:white}.my24-primary-action,.my24-vip-action{width:calc(100% - 32px);margin:12px 16px 0;padding:15px;border:0;border-radius:9px;background:linear-gradient(110deg,#075b98,#159bd0);color:#fff;text-align:left;font-size:16px;font-weight:700}.my24-primary-action span,.my24-vip-action span{float:right;font-size:22px}.my24-vip-action{margin-top:10px;background:linear-gradient(110deg,#ed3c78,#ff941e)}.my24-menu-row{width:100%;display:flex;align-items:center;gap:15px;padding:17px 18px;border:0;border-bottom:1px solid #e5e5e5;background:#fff;text-align:left;font-size:16px;color:#30343a;min-height:64px}.my24-menu-row span{width:32px;font-size:23px}.my24-menu-row b{margin-left:auto;font-size:24px;color:#777;font-weight:400}.my24-back{border:0;background:#eef4f8;color:#075b98;border-radius:8px;padding:9px 12px;font-weight:700;margin-bottom:12px}
+@media(max-width:600px){.myads-tabs .btn{font-size:13px!important;padding:12px 10px!important}.myads-intro{align-items:flex-start}.my24-ads-scroll{grid-template-columns:1fr}.my24-menu-row{min-height:62px}}
+</style>
+
 </body>
 </html>
 
