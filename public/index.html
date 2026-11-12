@@ -4747,6 +4747,105 @@ img { -webkit-user-drag: none; user-drag: none; }
 #myAdsPanel .my24-ads-scroll>.myads-empty p{max-width:100%!important;margin:0 auto 18px!important;line-height:1.5!important}
 #myAdsPanel .my24-ads-scroll>.myads-empty .btn{display:inline-flex!important;width:auto!important;max-width:100%!important;white-space:normal!important}
 </style>
+
+
+<!-- 24Adz: same compact horizontal mobile listing card on Home and My Ads -->
+<style id="24adz-matching-home-myads-card">
+@media (max-width: 600px) {
+  /* OLX-style reference dimensions: full-width horizontal card, image left, details right. */
+  #adsSection #adsList .ad-card,
+  #myAdsPanel .my24-ad-card {
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    height: clamp(270px, 45.5vw, 312px) !important;
+    min-height: clamp(270px, 45.5vw, 312px) !important;
+    max-height: 312px !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    border-radius: 9px !important;
+  }
+  #adsSection #adsList .ad-card > .ad-image,
+  #myAdsPanel .my24-ad-card > .ad-image {
+    box-sizing: border-box !important;
+    flex: 0 0 39% !important;
+    width: 39% !important;
+    height: 100% !important;
+    min-height: 100% !important;
+    max-height: none !important;
+    border-bottom: 0 !important;
+    border-right: 7px solid #ffb52e !important;
+    overflow: hidden !important;
+  }
+  #adsSection #adsList .ad-card > .ad-image img,
+  #myAdsPanel .my24-ad-card > .ad-image img,
+  #adsSection #adsList .ad-card > .ad-image .ad-artwork {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+  #adsSection #adsList .ad-card > .ad-body,
+  #myAdsPanel .my24-ad-card > .ad-body {
+    box-sizing: border-box !important;
+    flex: 1 1 61% !important;
+    width: 61% !important;
+    min-width: 0 !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    padding: 12px 11px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    overflow: hidden !important;
+  }
+  #adsSection #adsList .ad-card > .ad-body h3,
+  #myAdsPanel .my24-ad-card > .ad-body h3 {
+    font-size: 16px !important;
+    line-height: 1.25 !important;
+    margin: 5px 0 7px !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    white-space: normal !important;
+    overflow: hidden !important;
+  }
+  #adsSection #adsList .ad-card > .ad-body .ad-meta,
+  #myAdsPanel .my24-ad-card > .ad-body .ad-meta {
+    font-size: 11px !important;
+    line-height: 1.45 !important;
+    overflow: hidden !important;
+  }
+  #adsSection #adsList .ad-card > .ad-body .ad-price {
+    font-size: 17px !important;
+    margin: 8px 0 !important;
+  }
+  #adsSection #adsList .ad-card > .ad-body .ad-actions {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 3px !important;
+    width: 100% !important;
+    margin: auto 0 0 !important;
+  }
+  #adsSection #adsList .ad-card > .ad-body .ad-actions a,
+  #adsSection #adsList .ad-card > .ad-body .ad-actions button {
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+    min-height: 34px !important;
+    padding: 5px 2px !important;
+    font-size: 10px !important;
+    white-space: nowrap !important;
+  }
+  #adsSection #adsList .ad-card > .ad-body .ad-open-hint { display: none !important; }
+  #myAdsPanel .my24-ad-card > .ad-body .vip-ribbon { font-size: 8px !important; padding: 4px 6px !important; }
+  #myAdsPanel .my24-ad-card > .ad-body > div:last-child { margin-top: auto !important; }
+  #myAdsPanel .my24-ad-card > .ad-body > div:last-child button { padding: 6px 7px !important; font-size: 10px !important; }
+  #myAdsPanel .my24-ads-scroll { grid-template-columns: 1fr !important; gap: 12px !important; }
+}
+</style>
+
 </body>
 </html>
 
