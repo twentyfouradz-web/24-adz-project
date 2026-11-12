@@ -2328,7 +2328,7 @@ select option { color:#fff8ef; background:#15100c; }
       <button type="button" class="category personals-category" id="personalsCategory" aria-expanded="false" aria-controls="personalsSubcategories" onclick="toggleMainCategory('Personals',this)"><span class="ico">❤️</span><strong>Personals</strong></button>
     </div>
     <div class="personals-subcategory-panel" id="personalsSubcategories" hidden>
-      <h3 class="personals-subcategory-title">Personals <span>Categories</span></h3>
+      <div class="subcategory-screen-heading"><button type="button" class="subcategory-back" onclick="closeCategorySubcategories()">← Main Categories</button><h2 class="personals-subcategory-title"><span id="activeSubcategoryHeading">Categories</span></h2></div>
       <div class="categories personals-subcategories">
         <div class="category" onclick="chooseCategory('Massage & Spa',this)"><span class="ico" aria-hidden="true">💆‍♀️</span><strong>Massage & Spa</strong></div>
         <div class="category" onclick="chooseCategory('Full Body Massage',this)"><span class="ico">🧖</span><strong>Full Body Massage</strong></div>
@@ -2357,30 +2357,19 @@ select option { color:#fff8ef; background:#15100c; }
   </section>
 
   <section class="pricing-section" id="listingPlans">
-    <h2 class="section-title">Coin <span>Packages</span></h2>
-    <div class="price-dropdown-wrap">
-      <label class="price-dropdown-label" for="pricePlanSelect">Choose a Listing Plan</label>
-      <div class="coin-package-list" id="homepageCoinPackages" aria-live="polite">
-        <div class="coin-package-row"><strong>1,000 Coins</strong><span>₹1,000</span></div>
-        <div class="coin-package-row"><strong>2,000 Coins</strong><span>₹2,000</span></div>
-        <div class="coin-package-row"><strong>3,000 Coins</strong><span>₹3,000</span></div>
-        <div class="coin-package-row"><strong>4,000 Coins</strong><span>₹4,000</span></div>
-        <div class="coin-package-row"><strong>5,000 Coins</strong><span>₹5,000</span></div>
-      </div>
-      <p class="small-note">1 Coin = ₹1. Buy Coins for your My24Adz wallet; Admin confirms payment and credits the Coins.</p>
-    </div>
-    <p class="plan-note">Coin packages are priced at ₹1 per Coin. Contact Admin on WhatsApp after selecting a package; Coins are credited to your My24Adz wallet after payment confirmation.</p>
-    <div class="price-card" id="coinPurchaseContact" style="margin-top:16px;padding:18px;border:1px solid rgba(255,145,0,.45);border-radius:14px">
-      <h3 style="margin:0 0 8px">Purchase Coin Packages</h3>
+    <div class="coin-purchase-clean">
+      <div class="price-card" id="coinPurchaseContact" style="margin-top:16px;padding:18px;border:1px solid rgba(255,145,0,.45);border-radius:14px">
+      <h3 style="margin:0 0 8px">Buy Coins for Your Wallet</h3>
       <p style="margin:0 0 10px">After using your 3 free ads, contact Admin on WhatsApp to purchase Coins and continue posting or renew VIP ads.</p>
       
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <button type="button" class="btn btn-primary" onclick="showCoinPackages()">Buy Coins on WhatsApp</button>
         <a class="btn btn-outline" id="coinPurchaseWhatsAppLink" href="https://wa.me/918870017424?text=Hello%2024Adz%20Admin%2C%20I%20want%20to%20buy%20Coins." target="_blank" rel="noopener">Chat with Admin</a>
       </div>
-      <p class="small-note" style="margin-top:10px">Packages: 1,000 Coins = ₹1,000 · 2,000 = ₹2,000 · 3,000 = ₹3,000 · 4,000 = ₹4,000 · 5,000 = ₹5,000. Admin confirms payment and credits Coins to your My24Adz wallet.</p>
+      
     </div>
-   </section>
+    </div>
+  </section>
   <section class="district-quick-search" id="districtQuickSearch" aria-label="Search by district">
     <div class="district-search-heading">
       <span class="district-search-kicker">EXPLORE TAMIL NADU</span>
@@ -3039,7 +3028,7 @@ function resetDistrictListingFilters(){
   applyDistrictListingFilters();
 }
 function closeSearchResults(){
-  document.body.classList.remove("search-results-mode");
+  document.body.classList.remove("search-results-mode","category-subcategory-mode");
   document.getElementById("districtResultsFilters").hidden=true;
   document.getElementById("adsHeading").innerHTML='Latest <span>Listings</span>';
   activeDistrictListing="";
@@ -4419,10 +4408,11 @@ a24InitAuth().catch(e=>{console.warn("24Adz Supabase Auth:",e.message);toast(e.m
     document.querySelectorAll("#categories .category").forEach(x=>x.classList.toggle("active",!isOpen && x===el));
     const trigger=$("personalsCategory");
     if(trigger) trigger.setAttribute("aria-expanded",String(!isOpen && name==="Personals"));
-    if(isOpen) return;
+    if(isOpen){document.body.classList.remove("category-subcategory-mode");return;}
+    document.body.classList.add("category-subcategory-mode");
     let grid=$("dynamicSubcategoryGrid");
     if(!grid){
-      panel.innerHTML='<h3 class="personals-subcategory-title">Categories <span id="activeSubcategoryHeading"></span></h3><div class="categories personals-subcategories" id="dynamicSubcategoryGrid"></div>';
+      panel.innerHTML='<div class="subcategory-screen-heading"><button type="button" class="subcategory-back" onclick="closeCategorySubcategories()">← Main Categories</button><h2 class="personals-subcategory-title"><span id="activeSubcategoryHeading">Categories</span></h2></div><div class="categories personals-subcategories" id="dynamicSubcategoryGrid"></div>';
       grid=$("dynamicSubcategoryGrid");
     }
     const headingNow=$("activeSubcategoryHeading");
@@ -4456,7 +4446,16 @@ a24InitAuth().catch(e=>{console.warn("24Adz Supabase Auth:",e.message);toast(e.m
     if(el && el.parentElement) el.insertAdjacentElement("afterend",panel);
     panel.hidden=false;
     panel.style.display="block";
-    panel.scrollIntoView({behavior:"smooth",block:"start"});
+    window.scrollTo({top:0,behavior:"smooth"});
+  };
+  window.closeCategorySubcategories=function(){
+    document.body.classList.remove("category-subcategory-mode");
+    const panel=$("personalsSubcategories");
+    if(panel){panel.hidden=true;panel.dataset.category="";}
+    document.querySelectorAll("#categories .category").forEach(x=>x.classList.remove("active"));
+    const trigger=$("personalsCategory");
+    if(trigger)trigger.setAttribute("aria-expanded","false");
+    window.scrollTo({top:0,behavior:"smooth"});
   };
 })();
 </script>
@@ -4970,7 +4969,27 @@ img { -webkit-user-drag: none; user-drag: none; }
 }
 </style>
 
-</body>
+<style id="24adz-category-selection-screen-and-home-price-cleanup">
+body.category-subcategory-mode main{padding-top:18px!important;min-height:75vh}
+body.category-subcategory-mode main>section:not(#homeCategories),
+body.category-subcategory-mode .hero,
+body.category-subcategory-mode footer{display:none!important}
+body.category-subcategory-mode #homeCategories{display:block!important;min-height:75vh;padding:18px 14px 36px!important;margin:0 auto!important}
+body.category-subcategory-mode #homeCategories>.section-title,
+body.category-subcategory-mode #homeCategories>#categories{display:none!important}
+body.category-subcategory-mode #personalsSubcategories{display:block!important;visibility:visible!important;margin:0!important;padding:20px 16px 26px!important;border:1px solid rgba(255,145,0,.48)!important;border-radius:20px!important;background:radial-gradient(ellipse at top,rgba(255,120,0,.12),transparent 62%),linear-gradient(145deg,#17100b,#090909)!important;box-shadow:0 12px 36px rgba(0,0,0,.28),0 0 24px rgba(255,111,0,.06)!important}
+.subcategory-screen-heading{display:flex;flex-direction:column;align-items:flex-start;gap:18px;margin-bottom:20px}
+.subcategory-back{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;border:1px solid rgba(255,153,35,.6);border-radius:12px;background:#21150d;color:#ffad36;font-size:15px;font-weight:800}
+body.category-subcategory-mode .personals-subcategory-title{display:block!important;margin:0!important;padding:0!important;color:#ffad36!important;font-size:25px!important;font-weight:850!important;line-height:1.25!important}
+body.category-subcategory-mode .personals-subcategories{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important;margin:0!important}
+body.category-subcategory-mode .personals-subcategories .category{display:flex!important;min-height:112px!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:9px!important;padding:14px 9px!important;border:1px solid rgba(255,145,0,.42)!important;border-radius:15px!important;background:linear-gradient(145deg,#24170d,#100d0a)!important;color:#fff!important;text-align:center!important;box-shadow:inset 0 1px rgba(255,255,255,.025)!important}
+body.category-subcategory-mode .personals-subcategories .category .ico{font-size:27px!important}
+body.category-subcategory-mode .personals-subcategories .category strong{font-size:14px!important;line-height:1.3!important}
+#listingPlans .price-dropdown-wrap,#listingPlans .plan-note{display:none!important}
+#listingPlans .coin-purchase-clean{max-width:760px;margin:0 auto}
+#listingPlans .coin-purchase-clean .price-card{margin-top:0!important}
+@media(max-width:420px){body.category-subcategory-mode .personals-subcategories{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}body.category-subcategory-mode .personals-subcategories .category{min-height:102px!important}}
+</style></body>
 </html>
 
 <style id="24adz-client-panel-clean-v2">
