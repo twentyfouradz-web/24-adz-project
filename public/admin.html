@@ -10,9 +10,6 @@
 #catsList .cat-drag{color:#ff9b38;font-size:18px;padding-right:8px}
 #catsList .cat-hint{font-size:12px;color:#aaa;margin:8px 0 12px}
 
-.bulk-ad-card{border:1px solid #39332c;border-radius:12px;padding:14px;margin:12px 0;background:#171411}
-.bulk-ad-card h4{margin:0 0 8px;color:#ff9b38}.bulk-ad-card .bulk-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.bulk-ad-card textarea{min-height:74px}.bulk-ad-card .remove{background:#333;color:#fff}
-@media(max-width:700px){.bulk-ad-card .bulk-fields{grid-template-columns:1fr}}
 
 .admin-password-wrap{position:relative;display:flex;align-items:center}
 .admin-password-wrap input{padding-right:54px}
@@ -26,9 +23,6 @@
 </nav><main>
 <section id="dashboard" class="panel"><h2>Dashboard</h2><div class="stats" id="stats"></div><p class="muted">Live counts from your Cloudflare D1 database.</p></section>
 <section id="ads" class="panel hidden"><h2>Ads Management</h2>
-<div class="notice"><strong>Bulk Ads:</strong> Admin can create up to 100 listings in one submission. Every created listing is published as an active 7-day VIP listing, using the existing API behavior.</div>
-<div class="row" style="margin:12px 0"><button type="button" onclick="showBulkAds()">＋ Bulk Create (up to 100 Ads)</button><button type="button" onclick="hideBulkAds()" style="background:#333;color:white">Close Bulk Form</button></div>
-<div id="bulkAdsPanel" class="panel hidden" style="background:#101010;margin-bottom:16px"><div class="top"><h3>Bulk Ad Creator</h3><span id="bulkCount" class="muted">0 / 100 Ads</span></div><p class="muted">Fill each card separately. Choose a category or subcategory and district for every ad. Contact defaults to 9342427923; change it per listing if needed.</p><div id="bulkAdRows"></div><div class="row" style="margin-top:12px"><button type="button" onclick="addBulkRow()">＋ Add Another Ad</button><button type="button" onclick="submitBulkAds()">Publish All Ads</button></div><div id="bulkMsg" class="muted" style="margin-top:10px"></div></div>
 <div class="grid2"><div><label>Title</label><input id="adTitle"><label>Description</label><textarea id="adDesc"></textarea><label>Category</label><select id="adCat" onchange="renderCategoryAdFields();populateAdSubcategories()"><option value="">Loading categories...</option></select><label>Subcategory</label><select id="adSubcategory"><option value="">Select subcategory</option></select><div id="categoryAdFields" class="notice hidden" style="margin-top:10px"></div><label>District *</label><select id="adDistrict" required><option value="">Loading all 38 districts...</option></select><label>Area</label><input id="adArea"><label>Price</label><input id="adPrice"><label>Phone</label><input id="adPhone"><label>WhatsApp</label><input id="adWhats"><label>Upload Ad Image (JPG, PNG, WEBP, GIF, AVIF, BMP — max 5 MB)</label><input id="adImageFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/bmp"><button type="button" onclick="uploadAdImage()">Upload Image to R2</button><div id="imageUploadMsg" class="muted" style="margin:8px 0"></div><label>Image URL (auto-filled after upload, or paste a URL)</label><input id="adImage" placeholder="https://... or upload an image above"><button onclick="addAd()">Create Ad</button></div><div><h3>All Ads</h3><div id="adsList"></div></div></div></section>
 <section id="districts" class="panel hidden"><h2>District Management</h2><p class="muted">Only Admin can add, edit or delete districts. Public visitors can only view district names.</p><div class="grid2"><div><label>District Name</label><input id="districtName" placeholder="Enter district name"><input id="districtEditId" type="hidden"><div class="row" style="margin-top:12px"><button onclick="saveDistrict()">Save District</button><button type="button" onclick="resetDistrictForm()" style="background:#333;color:white">Clear</button></div><div id="districtMsg" class="muted" style="margin-top:8px"></div></div><div><h3>Existing Districts</h3><div id="districtsList">Loading...</div></div></div></section>
 <section id="areas" class="panel hidden"><h2>Area Management</h2><p class="muted">Add, edit or remove local areas under each district. This requires the existing D1 areas table with district_id and name columns.</p><div class="grid2"><div><input id="areaEditId" type="hidden"><label>District</label><select id="areaDistrict"><option value="">Select district</option></select><label>Area Name</label><input id="areaName" placeholder="Enter area name"><div class="row" style="margin-top:12px"><button onclick="saveArea()">Save Area</button><button type="button" onclick="resetAreaForm()" style="background:#333;color:white">Clear</button></div><div id="areaMsg" class="muted"></div></div><div><label>Filter District</label><select id="areaFilterDistrict" onchange="loadAreas()"><option value="">All districts</option></select><div id="areasList">Loading...</div></div></div></section>
@@ -162,13 +156,6 @@ function renderCategoryAdFields(){
  }).join('')+'</div><small class="muted">These fields appear only for the selected category and are saved with the advertisement details.</small>';
  box.dataset.fields=JSON.stringify(def.fields.map((f,i)=>({id:'catDetail'+i,label:f[0]})));
 }
-function renderBulkCategoryFields(card){
- const def=categoryFieldDefinition(card.querySelector('.b-category').value),box=card.querySelector('.b-category-fields');
- if(!def){box.innerHTML='';box.dataset.fields='[]';return}
- box.innerHTML='<strong>'+def.title+'</strong><div class="bulk-fields">'+def.fields.map((f,i)=>{const id='bcat-'+i,type=f[1],label=f[0];if(type.startsWith('select:'))return '<div><label>'+label+'</label><select data-cat-label="'+label+'"><option value="">Select</option>'+type.slice(7).split(',').map(v=>'<option>'+v+'</option>').join('')+'</select></div>';return '<div><label>'+label+'</label><input data-cat-label="'+label+'" type="'+type+'" placeholder="'+label+'"></div>'}).join('')+'</div>';
- box.dataset.fields='1';
-}
-function bulkCategoryDetails(card){const box=card.querySelector('.b-category-fields');return [...box.querySelectorAll('[data-cat-label]')].map(el=>({label:el.dataset.catLabel,value:el.value.trim()})).filter(x=>x.value).map(x=>x.label+': '+x.value).join('\n');}
 function categoryAdDetails(){
  const box=document.getElementById('categoryAdFields');if(box.classList.contains('hidden'))return '';
  let fields=[];try{fields=JSON.parse(box.dataset.fields||'[]')}catch{}
@@ -220,52 +207,6 @@ async function delAd(id){
   alert('Ad deleted successfully.');
   await loadAds();
  }catch(e){alert('Delete failed: '+e.message);await loadAds()}
-}
-let bulkDistricts=[];
-function categoryOptionsHtml(){
- const active=categoryCache.filter(x=>Number(x.active)!==0);
- const mains=active.filter(x=>!x.parent_id).sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0));
- return '<option value="">Select category / subcategory</option>'+mains.map(m=>{
-  const subs=active.filter(x=>String(x.parent_id)===String(m.id)).sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0));
-  return `<optgroup label="${esc(m.icon||'◆')} ${esc(m.name)}"><option value="${esc(m.name)}">${esc(m.name)} (Main)</option>${subs.map(x=>`<option value="${esc(m.name+"::"+x.name)}">↳ ${esc(x.name)}</option>`).join('')}</optgroup>`;
- }).join('');
-}
-async function prepareBulkData(){
- const [cats,dists]=await Promise.all([call('/api/admin/categories'),call('/api/public/districts')]);
- categoryCache=cats.categories||[];
- bulkDistricts=(dists.districts||[]).map(x=>String(x.name||x.district_name||'').trim()).filter(Boolean);
- if(!bulkDistricts.length)bulkDistricts=['Ariyalur','Chengalpattu','Chennai','Coimbatore','Cuddalore','Dharmapuri','Dindigul','Erode','Kallakurichi','Kancheepuram','Karur','Krishnagiri','Madurai','Mayiladuthurai','Nagapattinam','Kanniyakumari','Namakkal','Perambalur','Pudukkottai','Ramanathapuram','Ranipet','Salem','Sivaganga','Tenkasi','Thanjavur','Theni','Thoothukudi','Tiruchirappalli','Tirunelveli','Tirupathur','Tiruppur','Tiruvallur','Tiruvannamalai','Tiruvarur','Vellore','Viluppuram','Virudhunagar','The Nilgiris'];
-}
-function showBulkAds(){document.getElementById('bulkAdsPanel').classList.remove('hidden');if(!document.querySelector('.bulk-ad-card'))addBulkRow();prepareBulkData().then(()=>document.querySelectorAll('.bulk-ad-card').forEach(c=>{const cat=c.querySelector('.b-category'),cv=cat.value;cat.innerHTML=categoryOptionsHtml();cat.value=cv;const d=c.querySelector('.b-district'),dv=d.value;d.innerHTML='<option value="">Select district</option>'+bulkDistricts.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');d.value=dv})).catch(e=>document.getElementById('bulkMsg').textContent='Could not load categories/districts: '+e.message)}
-function hideBulkAds(){document.getElementById('bulkAdsPanel').classList.add('hidden')}
-function addBulkRow(data={}){
- const wrap=document.getElementById('bulkAdRows');const count=wrap.querySelectorAll('.bulk-ad-card').length;if(count>=100){alert('Maximum 100 ads per batch.');return}
- const card=document.createElement('div');card.className='bulk-ad-card';
- const opts=categoryOptionsHtml();const districts=bulkDistricts.length?bulkDistricts:['Tiruppur','Coimbatore','Karur','Namakkal','Erode','Thanjavur'];
- card.innerHTML=`<div class="top"><h4>Ad #${count+1}</h4><button type="button" class="remove" onclick="this.closest('.bulk-ad-card').remove();renumberBulkRows()">Remove</button></div><div class="bulk-fields">
- <div><label>Ad Title *</label><input class="b-title" maxlength="160" placeholder="Business / service title" value="${esc(data.title||'')}"></div>
- <div><label>Category / Subcategory *</label><select class="b-category">${opts}</select></div>
- <div class="b-category-fields" style="grid-column:1/-1"></div>
- <div><label>District *</label><select class="b-district"><option value="">Select district</option>${districts.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('')}</select></div>
- <div><label>Area / Locality</label><input class="b-area" placeholder="All Areas or exact area" value="${esc(data.area||'All Areas')}"></div>
- <div><label>Price / Starting Price</label><input class="b-price" placeholder="e.g. Contact for price" value="${esc(data.price||'')}"></div>
- <div><label>Phone / Call Number *</label><input class="b-phone" inputmode="numeric" value="${esc(data.phone||'9342427923')}"></div>
- <div><label>WhatsApp Number *</label><input class="b-whatsapp" inputmode="numeric" value="${esc(data.whatsapp||'9342427923')}"></div>
- <div><label>Image URL (optional)</label><input class="b-image" placeholder="R2 image URL" value="${esc(data.image_url||'')}"></div>
- <div style="grid-column:1/-1"><label>Description / Full Details *</label><textarea class="b-description" maxlength="5000" placeholder="Write accurate service details, timings, facilities and terms">${esc(data.description||'')}</textarea></div>
- </div>`;
- wrap.appendChild(card);card.querySelector('.b-category').value=data.category||'';card.querySelector('.b-category').addEventListener('change',()=>renderBulkCategoryFields(card));renderBulkCategoryFields(card);card.querySelector('.b-district').value=data.district||'';renumberBulkRows();
-}
-function renumberBulkRows(){const cards=[...document.querySelectorAll('.bulk-ad-card')];cards.forEach((c,i)=>c.querySelector('h4').textContent='Ad #'+(i+1));document.getElementById('bulkCount').textContent=cards.length+' / 100 Ads'}
-async function submitBulkAds(){
- const cards=[...document.querySelectorAll('.bulk-ad-card')];const msg=document.getElementById('bulkMsg');
- if(!cards.length){msg.textContent='Add at least one ad.';return}if(cards.length>100){msg.textContent='Maximum 100 ads per batch.';return}
- const ads=cards.map(c=>{const picked=c.querySelector('.b-category').value.split('::');const category=picked[0]||'',subcategory=picked[1]||'';return {title:c.querySelector('.b-title').value.trim(),category,subcategory,category_details:{subcategory},district:c.querySelector('.b-district').value,area:c.querySelector('.b-area').value.trim(),price:c.querySelector('.b-price').value.trim(),phone:c.querySelector('.b-phone').value.trim(),whatsapp:c.querySelector('.b-whatsapp').value.trim(),image_url:c.querySelector('.b-image').value.trim(),description:c.querySelector('.b-description').value.trim()+(bulkCategoryDetails(c)?'\n\n--- CATEGORY DETAILS ---\n'+bulkCategoryDetails(c):'')}});
- const invalid=ads.findIndex(a=>!a.title||!a.category||!a.district||!a.description||!/^\d{10}$/.test(a.phone.replace(/\D/g,''))||!/^\d{10}$/.test(a.whatsapp.replace(/\D/g,'')));
- if(invalid>=0){msg.textContent='Ad #'+(invalid+1)+': title, category, district, description and valid 10-digit phone/WhatsApp numbers are required.';cards[invalid].scrollIntoView({behavior:'smooth',block:'center'});return}
- if(!confirm('Publish '+ads.length+' ads now? Every ad will be published and receive the existing 7-day VIP promotion.'))return;
- msg.textContent='Publishing '+ads.length+' ads...';
- try{const result=await call('/api/admin/ads/bulk','POST',{action:'create',ads});msg.textContent='Success! '+result.created+' ads published. Each ad has its own Call / WhatsApp contact details and 7-day VIP status.';document.getElementById('bulkAdRows').innerHTML='';addBulkRow();await loadAds();await loadVip()}catch(e){msg.textContent='Bulk publish failed: '+e.message}
 }
 function slugify(value){return String(value||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')}
 document.addEventListener('DOMContentLoaded',()=>{
