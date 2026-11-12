@@ -10,7 +10,7 @@ var uid = /* @__PURE__ */ __name(() => crypto.randomUUID(), "uid");
 var str = /* @__PURE__ */ __name((v, n = 5e3) => String(v ?? "").trim().slice(0, n), "str");
 var digits = /* @__PURE__ */ __name((v) => String(v ?? "").replace(/\D/g, ""), "digits");
 var validMobile = /* @__PURE__ */ __name((v) => /^[6-9]\d{9}$/.test(v), "validMobile");
-var reply = /* @__PURE__ */ __name((data, status = 200, origin = "*") => new Response(JSON.stringify(data), { status, headers: { ...JSON_HEADERS, "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Headers": "Content-Type, Authorization", "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS", "Vary": "Origin" } }), "reply");
+var reply = /* @__PURE__ */ __name((data, status = 200, origin = "https://www.24adz.com") => new Response(JSON.stringify(data), { status, headers: { ...JSON_HEADERS, "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Headers": "Content-Type, Authorization", "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS", "X-Content-Type-Options": "nosniff", "X-Frame-Options": "DENY", "Referrer-Policy": "strict-origin-when-cross-origin", "Permissions-Policy": "camera=(), microphone=(), geolocation=()", "Cross-Origin-Resource-Policy": "same-site", "Vary": "Origin" } }), "reply");
 var fail = /* @__PURE__ */ __name((message, status = 400, origin = "*") => reply({ success: false, error: message }, status, origin), "fail");
 var readBody = /* @__PURE__ */ __name(async (req) => {
   try {
@@ -195,9 +195,10 @@ async function listAreas(db, district) {
 __name(listAreas, "listAreas");
 var index_default = { async fetch(req, env) {
   const url = new URL(req.url), p = url.pathname.replace(/\/+$/, "") || "/";
-  const configured = env.ALLOWED_ORIGIN || "*", origin = req.headers.get("Origin") || "*";
-  const allow = configured === "*" || origin === configured ? configured : "null";
-  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: { "Access-Control-Allow-Origin": allow, "Access-Control-Allow-Headers": "Content-Type, Authorization", "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS", "Vary": "Origin" } });
+  const origin = req.headers.get("Origin") || "";
+  const allowedOrigins = (env.ALLOWED_ORIGIN ? String(env.ALLOWED_ORIGIN).split(",").map(v => v.trim()) : ["https://24adz.com", "https://www.24adz.com"]);
+  const allow = !origin ? "https://www.24adz.com" : (allowedOrigins.includes("*") || allowedOrigins.includes(origin) ? origin : "null");
+  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: { "Access-Control-Allow-Origin": allow, "Access-Control-Allow-Headers": "Content-Type, Authorization", "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS", "X-Content-Type-Options": "nosniff", "X-Frame-Options": "DENY", "Referrer-Policy": "strict-origin-when-cross-origin", "Permissions-Policy": "camera=(), microphone=(), geolocation=()", "Cross-Origin-Resource-Policy": "same-site", "Vary": "Origin" } });
   if (!p.startsWith("/api/")) {
     const seoResponse = await handleSeoRequest(req, env);
     if (seoResponse) return seoResponse;
@@ -874,52 +875,6 @@ var index_default = { async fetch(req, env) {
       const vipAmount = Number(pricing["7"]) || 0;
       await run(env.DB, "INSERT INTO vip_promotions(ad_id,days,amount,status,reference,created_at) VALUES(?,?,?,?,?,datetime('now'))", a.id, 7, vipAmount, "active", "ADMIN_AUTO_VIP");
       return out({ success: true, id: a.id, status: "approved", plan: "VIP 7 Days", message: "Advertisement published with VIP card for 7 days" });
-    }
-    if (p === "/api/admin/ads/bulk" && req.method === "POST") {
-      const b = await readBody(req) || {}, action = str(b.action || "create", 20), items = Array.isArray(b.ads) ? b.ads : [];
-      if (action === "create") {
-        if (!items.length || items.length > 100) return bad("Provide between 1 and 100 ads");
-        const created = [];
-        for (const item of items) {
-          const a = safeAd(item, null, "approved");
-          if (!a.title || !a.category || !a.district) return bad("Every ad requires title, category and district");
-          const categoryError = await validateAdCategory(env.DB, a.category, a.details_json);
-          if (categoryError) return bad(categoryError);
-          const contentError = await validateAdContent(env.DB, a);
-          if (contentError) return bad(contentError);
-          await saveAd(env.DB, a);
-          let pricing = { "3": 300, "5": 500, "7": 700 };
-          try {
-            const pr = await first(env.DB, "SELECT value FROM settings WHERE key='vip_pricing'");
-            if (pr?.value) pricing = { ...pricing, ...JSON.parse(pr.value) };
-          } catch {
-          }
-          const amount = Number(pricing["7"]) || 0;
-          await run(env.DB, "INSERT INTO vip_promotions(ad_id,days,amount,status,reference,created_at) VALUES(?,?,?,?,?,datetime('now'))", a.id, 7, amount, "active", "ADMIN_BULK_VIP");
-          created.push(a.id);
-        }
-        return out({ success: true, created: created.length, ids: created }, 201);
-      }
-      const ids = Array.isArray(b.ids) ? b.ids.map((x) => str(x, 100)).filter(Boolean) : [];
-      if (!ids.length || ids.length > 500) return bad("Provide between 1 and 500 ad IDs");
-      if (action === "delete") {
-        for (const id of ids) {
-          const row = await first(env.DB, "SELECT image_url FROM ads WHERE id=?", id);
-          if (row?.image_url && env.IMAGES) {
-            const m = String(row.image_url).match(/\/api\/images\/(.+)$/);
-            if (m) await env.IMAGES.delete(m[1]).catch(() => {
-            });
-          }
-          await run(env.DB, "DELETE FROM ads WHERE id=?", id);
-        }
-        return out({ success: true, deleted: ids.length });
-      }
-      if (action === "status") {
-        if (!["approved", "paused", "rejected", "pending"].includes(b.status)) return bad("Invalid bulk ad status");
-        for (const id of ids) await run(env.DB, "UPDATE ads SET status=? WHERE id=?", b.status, id);
-        return out({ success: true, updated: ids.length, status: b.status });
-      }
-      return bad("Bulk action must be create, delete or status");
     }
     const ad = p.match(/^\/api\/admin\/ads\/([^/]+)$/);
     if (ad && req.method === "PATCH") {
