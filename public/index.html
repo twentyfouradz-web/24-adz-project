@@ -4909,157 +4909,6 @@ img { -webkit-user-drag: none; user-drag: none; }
 #myAdsPanel .my24-ads-scroll>.myads-empty p{max-width:100%!important;margin:0 auto 18px!important;line-height:1.5!important}
 #myAdsPanel .my24-ads-scroll>.myads-empty .btn{display:inline-flex!important;width:auto!important;max-width:100%!important;white-space:normal!important}
 </style>
-
-<style id="24adz-final-published-card-mobile-layout">
-/* Homepage published ads: one compact horizontal card per row.
-   Shared .ad-card renderer means this applies to every main category and subcategory. */
-@media (max-width: 600px) {
-  #adsSection .ads,
-  #adsList.ads {
-    display:grid!important;
-    grid-template-columns:minmax(0,1fr)!important;
-    gap:9px!important;
-    align-items:stretch!important;
-    width:100%!important;
-  }
-  #adsSection .ad-card,
-  #adsList .ad-card {
-    display:grid!important;
-    grid-template-columns:32% minmax(0,1fr)!important;
-    grid-template-rows:minmax(0,1fr)!important;
-    width:100%!important;
-    height:138px!important;
-    min-height:138px!important;
-    max-height:138px!important;
-    margin:0!important;
-    border-radius:12px!important;
-    overflow:hidden!important;
-    box-sizing:border-box!important;
-  }
-  #adsSection .ad-card > .ad-image,
-  #adsList .ad-card > .ad-image {
-    grid-column:1!important;
-    grid-row:1!important;
-    width:100%!important;
-    height:138px!important;
-    min-height:138px!important;
-    max-height:138px!important;
-    border-right:3px solid #ffad24!important;
-    border-bottom:0!important;
-    overflow:hidden!important;
-  }
-  #adsSection .ad-card > .ad-image img,
-  #adsList .ad-card > .ad-image img,
-  #adsSection .ad-card > .ad-image .ad-artwork,
-  #adsList .ad-card > .ad-image .ad-artwork {
-    display:block!important;
-    width:100%!important;
-    height:100%!important;
-    object-fit:cover!important;
-  }
-  #adsSection .ad-card > .ad-body,
-  #adsList .ad-card > .ad-body {
-    grid-column:2!important;
-    grid-row:1!important;
-    display:flex!important;
-    flex-direction:column!important;
-    justify-content:center!important;
-    align-items:stretch!important;
-    gap:2px!important;
-    width:100%!important;
-    min-width:0!important;
-    height:138px!important;
-    min-height:0!important;
-    max-height:138px!important;
-    padding:7px 8px!important;
-    overflow:hidden!important;
-    box-sizing:border-box!important;
-  }
-  #adsSection .ad-card .vip-ribbon,
-  #adsList .ad-card .vip-ribbon {
-    align-self:flex-start!important;
-    max-width:100%!important;
-    padding:2px 6px!important;
-    margin:0 0 2px!important;
-    font-size:8px!important;
-    line-height:1.2!important;
-    letter-spacing:.35px!important;
-    white-space:nowrap!important;
-    overflow:hidden!important;
-    text-overflow:ellipsis!important;
-  }
-  #adsSection .ad-card .ad-body h3,
-  #adsList .ad-card .ad-body h3 {
-    display:-webkit-box!important;
-    -webkit-box-orient:vertical!important;
-    -webkit-line-clamp:2!important;
-    max-height:29px!important;
-    min-height:0!important;
-    margin:1px 0!important;
-    overflow:hidden!important;
-    overflow-wrap:anywhere!important;
-    font-size:11px!important;
-    line-height:1.3!important;
-  }
-  #adsSection .ad-card .ad-meta,
-  #adsList .ad-card .ad-meta {
-    display:block!important;
-    max-height:27px!important;
-    margin:0!important;
-    overflow:hidden!important;
-    font-size:9px!important;
-    line-height:1.3!important;
-  }
-  #adsSection .ad-card .ad-meta > div,
-  #adsList .ad-card .ad-meta > div {display:none!important}
-  #adsSection .ad-card .ad-meta > div:nth-child(1),
-  #adsList .ad-card .ad-meta > div:nth-child(1),
-  #adsSection .ad-card .ad-meta > div:nth-child(3),
-  #adsList .ad-card .ad-meta > div:nth-child(3) {display:block!important}
-  #adsSection .ad-card .ad-price,
-  #adsList .ad-card .ad-price {
-    margin:2px 0!important;
-    font-size:12px!important;
-    line-height:1.2!important;
-    font-weight:900!important;
-    overflow:hidden!important;
-    text-overflow:ellipsis!important;
-    white-space:nowrap!important;
-  }
-  #adsSection .ad-card .ad-actions,
-  #adsList .ad-card .ad-actions {
-    display:flex!important;
-    flex-direction:row!important;
-    flex-wrap:nowrap!important;
-    gap:4px!important;
-    margin:3px 0 0!important;
-    min-width:0!important;
-  }
-  #adsSection .ad-card .ad-actions a,
-  #adsSection .ad-card .ad-actions button,
-  #adsList .ad-card .ad-actions a,
-  #adsList .ad-card .ad-actions button {
-    display:inline-flex!important;
-    align-items:center!important;
-    justify-content:center!important;
-    flex:1 1 0!important;
-    min-width:0!important;
-    min-height:22px!important;
-    max-height:23px!important;
-    padding:2px 4px!important;
-    border-radius:6px!important;
-    font-size:8px!important;
-    line-height:1!important;
-    white-space:nowrap!important;
-    overflow:hidden!important;
-  }
-  #adsSection .ad-card .ad-open-hint,
-  #adsList .ad-card .ad-open-hint {display:none!important}
-  #adsSection .ads-pagination,
-  #adsList .ads-pagination {margin:12px 0 24px!important}
-}
-</style>
-
 </body>
 </html>
 
@@ -5305,3 +5154,156 @@ img { -webkit-user-drag: none; user-drag: none; }
 }
 
 </style>
+
+<style id="24adz-published-card-final-cascade-fix">
+/* This block is intentionally last: the source file contains later legacy rules
+   that previously overrode earlier mobile card styles. */
+@media screen and (max-width:600px) {
+  html body #adsSection #adsList.ads {
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-auto-flow:row!important;
+    gap:9px!important;
+    width:100%!important;
+    align-items:stretch!important;
+  }
+  html body #adsSection #adsList .ad-card,
+  html body #adsSection #adsList .ad-card.vip-ad-card {
+    display:grid!important;
+    grid-template-columns:32% minmax(0,1fr)!important;
+    grid-template-rows:138px!important;
+    grid-auto-rows:0!important;
+    width:100%!important;
+    min-width:0!important;
+    height:138px!important;
+    min-height:138px!important;
+    max-height:138px!important;
+    padding:0!important;
+    margin:0!important;
+    gap:0!important;
+    overflow:hidden!important;
+    box-sizing:border-box!important;
+    border-radius:12px!important;
+    align-self:stretch!important;
+  }
+  html body #adsSection #adsList .ad-card > .ad-image {
+    grid-column:1!important;
+    grid-row:1!important;
+    width:100%!important;
+    height:138px!important;
+    min-height:138px!important;
+    max-height:138px!important;
+    margin:0!important;
+    padding:0!important;
+    flex:none!important;
+    border-right:3px solid #ffad24!important;
+    border-bottom:0!important;
+    overflow:hidden!important;
+  }
+  html body #adsSection #adsList .ad-card > .ad-image img,
+  html body #adsSection #adsList .ad-card > .ad-image .ad-artwork {
+    display:block!important;
+    width:100%!important;
+    height:100%!important;
+    object-fit:cover!important;
+  }
+  html body #adsSection #adsList .ad-card > .ad-body {
+    grid-column:2!important;
+    grid-row:1!important;
+    display:flex!important;
+    flex-direction:column!important;
+    justify-content:center!important;
+    align-items:stretch!important;
+    min-width:0!important;
+    width:100%!important;
+    height:138px!important;
+    min-height:0!important;
+    max-height:138px!important;
+    padding:7px 8px!important;
+    margin:0!important;
+    gap:2px!important;
+    overflow:hidden!important;
+    box-sizing:border-box!important;
+  }
+  html body #adsSection #adsList .ad-card .vip-ribbon {
+    display:inline-flex!important;
+    align-self:flex-start!important;
+    max-width:100%!important;
+    margin:0 0 2px!important;
+    padding:2px 6px!important;
+    font-size:8px!important;
+    line-height:1.2!important;
+    letter-spacing:.3px!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  html body #adsSection #adsList .ad-card .ad-body h3 {
+    display:-webkit-box!important;
+    -webkit-box-orient:vertical!important;
+    -webkit-line-clamp:2!important;
+    min-width:0!important;
+    min-height:0!important;
+    max-height:29px!important;
+    margin:1px 0!important;
+    padding:0!important;
+    overflow:hidden!important;
+    overflow-wrap:anywhere!important;
+    white-space:normal!important;
+    font-size:11px!important;
+    line-height:1.3!important;
+  }
+  html body #adsSection #adsList .ad-card .ad-meta {
+    display:block!important;
+    min-width:0!important;
+    max-height:25px!important;
+    margin:0!important;
+    overflow:hidden!important;
+    font-size:9px!important;
+    line-height:1.3!important;
+  }
+  html body #adsSection #adsList .ad-card .ad-meta > div {display:none!important}
+  html body #adsSection #adsList .ad-card .ad-meta > div:nth-child(1),
+  html body #adsSection #adsList .ad-card .ad-meta > div:nth-child(3) {display:block!important}
+  html body #adsSection #adsList .ad-card .ad-price {
+    display:block!important;
+    min-width:0!important;
+    margin:2px 0!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+    font-size:12px!important;
+    line-height:1.2!important;
+    font-weight:900!important;
+  }
+  html body #adsSection #adsList .ad-card .ad-actions {
+    display:flex!important;
+    flex-direction:row!important;
+    flex-wrap:nowrap!important;
+    gap:4px!important;
+    min-width:0!important;
+    margin:2px 0 0!important;
+    padding:0!important;
+  }
+  html body #adsSection #adsList .ad-card .ad-actions a,
+  html body #adsSection #adsList .ad-card .ad-actions button {
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    flex:1 1 0!important;
+    min-width:0!important;
+    min-height:22px!important;
+    max-height:23px!important;
+    margin:0!important;
+    padding:2px 3px!important;
+    border-radius:6px!important;
+    font-size:8px!important;
+    line-height:1!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+  }
+  html body #adsSection #adsList .ad-card .ad-open-hint {display:none!important}
+  html body #adsSection #adsPagination {margin:12px 0 24px!important}
+}
+</style>
+
