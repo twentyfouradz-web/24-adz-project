@@ -2448,7 +2448,7 @@ function categoryArtwork(category){
     <circle cx="320" cy="135" r="180" fill="url(#artglow)"/>
     <circle cx="320" cy="135" r="93" fill="none" stroke="${a.c1}" stroke-opacity=".26" stroke-width="2"/>
     <circle cx="320" cy="135" r="112" fill="none" stroke="${a.c1}" stroke-opacity=".12" stroke-width="1"/>
-    <text x="320" y="166" text-anchor="middle" font-size="104">${a.icon}</text>
+    <text x="320" y="166" text-anchor="middle" font-size="128">${a.icon}</text>
     <path d="M75 252H565" stroke="${a.c1}" stroke-opacity=".38" stroke-width="2"/>
     <text x="320" y="279" text-anchor="middle" fill="#fff0d8" font-size="18" font-weight="700" letter-spacing="5">${a.label}</text>
   </svg>`;
@@ -2515,22 +2515,61 @@ function adWhatsAppNumber(a){const n=digits(a.whatsapp||a.phone);return n.length
 function renderAdCard(a){
   const vip=isVipAd(a), contact=adContactPolicy(a);
   const id=escapeAttr(a.id);
-  return `<article class="ad-card ${vip?"vip-ad-card":"free-ad-card"}" style="height:288px;min-height:288px;max-height:288px;overflow:hidden" role="button" tabindex="0" aria-label="Open ${escapeAttr(a.title||"advertisement")}" onclick="openAdDetails('${id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openAdDetails('${id}')}">
+  const details=(()=>{try{return JSON.parse(a.details_json||"{}")}catch(_){return {}}})();
+  const subcategory=a.subcategory||details.subcategory||"";
+  const district=a.district||"";
+  const area=a.area||"";
+  const callHref=String(a.phone||"").replace(/[^+0-9]/g,"");
+  return `<article class="ad-card ${vip?"vip-ad-card":"free-ad-card"}" role="button" tabindex="0" aria-label="Open ${escapeAttr(a.title||"advertisement")}" onclick="openAdDetails('${id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openAdDetails('${id}')}">
     <div class="ad-image">${a.image?`<img loading="lazy" decoding="async" src="${escapeAttr(a.image)}" alt="${escapeHtml(a.title||"Advertisement")}" style="width:100%;height:100%;object-fit:cover">`:categoryArtwork(a.category)}</div>
-    <div class="ad-body">${vip?`<span class="vip-ribbon">♛ VIP PREMIUM · ${escapeHtml(a.plan)} · EXPIRES ${new Date(getAdExpiryTime(a)).toLocaleDateString("en-IN")}</span>`:`<span class="vip-ribbon" style="background:linear-gradient(110deg,#333,#555);color:#eee;border-color:#666;box-shadow:none">STANDARD LISTING</span>`}<h3>${escapeHtml(a.title)}</h3>
-    <div class="ad-meta">${escapeHtml(a.category)}${a.subcategory?" · "+escapeHtml(a.subcategory):""}<br>📍 ${escapeHtml(a.area)}, ${escapeHtml(a.district)}<br>${a.age?`Age: ${escapeHtml(a.age)} years<br>`:""}👤 ${escapeHtml(a.contact)}${vip?" · ⭐ "+escapeHtml(a.plan):""}</div>
-    <div class="ad-price">${a.price? "₹"+escapeHtml(a.price):"Contact for price"}</div>
-    <div class="ad-actions">${contact.call?`<a onclick="event.stopPropagation()" href="tel:${encodeURIComponent(a.phone)}">☎ Call</a>`:""}${contact.whatsapp?`<a onclick="event.stopPropagation()" href="https://wa.me/${adWhatsAppNumber(a)}" target="_blank" rel="noopener">WhatsApp</a>`:""}${contact.chat?`<button type="button" onclick="event.stopPropagation();openAdChat('${id}')">Chat</button>`:""}</div><small class="ad-open-hint">View advertisement details</small></div></article>`;
+    <div class="ad-body">
+      ${vip?`<span class="vip-ribbon">♛ VIP PREMIUM · ${escapeHtml(a.plan)} · EXPIRES ${new Date(getAdExpiryTime(a)).toLocaleDateString("en-IN")}</span>`:`<span class="vip-ribbon" style="background:linear-gradient(110deg,#333,#555);color:#eee;border-color:#666;box-shadow:none">STANDARD LISTING</span>`}
+      <h3>${escapeHtml(a.title||"Advertisement")}</h3>
+      <div class="ad-meta">
+        <div><strong>Category:</strong> ${escapeHtml(a.category||"—")}</div>
+        ${subcategory?`<div><strong>Subcategory:</strong> ${escapeHtml(subcategory)}</div>`:""}
+        <div><strong>District:</strong> ${escapeHtml(district||"—")}</div>
+        <div><strong>Area:</strong> ${escapeHtml(area||"—")}</div>
+        ${a.age?`<div><strong>Age:</strong> ${escapeHtml(a.age)} years</div>`:""}
+        ${a.contact?`<div><strong>Posted by:</strong> ${escapeHtml(a.contact)}</div>`:""}
+      </div>
+      <div class="ad-price">${a.price? "₹"+escapeHtml(a.price):"Contact for price"}</div>
+      <div class="ad-actions">
+        ${contact.call?`<a onclick="event.stopPropagation()" href="tel:${escapeAttr(callHref)}">☎ Call</a>`:""}
+        ${contact.whatsapp?`<a onclick="event.stopPropagation()" href="https://wa.me/${adWhatsAppNumber(a)}" target="_blank" rel="noopener">WhatsApp</a>`:""}
+        ${contact.chat?`<button type="button" onclick="event.stopPropagation();openAdChat('${id}')">Chat</button>`:""}
+      </div>
+      <small class="ad-open-hint">View full advertisement details</small>
+    </div>
+  </article>`;
 }
 function openAdDetails(adId){
   const a=(ads||[]).find(x=>String(x.id)===String(adId)) || (adsCurrentItems||[]).find(x=>String(x.id)===String(adId));
   if(!a)return;
   const contact=adContactPolicy(a), modal=document.getElementById("adDetailsModal"), body=document.getElementById("adDetailsBody"), actions=document.getElementById("adDetailsActions");
-  const rows=[["Category",a.category],["Subcategory",a.subcategory],["Location",[a.area,a.district].filter(Boolean).join(", ")],["Price",a.price?"₹"+a.price:"Contact for price"],["Description",a.description],["Posted by",a.contact],["Age",a.age?String(a.age):""]];
+  let extra={};try{extra=JSON.parse(a.details_json||"{}")}catch(_){extra={};}
+  if(!extra||typeof extra!=="object"||Array.isArray(extra))extra={};
   body.innerHTML="";actions.innerHTML="";
   if(a.image){const image=document.createElement("img");image.src=a.image;image.alt=a.title||"Advertisement";image.className="ad-detail-image";body.appendChild(image);}
   const title=document.createElement("h2");title.textContent=a.title||"Advertisement";body.appendChild(title);
-  rows.forEach(([label,value])=>{if(!value)return;const p=document.createElement("p");const strong=document.createElement("strong");strong.textContent=label+": ";p.append(strong,document.createTextNode(String(value)));body.appendChild(p);});
+  const rows=[
+    ["Category",a.category],["Subcategory",a.subcategory||extra.subcategory],
+    ["District",a.district],["Area",a.area],["Price",a.price?"₹"+a.price:"Contact for price"],
+    ["Description",a.description],["Posted by",a.contact],["Age",a.age?String(a.age)+" years":""]
+  ];
+  const used=new Set(["subcategory"]);
+  const appendRow=(label,value)=>{
+    if(value===undefined||value===null||String(value).trim()==="")return;
+    const p=document.createElement("p"),strong=document.createElement("strong");
+    strong.textContent=label+": ";p.append(strong,document.createTextNode(String(value)));body.appendChild(p);
+  };
+  rows.forEach(([label,value])=>appendRow(label,value));
+  const humanize=k=>String(k).replace(/[_-]+/g," ").replace(/\b\w/g,c=>c.toUpperCase());
+  Object.entries(extra).forEach(([key,value])=>{
+    if(used.has(key)||value===null||value===undefined||String(value).trim()==="")return;
+    if(typeof value==="object"){appendRow(humanize(key),Array.isArray(value)?value.join(", "):JSON.stringify(value));}
+    else appendRow(humanize(key),value);
+  });
   if(contact.call){const x=document.createElement("a");x.href="tel:"+String(a.phone||"").replace(/[^+0-9]/g,"");x.textContent="☎ Call";x.className="detail-call";actions.appendChild(x);}
   if(contact.whatsapp){const x=document.createElement("a");x.href="https://wa.me/"+adWhatsAppNumber(a);x.target="_blank";x.rel="noopener";x.textContent="WhatsApp";x.className="detail-whatsapp";actions.appendChild(x);}
   if(contact.chat){const x=document.createElement("button");x.type="button";x.textContent="Chat";x.className="detail-chat";x.onclick=()=>{closeAdDetails();openAdChat(a.id);};actions.appendChild(x);}
@@ -3687,4 +3726,34 @@ a24InitAuth().catch(e=>{console.warn("24Adz Supabase Auth:",e.message);toast(e.m
 #clientDashboardContent .my24-back{background:linear-gradient(105deg,#ffb43f,#f36a12)!important;color:#211006!important;border:0!important;border-radius:8px!important;padding:10px 14px!important;font-weight:800!important}
 #clientDashboardContent .my24-section .btn-primary{background:linear-gradient(105deg,#ffb43f,#f36a12)!important;color:#211006!important;border:0!important}
 @media(max-width:600px){#clientDashboardModal .client-dashboard{width:100%!important}}
+
+/* 24Adz ad-card presentation: roomy reference-style cards without clipping */
+#adsSection #adsList .ad-card{
+  height:auto!important;min-height:0!important;max-height:none!important;overflow:hidden;
+  display:flex;flex-direction:column;align-self:stretch;
+}
+#adsSection #adsList .ad-card .ad-image{
+  width:100%;height:clamp(270px,48vw,470px)!important;min-height:270px!important;max-height:none!important;
+  flex:0 0 auto;overflow:hidden;border-bottom:1px solid rgba(255,158,48,.28);
+}
+#adsSection #adsList .ad-card .ad-image .ad-artwork{width:100%;height:100%;display:block;object-fit:cover}
+#adsSection #adsList .ad-card .ad-body{
+  display:flex;flex-direction:column;min-width:0;padding:22px 24px 20px;gap:0;
+}
+#adsSection #adsList .ad-card .ad-body h3{font-size:clamp(22px,3.2vw,34px);line-height:1.25;margin:8px 0 14px;display:block;overflow-wrap:anywhere}
+#adsSection #adsList .ad-card .ad-meta{font-size:clamp(15px,1.8vw,19px);line-height:1.8;display:grid;gap:3px;overflow-wrap:anywhere}
+#adsSection #adsList .ad-card .ad-meta strong{color:#ffe0b0}
+#adsSection #adsList .ad-card .ad-price{font-size:clamp(21px,2.4vw,27px);margin:14px 0 8px}
+#adsSection #adsList .ad-card .ad-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+#adsSection #adsList .ad-card .ad-actions a,#adsSection #adsList .ad-card .ad-actions button{min-height:50px;font-size:15px;font-weight:800}
+#adsSection #adsList .ad-card .ad-open-hint{display:block;margin-top:13px;color:#c9a77e;font-size:12px}
+#adDetailsModal .ad-details-box{max-height:92vh;overflow-y:auto}
+#adDetailsModal .ad-details-box p{white-space:pre-wrap;overflow-wrap:anywhere}
+@media(max-width:600px){
+  #adsSection #adsList .ad-card .ad-image{height:clamp(245px,78vw,360px)!important;min-height:245px!important}
+  #adsSection #adsList .ad-card .ad-body{padding:17px 16px 18px}
+  #adsSection #adsList .ad-card .ad-body h3{font-size:23px}
+  #adsSection #adsList .ad-card .ad-meta{font-size:15px;line-height:1.75}
+  #adsSection #adsList .ad-card .ad-actions a,#adsSection #adsList .ad-card .ad-actions button{min-height:47px;font-size:14px}
+}
 </style>
