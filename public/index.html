@@ -1798,7 +1798,7 @@ header .nav{min-height:88px!important;padding-top:8px!important;padding-bottom:8
 <div class="modal" id="forgotPasswordModal"><div class="modal-box"><div class="modal-top"><h2>Reset Password</h2><button class="close" type="button" onclick="closeModal('forgotPasswordModal')">×</button></div><form id="forgotPasswordForm"><label>Email Address *</label><input class="field" name="email" type="email" required placeholder="Registered email"><button class="btn btn-primary" type="submit">Send Reset Link</button></form></div></div>
 <div class="modal" id="resetPasswordModal"><div class="modal-box"><div class="modal-top"><h2>Choose New Password</h2></div><form id="resetPasswordForm"><label>New Password *</label><input class="field" name="password" type="password" minlength="10" required><button class="btn btn-primary" type="submit">Update Password</button></form></div></div>
 
-<div class="modal" id="adChatModal"><div class="modal-box"><div class="modal-top"><h2>Chat with Advertiser</h2><button class="close" type="button" onclick="closeModal('adChatModal')">×</button></div><div id="adChatHistory" style="max-height:300px;overflow:auto"></div><form id="adChatForm"><input type="hidden" id="chatAdId"><label>Message</label><textarea class="field" id="chatMessage" required maxlength="2000" placeholder="Write your message"></textarea><button class="btn btn-primary" type="submit">Send Message</button></form></div></div><div class="toast" id="toast"></div>
+<div class="modal" id="adChatModal"><div class="modal-box"><div class="modal-top"><h2>24Adz Chat</h2><button class="close" type="button" onclick="closeModal('adChatModal')">×</button></div><p class="muted" style="font-size:12px">Messages are saved. If the other person is offline, they can read and reply when they return.</p><div id="adChatHistory" style="max-height:300px;overflow:auto"></div><form id="adChatForm"><input type="hidden" id="chatAdId"><label>Message</label><textarea class="field" id="chatMessage" required maxlength="2000" placeholder="Write your message"></textarea><button class="btn btn-primary" type="submit">Send Message</button></form></div></div><div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -3251,53 +3251,46 @@ function renderMyAdsTab(tab){
  const cards=shown.map(a=>{
   const state=classifyMyAd(a), expiry=a.expires_at||a.vip_expires_at||"";
   const statusLabel=state==="inactive"?(a.status||"Inactive"):state[0].toUpperCase()+state.slice(1);
-  return `<article class="ad-card my24-ad-card" style="height:auto;min-height:0;max-height:none;overflow:visible;margin:12px 0;padding:12px;box-sizing:border-box">
-   <div style="display:flex;gap:12px;align-items:flex-start">${a.image_url?`<img src="${escapeDashboardText(a.image_url)}" alt="" style="width:88px;height:76px;object-fit:cover;border-radius:8px">`:""}
-    <div style="min-width:0;flex:1"><b>${escapeDashboardText(a.title||"Advertisement")}</b>
-     <p style="margin:6px 0">${escapeDashboardText(a.category||"")}${a.subcategory?" · "+escapeDashboardText(a.subcategory):""}</p>
-     <small>${escapeDashboardText(a.district||"")} / ${escapeDashboardText(a.area||"")}</small><br>
-     <small>${a.is_vip?"VIP":"Standard"} · ${escapeDashboardText(statusLabel)}${expiry?" · Expires "+escapeDashboardText(expiry):""}</small>
+  return `<article class="ad-card my24-ad-card" style="height:288px;min-height:288px;max-height:288px;overflow:hidden;margin:0;position:relative">
+   <div class="ad-image" style="height:112px">${a.image_url?`<img loading="lazy" src="${escapeDashboardText(a.image_url)}" alt="" style="width:100%;height:100%;object-fit:cover">`:`<div style="height:100%;display:grid;place-items:center;font-size:34px">📢</div>`}</div>
+   <div class="ad-body" style="padding:10px 12px">
+    <span class="vip-ribbon" style="margin-bottom:5px">${a.is_vip?"VIP PREMIUM":"STANDARD LISTING"}</span>
+    <h3 style="font-size:15px;margin:4px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeDashboardText(a.title||"Advertisement")}</h3>
+    <div class="ad-meta" style="font-size:11px;line-height:1.45">${escapeDashboardText(a.category||"")}${a.subcategory?" · "+escapeDashboardText(a.subcategory):""}<br>📍 ${escapeDashboardText(a.area||"")}, ${escapeDashboardText(a.district||"")}<br>${escapeDashboardText(statusLabel)}${expiry?" · Expires "+escapeDashboardText(expiry):""}</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+     <button class="btn btn-outline" style="padding:6px 10px;font-size:12px" onclick="editServerAd('${String(a.id)}')">Edit</button>
+     <button class="btn btn-outline" style="padding:6px 10px;font-size:12px" onclick="deleteServerAd('${String(a.id)}')">Delete</button>
+     <button class="btn btn-primary" style="padding:6px 10px;font-size:12px" onclick="renewClientAd('${String(a.id)}')">Renew</button>
     </div>
-   </div>
-   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-    <button class="btn btn-outline" onclick="editServerAd('${String(a.id)}')">Edit</button>
-    <button class="btn btn-outline" onclick="deleteServerAd('${String(a.id)}')">Delete</button>
-    <button class="btn btn-primary" onclick="renewClientAd('${String(a.id)}')">Auto Renew</button>
    </div>
   </article>`;
  }).join("");
  const root=document.getElementById("myAdsPanel");
- if(root)root.innerHTML=`<div style="display:flex;gap:7px;flex-wrap:wrap;margin:10px 0 14px">${buttons}</div>${cards||"<p>No ads in this section.</p>"}`;
+ if(root)root.innerHTML=`<div style="display:flex;gap:7px;flex-wrap:wrap;margin:10px 0 14px">${buttons}</div><div class="my24-ads-scroll">${cards||"<p>No ads in this section.</p>"}</div>`;
 }
 async function openClientDashboard(){
  try{
   await a24InitAuth();
   if(!a24Token()){openModal("loginModal");return}
-
   const [me,own,msgs,coinHistory]=await Promise.all([a24Call("/api/client/me"),a24Call("/api/client/ads"),a24Call("/api/client/messages"),a24Call("/api/client/coin-transactions")]);
-  const c=me.client,w=me.wallet,limits=me.freeAds,transactions=coinHistory.transactions||[],ads=own.ads||[],messages=msgs.messages||[];
+  const c=me.client,w=me.wallet,limits=me.freeAds,transactions=coinHistory.transactions||[],ads=own.ads||[],messages=msgs.messages||[];window.__24adzCurrentClientId=c.id;
   window.__24adzOwnAds=ads;
   const threads={};messages.forEach(m=>{const peer=String(m.sender_client_id)===String(c.id)?m.receiver_client_id:m.sender_client_id;if(!peer||peer==="ADMIN")return;const k=String(m.ad_id)+"|"+String(peer);(threads[k]??={ad_id:m.ad_id,peer,messages:[]}).messages.push(m)});
-  const chatHtml=Object.values(threads).map(t=>{const last=t.messages[t.messages.length-1];return `<article class="ad-card"><b>Ad conversation</b><p>${escapeDashboardText(last.message||"")}</p><small>${escapeDashboardText(last.created_at||"")}</small><button class="btn btn-outline" onclick="openClientThread('${String(t.ad_id)}','${String(t.peer)}')">Open Chat</button></article>`}).join("")||"<p>No customer conversations yet.</p>";
+  const chatHtml=Object.values(threads).map(t=>{const last=t.messages[t.messages.length-1];return `<article class="ad-card" style="padding:12px;margin:10px 0"><b>${escapeDashboardText(last.ad_title||"Ad conversation")}</b><p style="margin:6px 0">${escapeDashboardText(last.message||"")}</p><small>${escapeDashboardText(last.created_at||"")}</small><button class="btn btn-outline" onclick="openClientThread('${String(t.ad_id)}','${String(t.peer)}')">Open Chat</button></article>`}).join("")||"<p>No customer conversations yet.</p>";
   document.getElementById("clientDashboardContent").innerHTML=`
-   <section class="panel" id="my24Menu"><h3>My 24adz</h3><div class="my24-menu-grid">
+   <section class="panel" id="my24Menu"><h3>My24adz</h3><div class="my24-menu-grid my24-clean-menu">
     <button class="btn btn-outline" onclick="my24Go('my24Profile')">Profile</button>
     <button class="btn btn-outline" onclick="my24Go('my24Ads')">My Ads</button>
-    <button class="btn btn-primary" onclick="closeModal('clientDashboardModal');startPostAd()">Post Ads</button>
-    <button class="btn btn-outline" onclick="my24Go('my24Ads')">Edit</button>
-    <button class="btn btn-outline" onclick="my24Go('my24Ads')">Delete</button>
-    <button class="btn btn-outline" onclick="my24Go('my24Ads')">Renew</button>
     <button class="btn btn-primary" onclick="showCoinPackages()">Coins Purchase</button>
-    <button class="btn btn-outline" onclick="my24Go('my24Settings')">Settings</button>
+    <button class="btn btn-outline" onclick="clientLogout()">Logout</button>
    </div></section>
    <section class="panel" id="my24Profile"><h3>Profile</h3><p><b>Account ID:</b> ${escapeDashboardText(c.account_id)}</p><p><b>Email:</b> ${escapeDashboardText(c.email)}</p>
    <label>Full Name</label><input class="field" id="my24Name" value="${escapeDashboardText(c.name||"")}">
    <label>Registered Mobile Number (cannot be changed here)</label><input class="field" id="my24Mobile" type="tel" inputmode="numeric" maxlength="10" value="${escapeDashboardText(c.mobile||"")}" readonly aria-readonly="true">
    <button class="btn btn-primary" onclick="saveMy24Profile()">Save Profile</button></section>
-   <section class="panel" id="my24Coins"><h3>Coins Dashboard</h3><p><b>Available Coins:</b> ${Number(w.balance)||0}</p><p>Free Ads Used: ${limits.mobileUsed}/${limits.mobileLimit} · ${limits.periodDays} days</p><button class="btn btn-primary" onclick="showCoinPackages()">Purchase Coins</button><h4>Coin Transactions</h4>${transactions.map(t=>`<p>${escapeDashboardText(t.note||t.type)} · ${Number(t.coins)>0?"+":""}${Number(t.coins)} Coins · Balance ${Number(t.balance_after)} · ${escapeDashboardText(t.created_at||"")}</p>`).join("")||"<p>No coin transactions yet.</p>"}</section>
+   <section class="panel" id="my24Coins"><h3>Coins Purchase</h3><p><b>Available Coins:</b> ${Number(w.balance)||0}</p><p>Free Ads Used: ${limits.mobileUsed}/${limits.mobileLimit} · ${limits.periodDays} days</p><button class="btn btn-primary" onclick="showCoinPackages()">Purchase Coins</button><h4>Coin Transactions</h4>${transactions.map(t=>`<p>${escapeDashboardText(t.note||t.type)} · ${Number(t.coins)>0?"+":""}${Number(t.coins)} Coins · Balance ${Number(t.balance_after)} · ${escapeDashboardText(t.created_at||"")}</p>`).join("")||"<p>No coin transactions yet.</p>"}</section>
    <section class="panel" id="my24Ads"><h3>My Ads</h3><div id="myAdsPanel"></div></section>
-   <section class="panel" id="my24Messages"><h3>Messages</h3>${chatHtml}</section>
-   <section class="panel" id="my24Settings"><h3>Settings</h3><p>Manage your profile details and account access here.</p><button class="btn btn-outline" onclick="clientLogout()">Logout</button></section>`;
+   <section class="panel" id="my24Messages"><h3>Messages</h3><p class="muted">Chat with customers and advertisers. Messages are saved and will be available when you come back online.</p>${chatHtml}</section>`;
   renderMyAdsTab("all");
   openModal("clientDashboardModal");
  }catch(e){toast(e.message)}
@@ -3306,7 +3299,8 @@ function my24Go(id){const el=document.getElementById(id);if(el)el.scrollIntoView
 async function openMyAdsOnly(){try{await a24InitAuth();if(!a24Token()){openModal("loginModal");return;}await openClientDashboard();setTimeout(()=>my24Go("my24Ads"),120);}catch(e){toast(e.message||"Unable to open My Ads.")}}
 async function saveMy24Profile(){try{await a24Call("/api/client/profile","PUT",{name:document.getElementById("my24Name").value});toast("Profile updated.");}catch(e){toast(e.message)}}
 async function renewClientAd(id){const days=Number(prompt("Auto Renew VIP duration\\nEnter 3, 5 or 7 days:","3"));if(![3,5,7].includes(days))return;if(!confirm(`Renew this published ad for ${days} days using Coins?`))return;try{const r=await a24Call("/api/client/ads/"+encodeURIComponent(id)+"/renew","POST",{days});toast(r.message||"Ad renewed.");openClientDashboard()}catch(e){toast(e.message)}}
-async function openClientThread(adId,peer){try{const r=await a24Call("/api/client/messages"),rows=(r.messages||[]).filter(m=>String(m.ad_id)===String(adId)&&([String(m.sender_client_id),String(m.receiver_client_id)].includes(String(peer))));document.getElementById("chatAdId").value=adId;document.getElementById("adChatHistory").innerHTML=rows.map(m=>`<p><b>${String(m.sender_client_id)===String(peer)?"Advertiser":"You"}:</b> ${escapeDashboardText(m.message)}</p>`).join("")||"Start this conversation.";document.getElementById("adChatForm").dataset.receiver=peer;openModal("adChatModal")}catch(e){toast(e.message)}}
+async function renderCurrentChat(){try{const form=document.getElementById("adChatForm");if(!form||!form.dataset.receiver&&!document.getElementById("chatAdId").value)return;const adId=document.getElementById("chatAdId").value,peer=form.dataset.receiver||"",me=window.__24adzCurrentClientId,r=await a24Call("/api/client/messages"),rows=(r.messages||[]).filter(m=>String(m.ad_id)===String(adId)&&(!peer?[String(m.sender_client_id),String(m.receiver_client_id)].includes(String(me)):[String(m.sender_client_id),String(m.receiver_client_id)].includes(String(peer))));document.getElementById("adChatHistory").innerHTML=rows.map(m=>`<p style="padding:7px 9px;margin:6px 0;border-radius:8px;background:${String(m.sender_client_id)===String(me)?"rgba(255,145,0,.16)":"rgba(255,255,255,.07)"}"><b>${String(m.sender_client_id)===String(me)?"You":"Customer / Advertiser"}:</b> ${escapeDashboardText(m.message)}<br><small>${escapeDashboardText(m.created_at||"")}</small></p>`).join("")||"Start this conversation.";document.getElementById("adChatHistory").scrollTop=document.getElementById("adChatHistory").scrollHeight;}catch(e){console.warn("Chat refresh:",e.message)}}
+async function openClientThread(adId,peer){try{const me=await a24Call("/api/client/me");window.__24adzCurrentClientId=me.client?.id;document.getElementById("chatAdId").value=adId;document.getElementById("adChatForm").dataset.receiver=peer;openModal("adChatModal");await renderCurrentChat()}catch(e){toast(e.message)}}
 
 function editServerAd(id){const a=(window.__24adzOwnAds||[]).find(x=>String(x.id)===String(id));if(!a)return;closeModal("clientDashboardModal");resetPostFormForNew();const f=document.getElementById("postForm");for(const k of ["title","description","category","district","area","price","phone","whatsapp"])if(f.elements[k])f.elements[k].value=a[k]||"";let details={};try{details=JSON.parse(a.details_json||"{}")}catch{};populateSubcategories(document.getElementById("postCategory"),document.getElementById("postSubcategory"));document.getElementById("postSubcategory").value=details.subcategory||"";document.getElementById("postSubcategory").dispatchEvent(new Event("change"));document.querySelectorAll("#categorySpecificFields [data-detail-key]").forEach(el=>{if(details[el.dataset.detailKey]!==undefined)el.value=details[el.dataset.detailKey]});document.getElementById("postAge").value=details.age||"";document.getElementById("editingAdId").value=a.id;updatePostAreas();document.getElementById("postArea").value=a.area||"";goPostStep(1);openModal("postModal");}
 async function deleteServerAd(id){if(!confirm("Delete this advertisement permanently?"))return;try{await a24Call("/api/client/ads/"+encodeURIComponent(id),"DELETE");toast("Advertisement deleted.");openClientDashboard();}catch(e){toast(e.message)}}
@@ -3315,20 +3309,19 @@ async function syncAdminWhatsAppLinks(){const n=await getAdminWhatsApp(),link=do
 syncAdminWhatsAppLinks();
 async function showCoinPackages(){if(!a24Token()){openModal("loginModal");toast("Please log in to request Coins for your My24adz wallet.");return;}const waWindow=window.open("about:blank","_blank");try{const data=await a24Call("/api/client/coin-packages"),packages=data.packages||[];const promptText="24Adz Coin Packages\n"+packages.map(x=>Number(x.coins).toLocaleString("en-IN")+" Coins – ₹"+Number(x.amount).toLocaleString("en-IN")).join("\n")+"\n\nEnter coin amount to purchase:";const coins=Number(prompt(promptText));if(!packages.some(x=>Number(x.coins)===coins)){if(waWindow)waWindow.close();return;}const r=await a24Call("/api/client/coin-requests","POST",{coins});const number=await getAdminWhatsApp();const message=`Hello 24Adz Admin, I want to purchase ${coins} Coins. Request ID: ${r.request_id}. Please share the official payment details.`;const waUrl="https://wa.me/91"+number+"?text="+encodeURIComponent(message);if(waWindow)waWindow.location.href=waUrl;else window.location.href=waUrl;toast("WhatsApp opened. Admin will credit coins after payment confirmation.")}catch(e){if(waWindow)waWindow.close();toast(e.message)}}
 async function openMessages(){try{await a24InitAuth();if(!a24Token()){openModal("loginModal");return}await openClientDashboard();setTimeout(()=>my24Go("my24Messages"),120)}catch(e){toast(e.message||"Unable to open Messages.")}}
-async function openAdChat(adId){try{await a24InitAuth();if(!a24Token()){openModal("loginModal");toast("Login to chat with the advertiser.");return}document.getElementById("adChatForm").dataset.receiver="";document.getElementById("chatAdId").value=adId;document.getElementById("adChatHistory").textContent="Send a message to start this conversation.";openModal("adChatModal")}catch(e){toast(e.message||"Chat is unavailable.")}}
-document.getElementById("adChatForm").addEventListener("submit",async e=>{e.preventDefault();try{const form=e.currentTarget,ad_id=document.getElementById("chatAdId").value,message=document.getElementById("chatMessage").value,peer=form.dataset.receiver;await a24Call(peer?"/api/client/chat/reply":"/api/client/chat","POST",peer?{ad_id,receiver_client_id:peer,message}:{ad_id,message});document.getElementById("chatMessage").value="";toast("Message sent.");if(peer)await openClientThread(ad_id,peer);else document.getElementById("adChatHistory").textContent="Message sent to advertiser. Check Messages in My24adz for replies."}catch(x){toast(x.message)}});
+async function openAdChat(adId){try{await a24InitAuth();if(!a24Token()){openModal("loginModal");toast("Login to chat with the advertiser.");return}const me=await a24Call("/api/client/me");window.__24adzCurrentClientId=me.client?.id;document.getElementById("adChatForm").dataset.receiver="";document.getElementById("chatAdId").value=adId;document.getElementById("adChatHistory").textContent="Send a message to start this conversation.";openModal("adChatModal")}catch(e){toast(e.message||"Chat is unavailable.")}}
+document.getElementById("adChatForm").addEventListener("submit",async e=>{e.preventDefault();try{const form=e.currentTarget,ad_id=document.getElementById("chatAdId").value,message=document.getElementById("chatMessage").value,peer=form.dataset.receiver;await a24Call(peer?"/api/client/chat/reply":"/api/client/chat","POST",peer?{ad_id,receiver_client_id:peer,message}:{ad_id,message});document.getElementById("chatMessage").value="";toast("Message sent.");await renderCurrentChat()}catch(x){toast(x.message)}});
+setInterval(()=>{const modal=document.getElementById("adChatModal");if(modal&&modal.classList.contains("open"))renderCurrentChat()},4000);
 updateAccountNav();
 a24InitAuth().catch(e=>{console.warn("24Adz Supabase Auth:",e.message);toast(e.message);});
 </script>
 
-<style id="24adz-myads-natural-card-height">
-.my24-ad-card{
-  height:auto!important;
-  min-height:0!important;
-  max-height:none!important;
-  overflow:visible!important;
-  box-sizing:border-box;
-}
+<style id="24adz-myads-homepage-card-layout">
+.my24-ads-scroll{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;max-height:68vh;overflow-y:auto;overscroll-behavior:contain;padding:2px 5px 12px 0}
+.my24-ad-card{height:288px!important;min-height:288px!important;max-height:288px!important;overflow:hidden!important;box-sizing:border-box}
+.my24-clean-menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.my24-clean-menu .btn{min-height:42px}
+@media(max-width:480px){.my24-ads-scroll{grid-template-columns:1fr}.my24-ad-card{max-width:100%}}
 </style>
 
 <script id="24adz-category-form-controller">
