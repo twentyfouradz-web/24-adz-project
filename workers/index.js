@@ -1,3 +1,4 @@
+import { handleSeoRequest } from "./seo.js";
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
@@ -198,6 +199,8 @@ var index_default = { async fetch(req, env) {
   const allow = configured === "*" || origin === configured ? configured : "null";
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: { "Access-Control-Allow-Origin": allow, "Access-Control-Allow-Headers": "Content-Type, Authorization", "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS", "Vary": "Origin" } });
   if (!p.startsWith("/api/")) {
+    const seoResponse = await handleSeoRequest(req, env);
+    if (seoResponse) return seoResponse;
     if (env.ASSETS) return env.ASSETS.fetch(req);
     return new Response("24Adz.com API is running. Static assets binding is not configured.", { status: 200 });
   }
