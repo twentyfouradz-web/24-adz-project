@@ -944,8 +944,9 @@ var index_default = { async fetch(req, env) {
         if (m) await env.IMAGES.delete(m[1]).catch(() => {
         });
       }
+      await run(env.DB, "DELETE FROM vip_promotions WHERE ad_id=?", ad[1]);
       await run(env.DB, "DELETE FROM ads WHERE id=?", ad[1]);
-      return out({ success: true });
+      return out({ success: true, deleted: true, id: ad[1] });
     }
     if (p === "/api/admin/settings" && req.method === "GET") {
       if (!await isAdmin(req, env)) return bad("Admin login required", 401);
