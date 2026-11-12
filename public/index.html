@@ -1792,7 +1792,7 @@ header .nav{min-height:88px!important;padding-top:8px!important;padding-bottom:8
     <button class="btn btn-primary" type="submit">Login</button>
     <div style="display:flex;align-items:center;gap:10px;margin:14px 0;color:#999;font-size:13px"><span style="height:1px;background:#ddd;flex:1"></span><span>OR</span><span style="height:1px;background:#ddd;flex:1"></span></div>
     <button class="btn" id="googleLoginBtn" type="button" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;color:#222;border:1px solid #ccc;font-weight:600"><span style="font-size:19px;font-weight:700;color:#4285f4">G</span> Continue with Google</button>
-    <p class="small-note">Login with your verified email address or registered mobile number and password. <a href="#" onclick="openForgotPassword();return false">Forgot password?</a></p>
+    <p class="small-note">Login with your verified email address or registered mobile number and password. <a class="forgot-password-link" href="#" onclick="openForgotPassword();return false">Forgot password?</a></p>
   </form>
 </div></div>
 <div class="modal" id="forgotPasswordModal"><div class="modal-box"><div class="modal-top"><h2>Reset Password</h2><button class="close" type="button" onclick="closeModal('forgotPasswordModal')">×</button></div><form id="forgotPasswordForm"><label>Email Address *</label><input class="field" name="email" type="email" required placeholder="Registered email"><button class="btn btn-primary" type="submit">Send Reset Link</button></form></div></div>
@@ -2012,7 +2012,7 @@ function toggleSearchForm(){
 function openModal(id){document.getElementById(id).classList.add("open")}
 function closeModal(id){document.getElementById(id).classList.remove("open")}
 document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)m.classList.remove("open")}));
-function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.style.display="block";clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.style.display="none",3200)}
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.style.display="block";clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.style.display="none",2000)}
 
 function showPricePlan(){
   const key=document.getElementById("pricePlanSelect").value;
@@ -2946,6 +2946,7 @@ async function clientLogout(){
 }
 function startPostAd(){
  if(!a24Token()){openModal("loginModal");return;}
+ closeModal("clientDashboardModal");
  openModal("postModal");
 }
 function resetPostFormForNew(){const form=document.getElementById("postForm");form.reset();document.getElementById("editingAdId").value="";const c=getCurrentClient();if(c){form.elements.contact.value=c.name||"";form.elements.phone.value=c.mobile||c.phone||"";form.elements.whatsapp.value=c.mobile||c.phone||"";}document.getElementById("postAge").value="";document.getElementById("agePickerTrigger").innerHTML='Select Age <span>▾</span>';goPostStep(1);}
@@ -3476,7 +3477,14 @@ async function deleteServerAd(id){if(!confirm("Delete this advertisement permane
 async function getAdminWhatsApp(){try{const r=await fetch("/api/public/settings"),d=await r.json();return String(d.settings?.contact?.whatsapp_number||"8870017424").replace(/\D/g,"")}catch{return "8870017424"}}
 async function syncAdminWhatsAppLinks(){const n=await getAdminWhatsApp(),link=document.getElementById("promoAdminWhatsApp"),coinLink=document.getElementById("coinPurchaseWhatsAppLink"),numberLabel=document.getElementById("coinPurchaseWhatsAppNumber");if(link)link.href="https://wa.me/91"+n+"?text="+encodeURIComponent("Hello Admin, I want to advertise on 24Adz.com. Please share the details.");if(coinLink)coinLink.href="https://wa.me/91"+n+"?text="+encodeURIComponent("Hello 24Adz Admin, I want to buy Coins.");if(numberLabel)numberLabel.textContent="+91 "+n;}
 syncAdminWhatsAppLinks();
-async function showCoinPackages(){if(!a24Token()){openModal("loginModal");toast("Please log in to request Coins for your My24adz wallet.");return;}const waWindow=window.open("about:blank","_blank");try{const data=await a24Call("/api/client/coin-packages"),packages=data.packages||[];const promptText="24Adz Coin Packages\n"+packages.map(x=>Number(x.coins).toLocaleString("en-IN")+" Coins – ₹"+Number(x.amount).toLocaleString("en-IN")).join("\n")+"\n\nEnter coin amount to purchase:";const coins=Number(prompt(promptText));if(!packages.some(x=>Number(x.coins)===coins)){if(waWindow)waWindow.close();return;}const r=await a24Call("/api/client/coin-requests","POST",{coins});const number=await getAdminWhatsApp();const message=`Hello 24Adz Admin, I want to purchase ${coins} Coins. Request ID: ${r.request_id}. Please share the official payment details.`;const waUrl="https://wa.me/91"+number+"?text="+encodeURIComponent(message);if(waWindow)waWindow.location.href=waUrl;else window.location.href=waUrl;toast("WhatsApp opened. Admin will credit coins after payment confirmation.")}catch(e){if(waWindow)waWindow.close();toast(e.message)}}
+async function showCoinPackages(){
+ if(!a24Token()){openModal("loginModal");toast("Please log in to request Coins for your My24adz wallet.");return;}
+ const waWindow=window.open("about:blank","_blank");
+ const number=await getAdminWhatsApp();
+ const message="Hello 24Adz Admin, I want to purchase Coins for my My24Adz wallet. Please share the available Coin packages and payment details.";
+ const waUrl="https://wa.me/91"+number+"?text="+encodeURIComponent(message);
+ if(waWindow)waWindow.location.href=waUrl;else window.location.href=waUrl;
+}
 async function openMessages(){try{await a24InitAuth();if(!a24Token()){openModal("loginModal");return}await openClientDashboard();if(a24Token()&&document.getElementById("my24Messages"))my24Go("my24Messages")}catch(e){toast(e.message||"Unable to open Messages.")}}
 async function openAdChat(adId){try{await a24InitAuth();if(!a24Token()){openModal("loginModal");toast("Login to chat with the advertiser.");return}const me=await a24Call("/api/client/me");window.__24adzCurrentClientId=me.client?.id;window.__24adzChatPeer="";document.getElementById("adChatForm").dataset.receiver="";document.getElementById("chatAdId").value=adId;document.getElementById("chatMessage").disabled=false;document.getElementById("adChatForm").querySelector('[type="submit"]').disabled=false;document.getElementById("chatBlockButton").hidden=true;document.getElementById("adChatHistory").textContent="Send a message to start this conversation.";openModal("adChatModal");await renderCurrentChat()}catch(e){toast(e.message||"Chat is unavailable.")}}
 document.getElementById("adChatForm").addEventListener("submit",async e=>{e.preventDefault();try{const form=e.currentTarget,ad_id=document.getElementById("chatAdId").value,message=document.getElementById("chatMessage").value,peer=form.dataset.receiver;await a24Call(peer?"/api/client/chat/reply":"/api/client/chat","POST",peer?{ad_id,receiver_client_id:peer,message}:{ad_id,message});document.getElementById("chatMessage").value="";toast("Message sent.");await renderCurrentChat()}catch(x){toast(x.message)}});
@@ -3692,6 +3700,42 @@ a24InitAuth().catch(e=>{console.warn("24Adz Supabase Auth:",e.message);toast(e.m
 .myads-tabs{display:flex;gap:0;overflow-x:auto;white-space:nowrap;border-bottom:1px solid #ddd;margin:0 0 16px;scrollbar-width:thin}.myads-tabs .btn{border:0!important;border-radius:0!important;background:transparent!important;color:#42484e!important;box-shadow:none!important;padding:12px 14px!important}.myads-tabs .btn-primary{color:#075b98!important;border-bottom:3px solid #075b98!important;font-weight:800}.myads-empty{text-align:center;padding:48px 12px;min-height:250px;color:#444}.myads-empty>span{display:block;font-size:46px;margin-bottom:16px}.myads-empty p{font-size:17px;margin:0 0 18px}
 .my24-account-panel{padding:0!important;overflow:hidden}.my24-account-panel>h3{padding:16px 18px;margin:0;background:#075b98;color:#fff}.my24-account-hero{display:flex;align-items:center;flex-direction:column;gap:7px;padding:22px 12px;background:linear-gradient(145deg,#182c42,#425a70);color:white;text-align:center}.my24-avatar{width:76px;height:76px;border-radius:50%;display:grid;place-items:center;background:#075b98;border:2px solid #fff;font-size:30px;font-weight:800}.my24-account-hero small{opacity:.85;overflow-wrap:anywhere}.my24-account-hero .btn{color:white;border-color:white}.my24-primary-action,.my24-vip-action{width:calc(100% - 32px);margin:12px 16px 0;padding:15px;border:0;border-radius:9px;background:linear-gradient(110deg,#075b98,#159bd0);color:#fff;text-align:left;font-size:16px;font-weight:700}.my24-primary-action span,.my24-vip-action span{float:right;font-size:22px}.my24-vip-action{margin-top:10px;background:linear-gradient(110deg,#ed3c78,#ff941e)}.my24-menu-row{width:100%;display:flex;align-items:center;gap:15px;padding:17px 18px;border:0;border-bottom:1px solid #e5e5e5;background:#fff;text-align:left;font-size:16px;color:#30343a;min-height:64px}.my24-menu-row span{width:32px;font-size:23px}.my24-menu-row b{margin-left:auto;font-size:24px;color:#777;font-weight:400}.my24-back{border:0;background:#eef4f8;color:#075b98;border-radius:8px;padding:9px 12px;font-weight:700;margin-bottom:12px}
 @media(max-width:600px){.myads-tabs .btn{font-size:13px!important;padding:12px 10px!important}.myads-intro{align-items:flex-start}.my24-ads-scroll{grid-template-columns:1fr}.my24-menu-row{min-height:62px}}
+</style>
+
+
+
+<style id="24adz-requested-dashboard-auth-fixes">
+/* Keep the My Ads information card consistent with the site's black/orange theme. */
+#myAdsPanel .myads-intro{
+ background:linear-gradient(135deg,#211307,#120d08)!important;
+ border:1px solid #754318!important;
+ color:#ffad42!important;
+ border-radius:14px!important;
+ box-shadow:0 8px 22px rgba(255,126,0,.08)!important;
+}
+#myAdsPanel .myads-intro-icon{
+ background:linear-gradient(135deg,#ffb000,#ff4a00)!important;
+ color:#170b00!important;
+ border:1px solid #ffbd56!important;
+ box-shadow:0 0 16px rgba(255,137,0,.2)!important;
+}
+#myAdsPanel .myads-intro p{color:#ead7c3!important}
+#myAdsPanel .myads-tabs{border-bottom:1px solid #70431f!important}
+#myAdsPanel .myads-tabs .btn{color:#b9aaa0!important}
+#myAdsPanel .myads-tabs .btn-primary{
+ color:#ffad42!important;
+ border-bottom:3px solid #ff8a00!important;
+}
+#myAdsPanel .myads-empty{color:#f1dfcd!important}
+#myAdsPanel .myads-empty>span{color:#ff9b25!important}
+#myAdsPanel .myads-empty p{color:#f1dfcd!important}
+.forgot-password-link,.small-note a.forgot-password-link{
+ color:#ff9b24!important;
+ text-decoration:underline!important;
+ text-underline-offset:3px;
+}
+.forgot-password-link:visited{color:#ff9b24!important}
+.forgot-password-link:hover{color:#ffc15c!important}
 </style>
 
 </body>
