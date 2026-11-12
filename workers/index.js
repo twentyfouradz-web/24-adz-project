@@ -668,7 +668,7 @@ var index_default = { async fetch(req, env) {
       if (!d) return bad("district query parameter is required");
       return out({ success: true, areas: await listAreas(env.DB, d) });
     }
-    const imagePath = p.match(/^\/api\/images\/([a-zA-Z0-9/_-]+)$/);
+    const imagePath = p.match(/^\/api\/images\/([a-zA-Z0-9._/-]+)$/);
     if (imagePath && req.method === "GET") {
       if (!env.IMAGES) return bad("R2 image storage is not configured", 503);
       const key = imagePath[1];
