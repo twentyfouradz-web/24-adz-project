@@ -304,7 +304,7 @@ var index_default = { async fetch(req, env) {
     if (p === "/api/client/ads" && req.method === "GET") {
       const client = await clientAuth(req, env, env.DB);
       if (!client) return bad("Client login required", 401);
-      return out({ success: true, ads: await all(env.DB, "SELECT * FROM ads WHERE owner_client_id=? AND lower(status) IN ('approved','published','active') ORDER BY created_at DESC LIMIT 200", client.id) });
+      return out({ success: true, ads: await all(env.DB, "SELECT * FROM ads WHERE owner_client_id=? ORDER BY created_at DESC LIMIT 200", client.id) });
     }
     const clientRenew = p.match(/^\/api\/client\/ads\/([^/]+)\/renew$/);
     if (clientRenew && req.method === "POST") {
