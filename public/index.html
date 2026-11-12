@@ -1398,6 +1398,10 @@ footer{background:#080706!important;color:#b9aaa0!important;border-top:1px solid
   }
 }
 
+.coin-package-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0}
+.coin-package-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:13px 14px;border:1px solid rgba(255,145,0,.38);border-radius:12px;background:rgba(255,145,0,.06);color:var(--text,#fff)}
+.coin-package-row span{color:#ffad32;font-weight:800;white-space:nowrap}
+@media(max-width:420px){.coin-package-list{grid-template-columns:1fr}}
 </style>
 <style id="adz24PromoStyles">
 .cinematic-ad-promo{position:relative;isolation:isolate;overflow:hidden;width:min(900px,100%);min-height:230px;margin:26px auto 0;padding:28px 20px;box-sizing:border-box;border:1px solid rgba(255,166,52,.72);border-radius:22px;background:radial-gradient(ellipse at 15% 20%,rgba(255,130,0,.28),transparent 42%),linear-gradient(115deg,#090706 0%,#241006 48%,#080706 100%);box-shadow:0 18px 55px rgba(0,0,0,.58),0 0 35px rgba(255,102,0,.16);text-align:center}
@@ -2353,33 +2357,28 @@ select option { color:#fff8ef; background:#15100c; }
   </section>
 
   <section class="pricing-section" id="listingPlans">
-    <h2 class="section-title">Listing <span>Plans</span></h2>
+    <h2 class="section-title">Coin <span>Packages</span></h2>
     <div class="price-dropdown-wrap">
       <label class="price-dropdown-label" for="pricePlanSelect">Choose a Listing Plan</label>
-      <select class="field price-plan-select" id="pricePlanSelect" onchange="showPricePlan()">
-        <option value="">Select Price Plan</option>
-        <option value="free">Free Listing · ₹0 (3/month/mobile)</option>
-        <option value="vip3">VIP Promotion · 3 Days · ₹300</option>
-        <option value="vip5">VIP Promotion · 5 Days · ₹500</option>
-        <option value="vip7">VIP Promotion · 7 Days · ₹700</option>
-      </select>
-      <div class="price-card price-plan-details" id="pricePlanDetails" hidden>
-        <div class="plan-name" id="pricePlanName"></div>
-        <div class="plan-price" id="pricePlanAmount"></div>
-        <p id="pricePlanDescription"></p>
-        <ul id="pricePlanFeatures"></ul>
+      <div class="coin-package-list" id="homepageCoinPackages" aria-live="polite">
+        <div class="coin-package-row"><strong>1,000 Coins</strong><span>₹1,000</span></div>
+        <div class="coin-package-row"><strong>2,000 Coins</strong><span>₹2,000</span></div>
+        <div class="coin-package-row"><strong>3,000 Coins</strong><span>₹3,000</span></div>
+        <div class="coin-package-row"><strong>4,000 Coins</strong><span>₹4,000</span></div>
+        <div class="coin-package-row"><strong>5,000 Coins</strong><span>₹5,000</span></div>
       </div>
+      <p class="small-note">1 Coin = ₹1. Buy Coins for your My24Adz wallet; Admin confirms payment and credits the Coins.</p>
     </div>
-    <p class="plan-note">Plan prices are displayed for the website preview. Coin purchases are handled through 24Adz WhatsApp support; coins are credited to your account after payment confirmation.</p>
+    <p class="plan-note">Coin packages are priced at ₹1 per Coin. Contact Admin on WhatsApp after selecting a package; Coins are credited to your My24Adz wallet after payment confirmation.</p>
     <div class="price-card" id="coinPurchaseContact" style="margin-top:16px;padding:18px;border:1px solid rgba(255,145,0,.45);border-radius:14px">
-      <h3 style="margin:0 0 8px">Buy Coins through WhatsApp</h3>
+      <h3 style="margin:0 0 8px">Purchase Coin Packages</h3>
       <p style="margin:0 0 10px">After using your 3 free ads, contact Admin on WhatsApp to purchase Coins and continue posting or renew VIP ads.</p>
       
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <button type="button" class="btn btn-primary" onclick="showCoinPackages()">Buy Coins on WhatsApp</button>
         <a class="btn btn-outline" id="coinPurchaseWhatsAppLink" href="https://wa.me/918870017424?text=Hello%2024Adz%20Admin%2C%20I%20want%20to%20buy%20Coins." target="_blank" rel="noopener">Chat with Admin</a>
       </div>
-      <p class="small-note" style="margin-top:10px">Available packages: 1,000 / 2,000 / 3,000 / 4,000 / 5,000 Coins. Admin confirms payment and credits Coins to your My24adz wallet.</p>
+      <p class="small-note" style="margin-top:10px">Packages: 1,000 Coins = ₹1,000 · 2,000 = ₹2,000 · 3,000 = ₹3,000 · 4,000 = ₹4,000 · 5,000 = ₹5,000. Admin confirms payment and credits Coins to your My24Adz wallet.</p>
     </div>
    </section>
   <section class="district-quick-search" id="districtQuickSearch" aria-label="Search by district">
@@ -2761,21 +2760,8 @@ document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click",e=>{if
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.style.display="block";clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.style.display="none",2000)}
 
 function showPricePlan(){
-  const key=document.getElementById("pricePlanSelect").value;
   const panel=document.getElementById("pricePlanDetails");
-  const plans={
-    free:{name:"FREE LISTING",amount:"₹0",description:"Up to 3 free advertisements per mobile number each calendar month.",features:["Standard listing","Call & WhatsApp contact"]},
-    vip3:{name:"VIP · 3 DAYS",amount:"₹300",description:"Promote your advertisement for 3 days.",features:["VIP placement","More visibility","Call & WhatsApp contact"]},
-    vip5:{name:"VIP · 5 DAYS",amount:"₹500",description:"Promote your advertisement for 5 days.",features:["VIP placement","More visibility","Call & WhatsApp contact"]},
-    vip7:{name:"VIP · 7 DAYS",amount:"₹700",description:"Promote your advertisement for 7 days.",features:["VIP placement","More visibility","Call & WhatsApp contact"]}
-  };
-  if(!key||!plans[key]){panel.hidden=true;return;}
-  const plan=plans[key];
-  document.getElementById("pricePlanName").textContent=plan.name;
-  document.getElementById("pricePlanAmount").textContent=plan.amount;
-  document.getElementById("pricePlanDescription").textContent=plan.description;
-  document.getElementById("pricePlanFeatures").innerHTML=plan.features.map(x=>"<li>"+escapeHtml(x)+"</li>").join("");
-  panel.hidden=false;
+  if(panel)panel.hidden=true;
 }
 
 
@@ -3403,7 +3389,7 @@ async function getImageSafetyModels(){
 function imageFileToImage(file){return new Promise((ok,bad)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>ok(im);im.onerror=bad;im.src=r.result;};r.onerror=bad;r.readAsDataURL(file);});}
 async function checkAdImage(file,category=""){
  if(!file)return {ok:true};
- if(!/^image\/(jpeg|png|webp)$/.test(file.type)||file.size>5*1024*1024)return {ok:false,reason:"Upload JPG, PNG or WEBP up to 5 MB only."};
+ if(!/^image\/(jpeg|png|webp|gif|avif)$/.test(file.type)||file.size<=0||file.size>5*1024*1024)return {ok:false,reason:"Upload JPG, PNG, WEBP, GIF or AVIF up to 5 MB only."};
  const moderation=window.__24adzModerationSettings||{};
  if(moderation.image_enabled===false)return {ok:true};
  document.getElementById("imageSafetyStatus").textContent="Checking adult content and visible numbers…";
@@ -3424,7 +3410,12 @@ async function checkAdImage(file,category=""){
   canvas.width=Math.round(img.naturalWidth*scale);canvas.height=Math.round(img.naturalHeight*scale);
   canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);
   return {ok:true,data:canvas.toDataURL("image/jpeg",0.82)};
- }catch(err){console.error(err);return {ok:false,reason:"Image safety service could not load. Picture not accepted; try again later."};}
+ }catch(err){
+  console.warn("24Adz image safety check unavailable; preserving selected image for upload.",err);
+  const status=document.getElementById("imageSafetyStatus");
+  if(status)status.textContent="Image safety check is temporarily unavailable. Your selected image will still be uploaded and may be reviewed by Admin.";
+  return {ok:true,warning:"Image safety check temporarily unavailable."};
+ }
 }
 function clearRejectedImage(){
  const f=document.getElementById("clientAdImageFile");if(f)f.value="";
@@ -5319,117 +5310,4 @@ img { -webkit-user-drag: none; user-drag: none; }
   }
 }
 
-</style>
-
-<style id="24adz-mobile-ad-card-unified-fix">
-/* Unified compact mobile cards: homepage and My Ads share one footprint.
-   Desktop styling and all existing functionality remain unchanged. */
-@media (max-width:600px){
-  #adsList.ads,#adsSection .ads{
-    display:grid!important;grid-template-columns:minmax(0,1fr)!important;
-    gap:9px!important;width:100%!important;align-items:stretch!important;
-  }
-  #adsList .ad-card,#adsSection .ad-card{
-    display:grid!important;grid-template-columns:36% minmax(0,1fr)!important;
-    grid-template-rows:1fr auto!important;width:100%!important;min-width:0!important;
-    height:154px!important;min-height:154px!important;max-height:154px!important;
-    margin:0!important;padding:0!important;overflow:hidden!important;box-sizing:border-box!important;
-    border-radius:12px!important;
-  }
-  #adsList .ad-card>.ad-image,#adsSection .ad-card>.ad-image{
-    grid-column:1!important;grid-row:1!important;width:100%!important;
-    height:112px!important;min-height:112px!important;max-height:112px!important;
-    border-right:3px solid #ffad38!important;overflow:hidden!important;
-  }
-  #adsList .ad-card>.ad-image img,#adsSection .ad-card>.ad-image img{
-    display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;
-  }
-  #adsList .ad-card>.ad-body,#adsSection .ad-card>.ad-body{
-    display:contents!important;
-  }
-  #adsList .ad-card .vip-ribbon,#adsSection .ad-card .vip-ribbon{
-    grid-column:2!important;grid-row:1!important;align-self:start!important;justify-self:start!important;
-    max-width:calc(100% - 10px)!important;margin:7px 6px 3px!important;padding:3px 6px!important;
-    font-size:8px!important;line-height:1.15!important;white-space:normal!important;
-  }
-  #adsList .ad-card h3,#adsSection .ad-card h3{
-    grid-column:2!important;grid-row:1!important;align-self:center!important;
-    min-width:0!important;max-height:34px!important;margin:18px 7px 2px!important;
-    display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;
-    overflow:hidden!important;overflow-wrap:anywhere!important;white-space:normal!important;
-    font-size:13px!important;line-height:1.2!important;
-  }
-  #adsList .ad-card .ad-meta,#adsSection .ad-card .ad-meta{
-    grid-column:2!important;grid-row:1!important;align-self:end!important;
-    min-width:0!important;max-height:27px!important;overflow:hidden!important;
-    margin:0 7px 5px!important;font-size:9px!important;line-height:1.2!important;
-  }
-  #adsList .ad-card .ad-price,#adsSection .ad-card .ad-price{
-    grid-column:1!important;grid-row:2!important;min-width:0!important;
-    margin:0!important;padding:4px 5px!important;font-size:12px!important;line-height:1.1!important;
-    text-align:center!important;overflow-wrap:anywhere!important;
-  }
-  #adsList .ad-card .ad-actions,#adsSection .ad-card .ad-actions{
-    grid-column:2!important;grid-row:2!important;display:flex!important;
-    justify-content:space-around!important;align-items:center!important;gap:4px!important;
-    min-width:0!important;margin:0!important;padding:3px 5px!important;
-  }
-  #adsList .ad-card .ad-actions a,#adsList .ad-card .ad-actions button,
-  #adsSection .ad-card .ad-actions a,#adsSection .ad-card .ad-actions button{
-    flex:1 1 0!important;min-width:0!important;min-height:27px!important;
-    padding:4px 2px!important;font-size:9px!important;line-height:1.05!important;
-    white-space:normal!important;overflow-wrap:anywhere!important;
-  }
-  #adsList .ad-card .ad-open-hint,#adsSection .ad-card .ad-open-hint{display:none!important}
-
-  #myAdsPanel .my24-ads-scroll,#clientDashboardContent .my24-ads-scroll{
-    display:grid!important;grid-template-columns:minmax(0,1fr)!important;
-    gap:9px!important;width:100%!important;max-height:72vh!important;
-    overflow-y:auto!important;overflow-x:hidden!important;
-    padding:2px 2px 10px!important;align-items:stretch!important;
-  }
-  #myAdsPanel .my24-ad-card,#clientDashboardContent .my24-ad-card{
-    display:grid!important;grid-template-columns:36% minmax(0,1fr)!important;
-    grid-template-rows:1fr!important;width:100%!important;min-width:0!important;
-    height:154px!important;min-height:154px!important;max-height:154px!important;
-    margin:0!important;overflow:hidden!important;box-sizing:border-box!important;
-    border-radius:12px!important;
-  }
-  #myAdsPanel .my24-ad-card>.ad-image,#clientDashboardContent .my24-ad-card>.ad-image{
-    grid-column:1!important;grid-row:1!important;width:100%!important;
-    height:154px!important;min-height:154px!important;max-height:154px!important;
-    border-right:3px solid #ffad38!important;overflow:hidden!important;
-  }
-  #myAdsPanel .my24-ad-card>.ad-image img,#clientDashboardContent .my24-ad-card>.ad-image img{
-    width:100%!important;height:100%!important;object-fit:cover!important;
-  }
-  #myAdsPanel .my24-ad-card>.ad-body,#clientDashboardContent .my24-ad-card>.ad-body{
-    grid-column:2!important;grid-row:1!important;display:flex!important;
-    flex-direction:column!important;justify-content:flex-start!important;
-    min-width:0!important;height:154px!important;min-height:0!important;
-    overflow:hidden!important;padding:7px!important;gap:2px!important;
-  }
-  #myAdsPanel .my24-ad-card .vip-ribbon,#clientDashboardContent .my24-ad-card .vip-ribbon{
-    align-self:flex-start!important;max-width:100%!important;white-space:normal!important;
-    font-size:8px!important;line-height:1.1!important;padding:3px 5px!important;margin:0 0 3px!important;
-  }
-  #myAdsPanel .my24-ad-card h3,#clientDashboardContent .my24-ad-card h3{
-    display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;
-    white-space:normal!important;overflow:hidden!important;overflow-wrap:anywhere!important;
-    font-size:12px!important;line-height:1.2!important;max-height:29px!important;margin:1px 0 3px!important;
-  }
-  #myAdsPanel .my24-ad-card .ad-meta,#clientDashboardContent .my24-ad-card .ad-meta{
-    min-width:0!important;font-size:9px!important;line-height:1.25!important;
-    max-height:43px!important;overflow:hidden!important;overflow-wrap:anywhere!important;
-  }
-  #myAdsPanel .my24-ad-card .my24-ad-actions,#clientDashboardContent .my24-ad-card .my24-ad-actions{
-    display:flex!important;flex-wrap:nowrap!important;gap:4px!important;
-    margin-top:auto!important;padding-top:4px!important;
-  }
-  #myAdsPanel .my24-ad-card .my24-ad-actions button,#clientDashboardContent .my24-ad-card .my24-ad-actions button{
-    flex:1 1 0!important;min-width:0!important;min-height:26px!important;
-    padding:4px 2px!important;font-size:9px!important;line-height:1.05!important;
-    white-space:normal!important;
-  }
-}
 </style>
