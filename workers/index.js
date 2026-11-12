@@ -304,7 +304,7 @@ var index_default = { async fetch(req, env) {
     if (p === "/api/client/ads" && req.method === "GET") {
       const client = await clientAuth(req, env, env.DB);
       if (!client) return bad("Client login required", 401);
-      return out({ success: true, ads: await all(env.DB, "SELECT * FROM ads WHERE owner_client_id=? ORDER BY created_at DESC LIMIT 200", client.id) });
+      return out({ success: true, ads: await all(env.DB, "SELECT * FROM ads WHERE owner_client_id=? AND lower(status) IN ('approved','published','active') ORDER BY created_at DESC LIMIT 200", client.id) });
     }
     const clientRenew = p.match(/^\/api\/client\/ads\/([^/]+)\/renew$/);
     if (clientRenew && req.method === "POST") {
@@ -430,6 +430,29 @@ var index_default = { async fetch(req, env) {
       }
       return out({ success: true, ad: { ...a, owner_client_id: client.id, owner_email: client.email }, message: "Your advertisement has been published." }, 201);
     }
+    if (p === "/api/client/chat/blocks" && req.method === "GET") {
+      const client = await clientAuth(req, env, env.DB);
+      if (!client) return bad("Client login required", 401);
+      return out({ success: true, blocked: await all(env.DB, "SELECT blocked_client_id FROM client_chat_blocks WHERE blocker_client_id=?", client.id) });
+    }
+    if (p === "/api/client/chat/block" && req.method === "POST") {
+      const client = await clientAuth(req, env, env.DB);
+      if (!client) return bad("Client login required", 401);
+      const b = await readBody(req) || {}, other = str(b.other_client_id, 100), adId = str(b.ad_id, 100);
+      if (!other || other === String(client.id)) return bad("Invalid client to block.");
+      const shared = await first(env.DB, "SELECT id FROM chat_messages WHERE ad_id=? AND ((sender_client_id=? AND receiver_client_id=?) OR (sender_client_id=? AND receiver_client_id=?)) LIMIT 1", adId, client.id, other, other, client.id);
+      if (!shared) return bad("Start a conversation before blocking this client.", 400);
+      await run(env.DB, "INSERT OR IGNORE INTO client_chat_blocks(blocker_client_id,blocked_client_id,created_at) VALUES(?,?,CURRENT_TIMESTAMP)", client.id, other);
+      return out({ success: true, message: "Client blocked." });
+    }
+    const unblockMatch = p.match(/^\/api\/client\/chat\/block\/([^/]+)$/);
+    if (unblockMatch && req.method === "DELETE") {
+      const client = await clientAuth(req, env, env.DB);
+      if (!client) return bad("Client login required", 401);
+      const other = decodeURIComponent(unblockMatch[1]);
+      await run(env.DB, "DELETE FROM client_chat_blocks WHERE blocker_client_id=? AND blocked_client_id=?", client.id, other);
+      return out({ success: true, message: "Client unblocked." });
+    }
     if (p === "/api/client/chat" && req.method === "POST") {
       const client = await clientAuth(req, env, env.DB);
       if (!client) return bad("Client login required", 401);
@@ -440,6 +463,8 @@ var index_default = { async fetch(req, env) {
       if (!message) return bad("Message required");
       if (!ad2.owner_client_id) return bad("This advertiser does not have a client chat account.", 400);
       if (String(ad2.owner_client_id) === String(client.id)) return bad("You cannot chat with yourself.", 400);
+      const blocked = await first(env.DB, "SELECT blocker_client_id FROM client_chat_blocks WHERE (blocker_client_id=? AND blocked_client_id=?) OR (blocker_client_id=? AND blocked_client_id=?) LIMIT 1", client.id, ad2.owner_client_id, ad2.owner_client_id, client.id);
+      if (blocked) return bad("Messaging is unavailable because one participant has blocked the other.", 403);
       const adDetails = await first(env.DB, "SELECT category,details_json FROM ads WHERE id=?", ad2.id);
       let chatPolicy = {};
       try { const cfg = await first(env.DB, "SELECT value FROM settings WHERE key='contact_policy'"); if (cfg?.value) chatPolicy = JSON.parse(cfg.value); } catch {}
@@ -460,6 +485,8 @@ var index_default = { async fetch(req, env) {
       const ad2 = await first(env.DB, "SELECT id,owner_client_id FROM ads WHERE id=? AND status='approved'", adId);
       if (!ad2 || ![String(ad2.owner_client_id), to].includes(String(client.id))) return bad("Conversation not found", 404);
       if (String(ad2.owner_client_id) === String(client.id) ? to === String(client.id) : String(ad2.owner_client_id) !== to) return bad("Invalid conversation recipient", 403);
+      const blocked = await first(env.DB, "SELECT blocker_client_id FROM client_chat_blocks WHERE (blocker_client_id=? AND blocked_client_id=?) OR (blocker_client_id=? AND blocked_client_id=?) LIMIT 1", client.id, to, to, client.id);
+      if (blocked) return bad("Messaging is unavailable because one participant has blocked the other.", 403);
       const other = await first(env.DB, "SELECT mobile FROM client_accounts WHERE id=?", to);
       if (!other) return bad("Customer not found", 404);
       await run(env.DB, "INSERT INTO chat_messages(ad_id,sender_mobile,receiver_mobile,message,sender_client_id,receiver_client_id) VALUES(?,?,?,?,?,?)", adId, client.mobile, other.mobile, message, client.id, to);
