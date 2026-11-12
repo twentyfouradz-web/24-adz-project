@@ -331,9 +331,10 @@ var index_default = { async fetch(req, env) {
     if (p === "/api/client/profile" && req.method === "PUT") {
       const client = await clientAuth(req, env, env.DB);
       if (!client) return bad("Client login required", 401);
-      const b = await readBody(req) || {}, name = str(b.name, 100), mobile = digits(b.mobile || client.mobile);
-      if (!name || !validMobile(mobile)) return bad("Enter a name and valid 10-digit mobile number");
-      await run(env.DB, "UPDATE client_accounts SET name=?,mobile=?,updated_at=datetime('now') WHERE id=?", name, mobile, client.id);
+      const b = await readBody(req) || {}, name = str(b.name, 100), mobile = digits(client.mobile);
+      if (!name || !validMobile(mobile)) return bad("A valid registered mobile number is required");
+      // Keep the registered mobile immutable here so users cannot reset the shared free-ad quota.
+      await run(env.DB, "UPDATE client_accounts SET name=?,updated_at=datetime('now') WHERE id=?", name, client.id);
       return out({ success: true, client: { ...client, name, mobile } });
     }
     if (p === "/api/client/account" && req.method === "DELETE") {
