@@ -3672,7 +3672,7 @@ document.getElementById("loginForm").addEventListener("submit",async e=>{
 });
 function openForgotPassword(){closeModal("loginModal");openModal("forgotPasswordModal")}
 document.getElementById("forgotPasswordForm").addEventListener("submit",async e=>{
-  e.preventDefault();const f=new FormData(e.target);try{await a24InitAuth();const {error}=await a24Supabase.auth.resetPasswordForEmail(String(f.get("email")).trim().toLowerCase(),{redirectTo:location.origin+"/"});if(error)throw error;closeModal("forgotPasswordModal");toast("If the account exists, Supabase has sent a password reset email.");}catch(x){toast(x.message||"Unable to send reset email.");}
+  e.preventDefault();const f=new FormData(e.target);try{await a24InitAuth();const {error}=await a24Supabase.auth.resetPasswordForEmail(String(f.get("email")).trim().toLowerCase(),{redirectTo:location.origin+"/"});if(error)throw error;closeModal("forgotPasswordModal");toast("If your email is registered, check your inbox for the reset link.");}catch(x){toast(x.message||"Unable to send reset email.");}
 });
 document.getElementById("resetPasswordForm").addEventListener("submit",async e=>{
   e.preventDefault();const f=new FormData(e.target);try{await a24InitAuth();const {error}=await a24Supabase.auth.updateUser({password:String(f.get("password"))});if(error)throw error;closeModal("resetPasswordModal");history.replaceState({},"",location.pathname);toast("Password updated successfully. Please log in again.");await a24Supabase.auth.signOut();}catch(x){toast(x.message||"Unable to update password.");}
