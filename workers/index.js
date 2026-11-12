@@ -658,7 +658,11 @@ var index_default = { async fetch(req, env) {
       const vipSelect = vipTable ? `,(SELECT p.days FROM vip_promotions p WHERE p.ad_id=ads.id AND LOWER(p.status)='active' AND datetime(p.created_at,'+'||p.days||' days')>datetime('now') ORDER BY datetime(p.created_at) DESC,p.id DESC LIMIT 1) AS vip_days,(SELECT p.created_at FROM vip_promotions p WHERE p.ad_id=ads.id AND LOWER(p.status)='active' AND datetime(p.created_at,'+'||p.days||' days')>datetime('now') ORDER BY datetime(p.created_at) DESC,p.id DESC LIMIT 1) AS vip_started_at,(SELECT datetime(p.created_at,'+'||p.days||' days') FROM vip_promotions p WHERE p.ad_id=ads.id AND LOWER(p.status)='active' AND datetime(p.created_at,'+'||p.days||' days')>datetime('now') ORDER BY datetime(p.created_at) DESC,p.id DESC LIMIT 1) AS vip_expires_at` : `,NULL AS vip_days,NULL AS vip_started_at,NULL AS vip_expires_at`;
       const vipOrder = vipTable ? `CASE WHEN EXISTS(SELECT 1 FROM vip_promotions p WHERE p.ad_id=ads.id AND LOWER(p.status)='active' AND datetime(p.created_at,'+'||p.days||' days')>datetime('now')) THEN 1 ELSE 0 END DESC, (SELECT MAX(p.created_at) FROM vip_promotions p WHERE p.ad_id=ads.id AND LOWER(p.status)='active' AND datetime(p.created_at,'+'||p.days||' days')>datetime('now')) DESC` : `0 DESC`;
       const order = vipOrder + `, ` + (url.searchParams.get("sort") === "price_low" || url.searchParams.get("sort") === "price_high" ? sort : "ads.created_at DESC");
-      const rows = await all(env.DB, "SELECT ads.*" + vipSelect + " FROM ads WHERE " + w.join(" AND ") + ` ORDER BY ${order} LIMIT ? OFFSET ?`, ...a, limit, (page - 1) * limit);
+      const clientAccountsTable = await table(env.DB, "client_accounts");
+      const postedBySelect = clientAccountsTable
+        ? ",(SELECT ca.name FROM client_accounts ca WHERE ca.id=ads.owner_client_id LIMIT 1) AS posted_by"
+        : ",NULL AS posted_by";
+      const rows = await all(env.DB, "SELECT ads.*" + vipSelect + postedBySelect + " FROM ads WHERE " + w.join(" AND ") + ` ORDER BY ${order} LIMIT ? OFFSET ?`, ...a, limit, (page - 1) * limit);
       let contactPolicy = {};
       try { const cfg = await first(env.DB, "SELECT value FROM settings WHERE key='contact_policy'"); if (cfg?.value) contactPolicy = JSON.parse(cfg.value); } catch {}
       const ads = rows.map((row) => {
