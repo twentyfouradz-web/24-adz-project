@@ -5320,3 +5320,116 @@ img { -webkit-user-drag: none; user-drag: none; }
 }
 
 </style>
+
+<style id="24adz-mobile-ad-card-unified-fix">
+/* Unified compact mobile cards: homepage and My Ads share one footprint.
+   Desktop styling and all existing functionality remain unchanged. */
+@media (max-width:600px){
+  #adsList.ads,#adsSection .ads{
+    display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+    gap:9px!important;width:100%!important;align-items:stretch!important;
+  }
+  #adsList .ad-card,#adsSection .ad-card{
+    display:grid!important;grid-template-columns:36% minmax(0,1fr)!important;
+    grid-template-rows:1fr auto!important;width:100%!important;min-width:0!important;
+    height:154px!important;min-height:154px!important;max-height:154px!important;
+    margin:0!important;padding:0!important;overflow:hidden!important;box-sizing:border-box!important;
+    border-radius:12px!important;
+  }
+  #adsList .ad-card>.ad-image,#adsSection .ad-card>.ad-image{
+    grid-column:1!important;grid-row:1!important;width:100%!important;
+    height:112px!important;min-height:112px!important;max-height:112px!important;
+    border-right:3px solid #ffad38!important;overflow:hidden!important;
+  }
+  #adsList .ad-card>.ad-image img,#adsSection .ad-card>.ad-image img{
+    display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;
+  }
+  #adsList .ad-card>.ad-body,#adsSection .ad-card>.ad-body{
+    display:contents!important;
+  }
+  #adsList .ad-card .vip-ribbon,#adsSection .ad-card .vip-ribbon{
+    grid-column:2!important;grid-row:1!important;align-self:start!important;justify-self:start!important;
+    max-width:calc(100% - 10px)!important;margin:7px 6px 3px!important;padding:3px 6px!important;
+    font-size:8px!important;line-height:1.15!important;white-space:normal!important;
+  }
+  #adsList .ad-card h3,#adsSection .ad-card h3{
+    grid-column:2!important;grid-row:1!important;align-self:center!important;
+    min-width:0!important;max-height:34px!important;margin:18px 7px 2px!important;
+    display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;
+    overflow:hidden!important;overflow-wrap:anywhere!important;white-space:normal!important;
+    font-size:13px!important;line-height:1.2!important;
+  }
+  #adsList .ad-card .ad-meta,#adsSection .ad-card .ad-meta{
+    grid-column:2!important;grid-row:1!important;align-self:end!important;
+    min-width:0!important;max-height:27px!important;overflow:hidden!important;
+    margin:0 7px 5px!important;font-size:9px!important;line-height:1.2!important;
+  }
+  #adsList .ad-card .ad-price,#adsSection .ad-card .ad-price{
+    grid-column:1!important;grid-row:2!important;min-width:0!important;
+    margin:0!important;padding:4px 5px!important;font-size:12px!important;line-height:1.1!important;
+    text-align:center!important;overflow-wrap:anywhere!important;
+  }
+  #adsList .ad-card .ad-actions,#adsSection .ad-card .ad-actions{
+    grid-column:2!important;grid-row:2!important;display:flex!important;
+    justify-content:space-around!important;align-items:center!important;gap:4px!important;
+    min-width:0!important;margin:0!important;padding:3px 5px!important;
+  }
+  #adsList .ad-card .ad-actions a,#adsList .ad-card .ad-actions button,
+  #adsSection .ad-card .ad-actions a,#adsSection .ad-card .ad-actions button{
+    flex:1 1 0!important;min-width:0!important;min-height:27px!important;
+    padding:4px 2px!important;font-size:9px!important;line-height:1.05!important;
+    white-space:normal!important;overflow-wrap:anywhere!important;
+  }
+  #adsList .ad-card .ad-open-hint,#adsSection .ad-card .ad-open-hint{display:none!important}
+
+  #myAdsPanel .my24-ads-scroll,#clientDashboardContent .my24-ads-scroll{
+    display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+    gap:9px!important;width:100%!important;max-height:72vh!important;
+    overflow-y:auto!important;overflow-x:hidden!important;
+    padding:2px 2px 10px!important;align-items:stretch!important;
+  }
+  #myAdsPanel .my24-ad-card,#clientDashboardContent .my24-ad-card{
+    display:grid!important;grid-template-columns:36% minmax(0,1fr)!important;
+    grid-template-rows:1fr!important;width:100%!important;min-width:0!important;
+    height:154px!important;min-height:154px!important;max-height:154px!important;
+    margin:0!important;overflow:hidden!important;box-sizing:border-box!important;
+    border-radius:12px!important;
+  }
+  #myAdsPanel .my24-ad-card>.ad-image,#clientDashboardContent .my24-ad-card>.ad-image{
+    grid-column:1!important;grid-row:1!important;width:100%!important;
+    height:154px!important;min-height:154px!important;max-height:154px!important;
+    border-right:3px solid #ffad38!important;overflow:hidden!important;
+  }
+  #myAdsPanel .my24-ad-card>.ad-image img,#clientDashboardContent .my24-ad-card>.ad-image img{
+    width:100%!important;height:100%!important;object-fit:cover!important;
+  }
+  #myAdsPanel .my24-ad-card>.ad-body,#clientDashboardContent .my24-ad-card>.ad-body{
+    grid-column:2!important;grid-row:1!important;display:flex!important;
+    flex-direction:column!important;justify-content:flex-start!important;
+    min-width:0!important;height:154px!important;min-height:0!important;
+    overflow:hidden!important;padding:7px!important;gap:2px!important;
+  }
+  #myAdsPanel .my24-ad-card .vip-ribbon,#clientDashboardContent .my24-ad-card .vip-ribbon{
+    align-self:flex-start!important;max-width:100%!important;white-space:normal!important;
+    font-size:8px!important;line-height:1.1!important;padding:3px 5px!important;margin:0 0 3px!important;
+  }
+  #myAdsPanel .my24-ad-card h3,#clientDashboardContent .my24-ad-card h3{
+    display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;
+    white-space:normal!important;overflow:hidden!important;overflow-wrap:anywhere!important;
+    font-size:12px!important;line-height:1.2!important;max-height:29px!important;margin:1px 0 3px!important;
+  }
+  #myAdsPanel .my24-ad-card .ad-meta,#clientDashboardContent .my24-ad-card .ad-meta{
+    min-width:0!important;font-size:9px!important;line-height:1.25!important;
+    max-height:43px!important;overflow:hidden!important;overflow-wrap:anywhere!important;
+  }
+  #myAdsPanel .my24-ad-card .my24-ad-actions,#clientDashboardContent .my24-ad-card .my24-ad-actions{
+    display:flex!important;flex-wrap:nowrap!important;gap:4px!important;
+    margin-top:auto!important;padding-top:4px!important;
+  }
+  #myAdsPanel .my24-ad-card .my24-ad-actions button,#clientDashboardContent .my24-ad-card .my24-ad-actions button{
+    flex:1 1 0!important;min-width:0!important;min-height:26px!important;
+    padding:4px 2px!important;font-size:9px!important;line-height:1.05!important;
+    white-space:normal!important;
+  }
+}
+</style>
