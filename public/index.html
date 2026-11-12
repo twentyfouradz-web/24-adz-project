@@ -4025,7 +4025,7 @@ function renderMyAdsTab(tab){
    </div></article>`;
  }).join("");
  const root=document.getElementById("myAdsPanel");
- if(root)root.innerHTML=`<div class="myads-intro"><span class="myads-intro-icon">📢</span><div><b>My Ads</b><p>Manage all your ads in one place, renew expiring or expired ads, or add Premium Features.</p></div></div><button class="btn btn-primary myads-post-action" type="button" onclick="startPostAd()">＋ Post free ad</button><div class="myads-tabs" role="tablist" aria-label="Filter my ads">${buttons}</div><div class="my24-ads-scroll">${cards||`<div class="myads-empty"><span>ⓘ</span><p>You currently have no ${tab==="all"?"published":tab} ads</p><button class="btn btn-primary" type="button" onclick="startPostAd()">＋ Post free ad</button></div>`}</div>`;
+ if(root)root.innerHTML=`<div class="myads-intro"><span class="myads-intro-icon">📢</span><div><b>My Ads</b><p>Manage all your ads in one place, renew expiring or expired ads, or add Premium Features.</p></div></div><button class="btn btn-primary myads-post-action" type="button" onclick="startPostAd()">＋ Post free ad</button><div class="myads-tabs" role="tablist" aria-label="Filter my ads">${buttons}</div><div class="my24-ads-scroll" aria-label="Your published ads. Swipe left or right anywhere on an ad card to browse.">${cards||`<div class="myads-empty"><span>ⓘ</span><p>You currently have no ${tab==="all"?"published":tab} ads</p><button class="btn btn-primary" type="button" onclick="startPostAd()">＋ Post free ad</button></div>`}</div>`;
 }
 async function openClientDashboard(){
  try{
@@ -4442,8 +4442,15 @@ a24InitAuth().catch(e=>{console.warn("24Adz Supabase Auth:",e.message);toast(e.m
       });
       grid.appendChild(card);
     });
-    // Place the subcategory panel immediately below the category the user tapped.
-    if(el && el.parentElement) el.insertAdjacentElement("afterend",panel);
+    // Keep the subcategory screen outside #categories: that parent is hidden in
+    // category-subcategory-mode, so nesting the panel there made the whole screen black.
+    const homeCategories=$("homeCategories");
+    const mainCategoryGrid=$("categories");
+    if(homeCategories && mainCategoryGrid && panel.parentElement!==homeCategories){
+      mainCategoryGrid.insertAdjacentElement("afterend",panel);
+    } else if(homeCategories && mainCategoryGrid && panel.previousElementSibling!==mainCategoryGrid){
+      mainCategoryGrid.insertAdjacentElement("afterend",panel);
+    }
     panel.hidden=false;
     panel.style.display="block";
     window.scrollTo({top:0,behavior:"smooth"});
@@ -4989,6 +4996,63 @@ body.category-subcategory-mode .personals-subcategories .category strong{font-si
 #listingPlans .coin-purchase-clean{max-width:760px;margin:0 auto}
 #listingPlans .coin-purchase-clean .price-card{margin-top:0!important}
 @media(max-width:420px){body.category-subcategory-mode .personals-subcategories{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}body.category-subcategory-mode .personals-subcategories .category{min-height:102px!important}}
+</style><style id="24adz-mobile-category-myads-postform-fix">
+/* Category selection screen: keep panel outside the hidden category grid */
+body.category-subcategory-mode #homeCategories>#personalsSubcategories{display:block!important;visibility:visible!important}
+body.category-subcategory-mode #homeCategories>#categories{display:none!important}
+
+/* My Ads: swipe horizontally by touching anywhere on an ad card */
+#my24Ads #myAdsPanel .my24-ads-scroll{
+  display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;
+  align-items:stretch!important;gap:14px!important;width:100%!important;
+  overflow-x:auto!important;overflow-y:hidden!important;
+  padding:4px 2px 16px!important;margin:0!important;
+  scroll-snap-type:x mandatory!important;scroll-behavior:smooth!important;
+  -webkit-overflow-scrolling:touch!important;overscroll-behavior-x:contain!important;
+  touch-action:pan-x pan-y!important;scrollbar-width:thin;
+}
+#my24Ads #myAdsPanel .my24-ads-scroll>.my24-ad-card{
+  flex:0 0 min(86%,360px)!important;width:min(86%,360px)!important;
+  min-width:min(86%,360px)!important;max-width:360px!important;
+  height:auto!important;max-height:none!important;overflow:hidden!important;
+  scroll-snap-align:start!important;touch-action:pan-x pan-y!important;
+  user-select:none;-webkit-user-select:none;
+}
+#my24Ads #myAdsPanel .my24-ad-card img{pointer-events:none!important}
+#my24Ads #myAdsPanel .my24-ad-card .my24-ad-actions,
+#my24Ads #myAdsPanel .my24-ad-card button{touch-action:manipulation!important}
+
+/* Post form: use the full available phone width and a readable vertical layout */
+#postModal{
+  position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;
+  max-width:100vw!important;max-height:100dvh!important;box-sizing:border-box!important;
+  padding:12px!important;align-items:center!important;justify-content:center!important;
+}
+#postModal .modal-box{
+  display:block!important;box-sizing:border-box!important;
+  width:100%!important;max-width:720px!important;min-width:0!important;
+  height:auto!important;max-height:calc(100dvh - 24px)!important;
+  overflow-x:hidden!important;overflow-y:auto!important;
+  padding:16px!important;margin:0 auto!important;border-radius:18px!important;
+}
+#postModal .modal-top{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;width:100%!important}
+#postModal .modal-top h2{flex:1 1 auto!important;min-width:0!important;font-size:clamp(19px,5vw,25px)!important;line-height:1.2!important;overflow-wrap:anywhere}
+#postModal #postForm{display:block!important;width:100%!important;min-width:0!important;box-sizing:border-box!important}\n#postModal .post-form-step:not([hidden]){display:block!important;width:100%!important;min-width:0!important;box-sizing:border-box!important}
+#postModal #postForm .field,
+#postModal #postForm input,
+#postModal #postForm select,
+#postModal #postForm textarea{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important}
+#postModal #postForm label{display:block!important;width:100%!important;box-sizing:border-box!important}
+#postModal .post-step-indicator{width:100%!important;box-sizing:border-box!important;white-space:normal!important;overflow-wrap:anywhere!important;font-size:clamp(12px,3.5vw,15px)!important;line-height:1.35!important}
+#postModal .category-specific-fields{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:0!important;width:100%!important;min-width:0!important}
+#postModal .category-specific-fields>*{width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
+@media(min-width:560px){
+  #postModal .category-specific-fields{grid-template-columns:repeat(2,minmax(0,1fr))!important;column-gap:12px!important}
+}
+@media(max-width:420px){
+  #postModal{padding:7px!important}
+  #postModal .modal-box{max-height:calc(100dvh - 14px)!important;padding:13px!important}
+}
 </style></body>
 </html>
 
