@@ -2504,12 +2504,12 @@ function renderAds(items=ads,page=1){
 }
 function adContactPolicy(a){
   const category=String(a.category||"").trim().toLowerCase().replace(/\s+/g," ");
-  const chatCategories=["cars","bikes","houses","house","jobs","mobiles","real estate","realestate"];
-  // Chat is offered for the requested categories when the listing belongs to a
-  // registered client account; the API remains the authority for permission.
-  const chatAllowed=chatCategories.includes(category) && !!a.can_chat;
+  // The API is authoritative: show Chat for any category whose published ad
+  // belongs to a client account and whose category contact policy permits chat.
+  const chatAllowed=!!a.can_chat;
   return {call:!!(a.phone||a.can_call),whatsapp:!!(a.whatsapp||a.phone||a.can_whatsapp),chat:chatAllowed};
 }
+function adWhatsAppNumber(a){const n=digits(a.whatsapp||a.phone);return n.length===10?"91"+n:n;}
 function renderAdCard(a){
   const vip=isVipAd(a), contact=adContactPolicy(a);
   const id=escapeAttr(a.id);
@@ -2518,7 +2518,7 @@ function renderAdCard(a){
     <div class="ad-body">${vip?`<span class="vip-ribbon">♛ VIP PREMIUM · ${escapeHtml(a.plan)} · EXPIRES ${new Date(getAdExpiryTime(a)).toLocaleDateString("en-IN")}</span>`:`<span class="vip-ribbon" style="background:linear-gradient(110deg,#333,#555);color:#eee;border-color:#666;box-shadow:none">STANDARD LISTING</span>`}<h3>${escapeHtml(a.title)}</h3>
     <div class="ad-meta">${escapeHtml(a.category)}${a.subcategory?" · "+escapeHtml(a.subcategory):""}<br>📍 ${escapeHtml(a.area)}, ${escapeHtml(a.district)}<br>${a.age?`Age: ${escapeHtml(a.age)} years<br>`:""}👤 ${escapeHtml(a.contact)}${vip?" · ⭐ "+escapeHtml(a.plan):""}</div>
     <div class="ad-price">${a.price? "₹"+escapeHtml(a.price):"Contact for price"}</div>
-    <div class="ad-actions">${contact.call?`<a onclick="event.stopPropagation()" href="tel:${encodeURIComponent(a.phone)}">☎ Call</a>`:""}${contact.whatsapp?`<a onclick="event.stopPropagation()" href="https://wa.me/${digits(a.whatsapp||a.phone)}" target="_blank" rel="noopener">WhatsApp</a>`:""}${contact.chat?`<button type="button" onclick="event.stopPropagation();openAdChat('${id}')">Chat</button>`:""}</div><small class="ad-open-hint">View advertisement details</small></div></article>`;
+    <div class="ad-actions">${contact.call?`<a onclick="event.stopPropagation()" href="tel:${encodeURIComponent(a.phone)}">☎ Call</a>`:""}${contact.whatsapp?`<a onclick="event.stopPropagation()" href="https://wa.me/${adWhatsAppNumber(a)}" target="_blank" rel="noopener">WhatsApp</a>`:""}${contact.chat?`<button type="button" onclick="event.stopPropagation();openAdChat('${id}')">Chat</button>`:""}</div><small class="ad-open-hint">View advertisement details</small></div></article>`;
 }
 function openAdDetails(adId){
   const a=(ads||[]).find(x=>String(x.id)===String(adId)) || (adsCurrentItems||[]).find(x=>String(x.id)===String(adId));
@@ -2530,7 +2530,7 @@ function openAdDetails(adId){
   const title=document.createElement("h2");title.textContent=a.title||"Advertisement";body.appendChild(title);
   rows.forEach(([label,value])=>{if(!value)return;const p=document.createElement("p");const strong=document.createElement("strong");strong.textContent=label+": ";p.append(strong,document.createTextNode(String(value)));body.appendChild(p);});
   if(contact.call){const x=document.createElement("a");x.href="tel:"+String(a.phone||"").replace(/[^+0-9]/g,"");x.textContent="☎ Call";x.className="detail-call";actions.appendChild(x);}
-  if(contact.whatsapp){const x=document.createElement("a");x.href="https://wa.me/"+digits(a.whatsapp||a.phone);x.target="_blank";x.rel="noopener";x.textContent="WhatsApp";x.className="detail-whatsapp";actions.appendChild(x);}
+  if(contact.whatsapp){const x=document.createElement("a");x.href="https://wa.me/"+adWhatsAppNumber(a);x.target="_blank";x.rel="noopener";x.textContent="WhatsApp";x.className="detail-whatsapp";actions.appendChild(x);}
   if(contact.chat){const x=document.createElement("button");x.type="button";x.textContent="Chat";x.className="detail-chat";x.onclick=()=>{closeAdDetails();openAdChat(a.id);};actions.appendChild(x);}
   if(!actions.children.length){const note=document.createElement("span");note.textContent="Contact details are not available for this advertisement.";note.style.cssText="grid-column:1/-1;color:#bbb;font-size:13px;text-align:center";actions.appendChild(note);}
   modal.hidden=false;modal.setAttribute("aria-hidden","false");
@@ -2703,6 +2703,7 @@ function collectCategoryDetails(container){
 
 document.getElementById("postForm").addEventListener("submit",async e=>{
  e.preventDefault();
+ try{await a24InitAuth();}catch(authError){toast(authError.message||"Login service unavailable.");return;}
  const client=getCurrentClient();
  if(!a24Token()){toast("Please login to publish your advertisement.");closeModal("postModal");openModal("loginModal");return;}
  
@@ -3228,7 +3229,7 @@ function updateAccountNav(){
 }
 async function clientLogout(){try{await a24InitAuth();if(a24Supabase)await a24Supabase.auth.signOut();}catch(e){console.warn(e)}a24Session=null;a24Client=null;localStorage.removeItem("24adz_client");updateAccountNav();toast("Logged out.");}
 function getCurrentClient(){try{return JSON.parse(localStorage.getItem("24adz_client")||"null")}catch{return null}}
-function startPostAd(){if(!a24Token()){openModal("loginModal");toast("Login or register to post an ad.");return}resetPostFormForNew();openModal("postModal")}
+async function startPostAd(){try{await a24InitAuth();if(!a24Token()){openModal("loginModal");toast("Login or register to post an ad.");return}resetPostFormForNew();openModal("postModal")}catch(e){toast(e.message||"Login service unavailable.")}}
 function resetPostFormForNew(){const f=document.getElementById("postForm");f.reset();document.getElementById("editingAdId").value="";goPostStep(1);}
 function classifyMyAd(a){
  const status=String(a.status||"").toLowerCase();
@@ -3241,15 +3242,6 @@ function classifyMyAd(a){
  }
  return "active";
 }
-<style id="24adz-myads-natural-card-height">
-.my24-ad-card{
-  height:auto!important;
-  min-height:0!important;
-  max-height:none!important;
-  overflow:visible!important;
-  box-sizing:border-box;
-}
-</style>
 function renderMyAdsTab(tab){
  const all=window.__24adzOwnAds||[];
  const tabs=["all","active","expiring","expired","inactive"];
@@ -3278,8 +3270,10 @@ function renderMyAdsTab(tab){
  if(root)root.innerHTML=`<div style="display:flex;gap:7px;flex-wrap:wrap;margin:10px 0 14px">${buttons}</div>${cards||"<p>No ads in this section.</p>"}`;
 }
 async function openClientDashboard(){
- if(!a24Token()){openModal("loginModal");return}
  try{
+  await a24InitAuth();
+  if(!a24Token()){openModal("loginModal");return}
+
   const [me,own,msgs,coinHistory]=await Promise.all([a24Call("/api/client/me"),a24Call("/api/client/ads"),a24Call("/api/client/messages"),a24Call("/api/client/coin-transactions")]);
   const c=me.client,w=me.wallet,limits=me.freeAds,transactions=coinHistory.transactions||[],ads=own.ads||[],messages=msgs.messages||[];
   window.__24adzOwnAds=ads;
@@ -3309,7 +3303,7 @@ async function openClientDashboard(){
  }catch(e){toast(e.message)}
 }
 function my24Go(id){const el=document.getElementById(id);if(el)el.scrollIntoView({behavior:"smooth",block:"start"});}
-async function openMyAdsOnly(){if(!a24Token()){openModal("loginModal");return;}await openClientDashboard();setTimeout(()=>my24Go("my24Ads"),120);}
+async function openMyAdsOnly(){try{await a24InitAuth();if(!a24Token()){openModal("loginModal");return;}await openClientDashboard();setTimeout(()=>my24Go("my24Ads"),120);}catch(e){toast(e.message||"Unable to open My Ads.")}}
 async function saveMy24Profile(){try{await a24Call("/api/client/profile","PUT",{name:document.getElementById("my24Name").value});toast("Profile updated.");}catch(e){toast(e.message)}}
 async function renewClientAd(id){const days=Number(prompt("Auto Renew VIP duration\\nEnter 3, 5 or 7 days:","3"));if(![3,5,7].includes(days))return;if(!confirm(`Renew this published ad for ${days} days using Coins?`))return;try{const r=await a24Call("/api/client/ads/"+encodeURIComponent(id)+"/renew","POST",{days});toast(r.message||"Ad renewed.");openClientDashboard()}catch(e){toast(e.message)}}
 async function openClientThread(adId,peer){try{const r=await a24Call("/api/client/messages"),rows=(r.messages||[]).filter(m=>String(m.ad_id)===String(adId)&&([String(m.sender_client_id),String(m.receiver_client_id)].includes(String(peer))));document.getElementById("chatAdId").value=adId;document.getElementById("adChatHistory").innerHTML=rows.map(m=>`<p><b>${String(m.sender_client_id)===String(peer)?"Advertiser":"You"}:</b> ${escapeDashboardText(m.message)}</p>`).join("")||"Start this conversation.";document.getElementById("adChatForm").dataset.receiver=peer;openModal("adChatModal")}catch(e){toast(e.message)}}
@@ -3320,13 +3314,22 @@ async function getAdminWhatsApp(){try{const r=await fetch("/api/public/settings"
 async function syncAdminWhatsAppLinks(){const n=await getAdminWhatsApp(),link=document.getElementById("promoAdminWhatsApp"),coinLink=document.getElementById("coinPurchaseWhatsAppLink"),numberLabel=document.getElementById("coinPurchaseWhatsAppNumber");if(link)link.href="https://wa.me/91"+n+"?text="+encodeURIComponent("Hello Admin, I want to advertise on 24Adz.com. Please share the details.");if(coinLink)coinLink.href="https://wa.me/91"+n+"?text="+encodeURIComponent("Hello 24Adz Admin, I want to buy Coins.");if(numberLabel)numberLabel.textContent="+91 "+n;}
 syncAdminWhatsAppLinks();
 async function showCoinPackages(){if(!a24Token()){openModal("loginModal");toast("Please log in to request Coins for your My24adz wallet.");return;}const waWindow=window.open("about:blank","_blank");try{const data=await a24Call("/api/client/coin-packages"),packages=data.packages||[];const promptText="24Adz Coin Packages\n"+packages.map(x=>Number(x.coins).toLocaleString("en-IN")+" Coins – ₹"+Number(x.amount).toLocaleString("en-IN")).join("\n")+"\n\nEnter coin amount to purchase:";const coins=Number(prompt(promptText));if(!packages.some(x=>Number(x.coins)===coins)){if(waWindow)waWindow.close();return;}const r=await a24Call("/api/client/coin-requests","POST",{coins});const number=await getAdminWhatsApp();const message=`Hello 24Adz Admin, I want to purchase ${coins} Coins. Request ID: ${r.request_id}. Please share the official payment details.`;const waUrl="https://wa.me/91"+number+"?text="+encodeURIComponent(message);if(waWindow)waWindow.location.href=waUrl;else window.location.href=waUrl;toast("WhatsApp opened. Admin will credit coins after payment confirmation.")}catch(e){if(waWindow)waWindow.close();toast(e.message)}}
-function openMessages(){if(!a24Token()){openModal("loginModal");return}openClientDashboard();}
-function openAdChat(adId){if(!a24Token()){openModal("loginModal");toast("Login to chat with the advertiser.");return}document.getElementById("adChatForm").dataset.receiver="";document.getElementById("chatAdId").value=adId;document.getElementById("adChatHistory").textContent="Send a message to start this conversation.";openModal("adChatModal");}
+async function openMessages(){try{await a24InitAuth();if(!a24Token()){openModal("loginModal");return}await openClientDashboard();setTimeout(()=>my24Go("my24Messages"),120)}catch(e){toast(e.message||"Unable to open Messages.")}}
+async function openAdChat(adId){try{await a24InitAuth();if(!a24Token()){openModal("loginModal");toast("Login to chat with the advertiser.");return}document.getElementById("adChatForm").dataset.receiver="";document.getElementById("chatAdId").value=adId;document.getElementById("adChatHistory").textContent="Send a message to start this conversation.";openModal("adChatModal")}catch(e){toast(e.message||"Chat is unavailable.")}}
 document.getElementById("adChatForm").addEventListener("submit",async e=>{e.preventDefault();try{const form=e.currentTarget,ad_id=document.getElementById("chatAdId").value,message=document.getElementById("chatMessage").value,peer=form.dataset.receiver;await a24Call(peer?"/api/client/chat/reply":"/api/client/chat","POST",peer?{ad_id,receiver_client_id:peer,message}:{ad_id,message});document.getElementById("chatMessage").value="";toast("Message sent.");if(peer)await openClientThread(ad_id,peer);else document.getElementById("adChatHistory").textContent="Message sent to advertiser. Check Messages in My24adz for replies."}catch(x){toast(x.message)}});
 updateAccountNav();
 a24InitAuth().catch(e=>{console.warn("24Adz Supabase Auth:",e.message);toast(e.message);});
 </script>
 
+<style id="24adz-myads-natural-card-height">
+.my24-ad-card{
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow:visible!important;
+  box-sizing:border-box;
+}
+</style>
 
 <script id="24adz-category-form-controller">
 (function(){
