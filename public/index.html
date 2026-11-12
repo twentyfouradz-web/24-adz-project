@@ -2768,7 +2768,7 @@ async function a24InitAuth(){
     const cfg=await fetch("/api/public/auth-config",{cache:"no-store"}).then(async r=>{const d=await r.json();if(!r.ok||!d.success)throw new Error(d.error||"Supabase configuration unavailable");return d;});
     a24Supabase=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
     const {data,error}=await a24Supabase.auth.getSession();if(error)throw error;
-    a24Session=data.session||null;
+    a24Session=data.session||null;if(a24Session&&typeof a24MarkActivity==="function")a24MarkActivity();
     const hashParams=new URLSearchParams(location.hash.replace(/^#/,""));
     const queryParams=new URLSearchParams(location.search);
     const isSignupReturn=hashParams.get("type")==="signup"||queryParams.get("email_confirm")==="1";
@@ -2883,7 +2883,7 @@ document.getElementById("loginForm").addEventListener("submit",async e=>{
       ({data,error}=await a24Supabase.auth.setSession({access_token:result.session.access_token,refresh_token:result.session.refresh_token}));
     }
     if(error)throw error;
-    a24Session=data.session;await a24SyncClient();e.target.reset();closeModal("loginModal");toast("Login successful.");
+    a24Session=data.session;await a24SyncClient();a24MarkActivity();e.target.reset();closeModal("loginModal");toast("Login successful.");
   }catch(x){toast(x.message||"Login failed.");}finally{if(button)button.disabled=false;}
 });
 function openForgotPassword(){closeModal("loginModal");openModal("forgotPasswordModal")}
@@ -3236,6 +3236,30 @@ window.ADZ24_MAIN_CATEGORY_ICONS={Cars:'🚗',Bikes:'🏍️',Mobiles:'📱',Job
 const A24_API="";let a24Client=null;
 function a24Token(){return a24Session?.access_token||""}
 async function a24Call(path,method="GET",body){await a24InitAuth();const token=a24Token();const r=await fetch(A24_API+path,{method,headers:{...(body?{"Content-Type":"application/json"}:{}),...(token?{Authorization:"Bearer "+token}:{})},body:body?JSON.stringify(body):undefined});const d=await r.json().catch(()=>({}));if(!r.ok||d.success===false){const e=new Error(d.error||"Request failed");e.status=r.status;throw e}return d}
+/* Keep an active client signed in; end the session after 30 minutes without activity. */
+const A24_IDLE_LIMIT=30*60*1000;
+let a24IdleTimer=null;
+function a24MarkActivity(){
+  if(!a24Token())return;
+  try{sessionStorage.setItem("24adz_last_activity",String(Date.now()));}catch(e){}
+  clearTimeout(a24IdleTimer);
+  a24IdleTimer=setTimeout(()=>{if(a24Token())clientLogout(true);},A24_IDLE_LIMIT);
+}
+function a24StartIdleGuard(){
+  ["click","keydown","touchstart","scroll","mousemove"].forEach(type=>{
+    document.addEventListener(type,a24MarkActivity,{passive:true});
+  });
+  document.addEventListener("visibilitychange",()=>{
+    if(document.visibilityState==="visible"&&a24Token()){
+      let last=0;try{last=Number(sessionStorage.getItem("24adz_last_activity")||0)}catch(e){}
+      if(last&&Date.now()-last>=A24_IDLE_LIMIT)clientLogout(true);
+      else a24MarkActivity();
+    }
+  });
+  if(a24Token())a24MarkActivity();
+}
+a24StartIdleGuard();
+
 function updateAccountNav(){
   const logged=!!a24Token();
   const states={navLoginBtn:logged,navRegisterBtn:logged,navDashboardBtn:!logged,navLogoutBtn:!logged};
@@ -3244,7 +3268,16 @@ function updateAccountNav(){
     if(element) element.hidden=hidden;
   }
 }
-async function clientLogout(){try{await a24InitAuth();if(a24Supabase)await a24Supabase.auth.signOut();}catch(e){console.warn(e)}a24Session=null;a24Client=null;localStorage.removeItem("24adz_client");updateAccountNav();toast("Logged out.");}
+async function clientLogout(auto=false){
+  try{await a24InitAuth();if(a24Supabase)await a24Supabase.auth.signOut();}
+  catch(e){console.warn("24Adz sign-out:",e)}
+  a24Session=null;a24Client=null;
+  try{localStorage.removeItem("24adz_client");sessionStorage.removeItem("24adz_last_activity");}catch(e){}
+  updateAccountNav();
+  ["clientDashboardModal","postModal","loginModal","registerModal"].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove("open");});
+  window.scrollTo({top:0,behavior:"smooth"});
+  if(!auto)toast("Logged out successfully.");
+}
 function getCurrentClient(){try{return JSON.parse(localStorage.getItem("24adz_client")||"null")}catch{return null}}
 async function startPostAd(){try{await a24InitAuth();if(!a24Token()){openModal("loginModal");toast("Login or register to post an ad.");return}resetPostFormForNew();openModal("postModal")}catch(e){toast(e.message||"Login service unavailable.")}}
 function resetPostFormForNew(){const f=document.getElementById("postForm");f.reset();document.getElementById("editingAdId").value="";goPostStep(1);}
@@ -3314,7 +3347,7 @@ async function openClientDashboard(){
    <section class="panel my24-account-panel" id="my24Menu"><h3>My 24Adz</h3>
     <div class="my24-account-hero"><span class="my24-avatar">${escapeDashboardText((c.name||c.email||"U").trim().charAt(0).toUpperCase())}</span><b>${escapeDashboardText(c.name||"24Adz Member")}</b><small>${escapeDashboardText(c.email||"")}</small><button type="button" class="btn btn-outline" onclick="my24Go('my24Profile')">View my profile</button></div>
     <button class="my24-primary-action" type="button" onclick="startPostAd()">＋ &nbsp; Post a free ad <span>→</span></button>
-    <button class="my24-vip-action" type="button" onclick="my24Go('my24Coins')">♛ &nbsp; VIP / Coin Purchase <span>→</span></button>
+    <a class="my24-vip-action" href="https://wa.me/918870017424?text=Hello%2024Adz%2C%20I%20want%20to%20purchase%20VIP%20Coins." target="_blank" rel="noopener noreferrer">♛ &nbsp; VIP / Coin Purchase <span>→</span></a>
     <button class="my24-menu-row" type="button" onclick="my24Go('my24Profile')"><span>👤</span> Profile <b>›</b></button>
     <button class="my24-menu-row" type="button" onclick="my24Go('my24Ads')"><span>📢</span> My Ads <b>›</b></button>
     <button class="my24-menu-row" type="button" onclick="my24Go('my24Coins')"><span>👛</span> My Wallet <b>›</b></button>
@@ -3631,4 +3664,27 @@ a24InitAuth().catch(e=>{console.warn("24Adz Supabase Auth:",e.message);toast(e.m
 #clientDashboardContent .my24-ads-scroll{grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr));max-height:72vh;overflow-y:auto;overscroll-behavior:contain;content-visibility:auto}
 #clientDashboardContent .my24-ad-card{contain:content}
 @media(max-width:480px){#clientDashboardContent .my24-ads-scroll{grid-template-columns:1fr}#clientDashboardContent .my24-ad-card{height:288px!important}}
+</style>
+
+<style id="24adz-my24adz-home-theme-fix">
+/* Match My 24Adz dashboard to the existing black/orange homepage theme. */
+#clientDashboardModal .client-dashboard{background:#0b0907!important;color:#f8eee3!important;border:1px solid #6b3b16}
+#clientDashboardModal .modal-top{background:#100c08!important;color:#ffad42!important;border-bottom:1px solid #593315}
+#clientDashboardModal .modal-top h2{color:#ffad42!important}
+#clientDashboardContent .my24-account-panel{background:#100c08!important;border:1px solid #563316!important;border-radius:12px!important}
+#clientDashboardContent .my24-account-panel>h3{background:linear-gradient(100deg,#211208,#3a1c08)!important;color:#ffad42!important;border-bottom:1px solid #754019}
+#clientDashboardContent .my24-account-hero{background:linear-gradient(145deg,#120d08,#33200f)!important;color:#fff4e8!important}
+#clientDashboardContent .my24-avatar{background:linear-gradient(145deg,#ffb43f,#f36a12)!important;color:#211006!important;border:2px solid #ffd28a!important}
+#clientDashboardContent .my24-account-hero .btn{background:#17100a!important;color:#ffb34c!important;border:1px solid #d77a24!important}
+#clientDashboardContent .my24-primary-action{display:block;text-decoration:none;background:linear-gradient(105deg,#ffb43f,#f36a12)!important;color:#211006!important}
+#clientDashboardContent .my24-vip-action{display:block;text-decoration:none;box-sizing:border-box;background:linear-gradient(105deg,#e84b25,#ff9d27)!important;color:#fff!important}
+#clientDashboardContent .my24-menu-row{background:#15100b!important;color:#f6e9da!important;border-bottom:1px solid #3a291a!important}
+#clientDashboardContent .my24-menu-row b{color:#ffad42!important}
+#clientDashboardContent .my24-section{background:#120e0a!important;color:#f8eee3!important;border:1px solid #5b3519!important;border-radius:12px!important;padding:16px!important}
+#clientDashboardContent .my24-section h3,#clientDashboardContent .my24-section h4{color:#ffad42!important}
+#clientDashboardContent .my24-section p,#clientDashboardContent .my24-section label{color:#f2dfca!important}
+#clientDashboardContent .my24-section .field{background:#080706!important;color:#fff!important;border:1px solid #70451f!important}
+#clientDashboardContent .my24-back{background:linear-gradient(105deg,#ffb43f,#f36a12)!important;color:#211006!important;border:0!important;border-radius:8px!important;padding:10px 14px!important;font-weight:800!important}
+#clientDashboardContent .my24-section .btn-primary{background:linear-gradient(105deg,#ffb43f,#f36a12)!important;color:#211006!important;border:0!important}
+@media(max-width:600px){#clientDashboardModal .client-dashboard{width:100%!important}}
 </style>
