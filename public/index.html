@@ -1307,6 +1307,97 @@ footer{background:#080706!important;color:#b9aaa0!important;border-top:1px solid
 #postModal .category-specific-fields .field{width:100%;min-height:44px}
 #postModal textarea[name="description"]{height:288px;min-height:288px;max-height:288px;resize:none;overflow-y:auto;line-height:1.5}
 @media(min-width:620px){#postModal .category-specific-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* 24adz mobile compact 4-column ad listing: desktop layout remains unchanged */
+@media (max-width: 600px) {
+  #adsSection .ads,
+  #adsList.ads {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    align-items: start;
+    margin-bottom: 24px !important;
+  }
+  #adsSection .ad-card,
+  #adsList .ad-card {
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    border-radius: 9px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-image,
+  #adsList .ad-image,
+  #adsSection .ad-card.vip-ad-card .ad-image,
+  #adsList .ad-card.vip-ad-card .ad-image {
+    width: 100% !important;
+    height: 76px !important;
+    min-height: 76px !important;
+    max-height: 76px !important;
+    flex: 0 0 76px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-image img,
+  #adsList .ad-image img,
+  #adsSection .ad-image .ad-artwork,
+  #adsList .ad-image .ad-artwork {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+  #adsSection .ad-body,
+  #adsList .ad-body {
+    display: block !important;
+    min-width: 0 !important;
+    padding: 6px !important;
+    gap: 0 !important;
+  }
+  #adsSection .ad-body h3,
+  #adsList .ad-body h3 {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    overflow: hidden !important;
+    overflow-wrap: anywhere !important;
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+    min-height: 25px !important;
+    max-height: 25px !important;
+    margin: 0 0 4px !important;
+  }
+  #adsSection .ad-price,
+  #adsList .ad-price {
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+    margin: 3px 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+  #adsSection .ad-meta,
+  #adsList .ad-meta {
+    font-size: 9px !important;
+    line-height: 1.25 !important;
+    max-height: 23px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-actions,
+  #adsList .ad-actions {
+    display: none !important;
+  }
+  #adsSection .vip-ribbon,
+  #adsList .vip-ribbon {
+    font-size: 8px !important;
+    padding: 2px 4px !important;
+    margin: 0 0 4px !important;
+    letter-spacing: 0 !important;
+  }
+  #adsSection .ads-scroll-sentinel {
+    grid-column: 1 / -1 !important;
+  }
+}
+
 </style>
 <style id="adz24PromoStyles">
 .cinematic-ad-promo{position:relative;isolation:isolate;overflow:hidden;width:min(900px,100%);min-height:230px;margin:26px auto 0;padding:28px 20px;box-sizing:border-box;border:1px solid rgba(255,166,52,.72);border-radius:22px;background:radial-gradient(ellipse at 15% 20%,rgba(255,130,0,.28),transparent 42%),linear-gradient(115deg,#090706 0%,#241006 48%,#080706 100%);box-shadow:0 18px 55px rgba(0,0,0,.58),0 0 35px rgba(255,102,0,.16);text-align:center}
@@ -1316,6 +1407,97 @@ footer{background:#080706!important;color:#b9aaa0!important;border-top:1px solid
 #loginModal,#registerModal,#clientDashboardModal,#postModal{display:none;visibility:visible;pointer-events:auto}
 #loginModal.open,#registerModal.open,#clientDashboardModal.open,#postModal.open{display:flex!important}
 @media(prefers-reduced-motion:reduce){.promo-orbit,.promo-light-sweep{animation:none!important}}
+
+/* 24adz mobile compact 4-column ad listing: desktop layout remains unchanged */
+@media (max-width: 600px) {
+  #adsSection .ads,
+  #adsList.ads {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    align-items: start;
+    margin-bottom: 24px !important;
+  }
+  #adsSection .ad-card,
+  #adsList .ad-card {
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    border-radius: 9px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-image,
+  #adsList .ad-image,
+  #adsSection .ad-card.vip-ad-card .ad-image,
+  #adsList .ad-card.vip-ad-card .ad-image {
+    width: 100% !important;
+    height: 76px !important;
+    min-height: 76px !important;
+    max-height: 76px !important;
+    flex: 0 0 76px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-image img,
+  #adsList .ad-image img,
+  #adsSection .ad-image .ad-artwork,
+  #adsList .ad-image .ad-artwork {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+  #adsSection .ad-body,
+  #adsList .ad-body {
+    display: block !important;
+    min-width: 0 !important;
+    padding: 6px !important;
+    gap: 0 !important;
+  }
+  #adsSection .ad-body h3,
+  #adsList .ad-body h3 {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    overflow: hidden !important;
+    overflow-wrap: anywhere !important;
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+    min-height: 25px !important;
+    max-height: 25px !important;
+    margin: 0 0 4px !important;
+  }
+  #adsSection .ad-price,
+  #adsList .ad-price {
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+    margin: 3px 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+  #adsSection .ad-meta,
+  #adsList .ad-meta {
+    font-size: 9px !important;
+    line-height: 1.25 !important;
+    max-height: 23px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-actions,
+  #adsList .ad-actions {
+    display: none !important;
+  }
+  #adsSection .vip-ribbon,
+  #adsList .vip-ribbon {
+    font-size: 8px !important;
+    padding: 2px 4px !important;
+    margin: 0 0 4px !important;
+    letter-spacing: 0 !important;
+  }
+  #adsSection .ads-scroll-sentinel {
+    grid-column: 1 / -1 !important;
+  }
+}
+
 </style>
 
 <style id="premium-24adz-branding">
@@ -1343,6 +1525,97 @@ header .premium-24adz-logo .brand-dot{
   header .premium-24adz-logo{width:auto!important;min-height:52px;height:auto!important;flex:0 1 auto}
   header .premium-24adz-logo .brand-main{font-size:clamp(23px,7vw,30px);letter-spacing:-1.2px}
 }
+
+/* 24adz mobile compact 4-column ad listing: desktop layout remains unchanged */
+@media (max-width: 600px) {
+  #adsSection .ads,
+  #adsList.ads {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    align-items: start;
+    margin-bottom: 24px !important;
+  }
+  #adsSection .ad-card,
+  #adsList .ad-card {
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    border-radius: 9px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-image,
+  #adsList .ad-image,
+  #adsSection .ad-card.vip-ad-card .ad-image,
+  #adsList .ad-card.vip-ad-card .ad-image {
+    width: 100% !important;
+    height: 76px !important;
+    min-height: 76px !important;
+    max-height: 76px !important;
+    flex: 0 0 76px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-image img,
+  #adsList .ad-image img,
+  #adsSection .ad-image .ad-artwork,
+  #adsList .ad-image .ad-artwork {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+  #adsSection .ad-body,
+  #adsList .ad-body {
+    display: block !important;
+    min-width: 0 !important;
+    padding: 6px !important;
+    gap: 0 !important;
+  }
+  #adsSection .ad-body h3,
+  #adsList .ad-body h3 {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    overflow: hidden !important;
+    overflow-wrap: anywhere !important;
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+    min-height: 25px !important;
+    max-height: 25px !important;
+    margin: 0 0 4px !important;
+  }
+  #adsSection .ad-price,
+  #adsList .ad-price {
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+    margin: 3px 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+  #adsSection .ad-meta,
+  #adsList .ad-meta {
+    font-size: 9px !important;
+    line-height: 1.25 !important;
+    max-height: 23px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-actions,
+  #adsList .ad-actions {
+    display: none !important;
+  }
+  #adsSection .vip-ribbon,
+  #adsList .vip-ribbon {
+    font-size: 8px !important;
+    padding: 2px 4px !important;
+    margin: 0 0 4px !important;
+    letter-spacing: 0 !important;
+  }
+  #adsSection .ads-scroll-sentinel {
+    grid-column: 1 / -1 !important;
+  }
+}
+
 </style>
 
 
@@ -1374,12 +1647,194 @@ header .premium-24adz-logo .brand-dot{
  #postModal .category-specific-fields{grid-template-columns:1fr;padding:9px}
  .hero-post-action .btn{width:min(92%,360px);min-height:60px;font-size:18px}
 }
+
+/* 24adz mobile compact 4-column ad listing: desktop layout remains unchanged */
+@media (max-width: 600px) {
+  #adsSection .ads,
+  #adsList.ads {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    align-items: start;
+    margin-bottom: 24px !important;
+  }
+  #adsSection .ad-card,
+  #adsList .ad-card {
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    border-radius: 9px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-image,
+  #adsList .ad-image,
+  #adsSection .ad-card.vip-ad-card .ad-image,
+  #adsList .ad-card.vip-ad-card .ad-image {
+    width: 100% !important;
+    height: 76px !important;
+    min-height: 76px !important;
+    max-height: 76px !important;
+    flex: 0 0 76px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-image img,
+  #adsList .ad-image img,
+  #adsSection .ad-image .ad-artwork,
+  #adsList .ad-image .ad-artwork {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+  #adsSection .ad-body,
+  #adsList .ad-body {
+    display: block !important;
+    min-width: 0 !important;
+    padding: 6px !important;
+    gap: 0 !important;
+  }
+  #adsSection .ad-body h3,
+  #adsList .ad-body h3 {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    overflow: hidden !important;
+    overflow-wrap: anywhere !important;
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+    min-height: 25px !important;
+    max-height: 25px !important;
+    margin: 0 0 4px !important;
+  }
+  #adsSection .ad-price,
+  #adsList .ad-price {
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+    margin: 3px 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+  #adsSection .ad-meta,
+  #adsList .ad-meta {
+    font-size: 9px !important;
+    line-height: 1.25 !important;
+    max-height: 23px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-actions,
+  #adsList .ad-actions {
+    display: none !important;
+  }
+  #adsSection .vip-ribbon,
+  #adsList .vip-ribbon {
+    font-size: 8px !important;
+    padding: 2px 4px !important;
+    margin: 0 0 4px !important;
+    letter-spacing: 0 !important;
+  }
+  #adsSection .ads-scroll-sentinel {
+    grid-column: 1 / -1 !important;
+  }
+}
+
 </style>
 <style id="my24-menu-layout">
 .my24-menu-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
 .my24-menu-grid .btn{width:100%;min-height:42px}
 #my24Profile,#my24Ads,#my24Messages,#my24Coins,#my24Settings{scroll-margin-top:16px}
 #postModal textarea[name="description"]{height:288px;min-height:288px;max-height:288px;resize:none;overflow-y:auto}
+
+/* 24adz mobile compact 4-column ad listing: desktop layout remains unchanged */
+@media (max-width: 600px) {
+  #adsSection .ads,
+  #adsList.ads {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    align-items: start;
+    margin-bottom: 24px !important;
+  }
+  #adsSection .ad-card,
+  #adsList .ad-card {
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    border-radius: 9px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-image,
+  #adsList .ad-image,
+  #adsSection .ad-card.vip-ad-card .ad-image,
+  #adsList .ad-card.vip-ad-card .ad-image {
+    width: 100% !important;
+    height: 76px !important;
+    min-height: 76px !important;
+    max-height: 76px !important;
+    flex: 0 0 76px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-image img,
+  #adsList .ad-image img,
+  #adsSection .ad-image .ad-artwork,
+  #adsList .ad-image .ad-artwork {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+  #adsSection .ad-body,
+  #adsList .ad-body {
+    display: block !important;
+    min-width: 0 !important;
+    padding: 6px !important;
+    gap: 0 !important;
+  }
+  #adsSection .ad-body h3,
+  #adsList .ad-body h3 {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    overflow: hidden !important;
+    overflow-wrap: anywhere !important;
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+    min-height: 25px !important;
+    max-height: 25px !important;
+    margin: 0 0 4px !important;
+  }
+  #adsSection .ad-price,
+  #adsList .ad-price {
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+    margin: 3px 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+  #adsSection .ad-meta,
+  #adsList .ad-meta {
+    font-size: 9px !important;
+    line-height: 1.25 !important;
+    max-height: 23px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-actions,
+  #adsList .ad-actions {
+    display: none !important;
+  }
+  #adsSection .vip-ribbon,
+  #adsList .vip-ribbon {
+    font-size: 8px !important;
+    padding: 2px 4px !important;
+    margin: 0 0 4px !important;
+    letter-spacing: 0 !important;
+  }
+  #adsSection .ads-scroll-sentinel {
+    grid-column: 1 / -1 !important;
+  }
+}
+
 </style>
 
 <style id="24adz-cinematic-logo-banner-final">
@@ -1492,7 +1947,125 @@ header .nav{min-height:88px!important;padding-top:8px!important;padding-bottom:8
 @media(prefers-reduced-motion:reduce){
   .hero,.hero h1,.hero .hero-brand-art{animation:none!important;transition:none!important}
 }
+
+/* 24adz mobile compact 4-column ad listing: desktop layout remains unchanged */
+@media (max-width: 600px) {
+  #adsSection .ads,
+  #adsList.ads {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    align-items: start;
+    margin-bottom: 24px !important;
+  }
+  #adsSection .ad-card,
+  #adsList .ad-card {
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    border-radius: 9px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-image,
+  #adsList .ad-image,
+  #adsSection .ad-card.vip-ad-card .ad-image,
+  #adsList .ad-card.vip-ad-card .ad-image {
+    width: 100% !important;
+    height: 76px !important;
+    min-height: 76px !important;
+    max-height: 76px !important;
+    flex: 0 0 76px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-image img,
+  #adsList .ad-image img,
+  #adsSection .ad-image .ad-artwork,
+  #adsList .ad-image .ad-artwork {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+  #adsSection .ad-body,
+  #adsList .ad-body {
+    display: block !important;
+    min-width: 0 !important;
+    padding: 6px !important;
+    gap: 0 !important;
+  }
+  #adsSection .ad-body h3,
+  #adsList .ad-body h3 {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    overflow: hidden !important;
+    overflow-wrap: anywhere !important;
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+    min-height: 25px !important;
+    max-height: 25px !important;
+    margin: 0 0 4px !important;
+  }
+  #adsSection .ad-price,
+  #adsList .ad-price {
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+    margin: 3px 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+  #adsSection .ad-meta,
+  #adsList .ad-meta {
+    font-size: 9px !important;
+    line-height: 1.25 !important;
+    max-height: 23px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-actions,
+  #adsList .ad-actions {
+    display: none !important;
+  }
+  #adsSection .vip-ribbon,
+  #adsList .vip-ribbon {
+    font-size: 8px !important;
+    padding: 2px 4px !important;
+    margin: 0 0 4px !important;
+    letter-spacing: 0 !important;
+  }
+  #adsSection .ads-scroll-sentinel {
+    grid-column: 1 / -1 !important;
+  }
+}
+
 </style>
+
+
+/* 24Adz premium single-select dropdown treatment — consistent across the site */
+select, select.field, .modal select, form select {
+  -webkit-appearance:none !important;
+  appearance:none !important;
+  color:#fff8ef !important;
+  background-color:#100d0a !important;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23ff9a16' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat:no-repeat !important;
+  background-position:right 14px center !important;
+  background-size:18px 18px !important;
+  padding-right:44px !important;
+  border:1px solid rgba(255,154,22,.58) !important;
+  border-radius:12px !important;
+  min-height:50px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 4px 14px rgba(0,0,0,.22);
+  font-weight:600;
+  line-height:1.25;
+}
+select:focus, select.field:focus, .modal select:focus, form select:focus {
+  outline:none !important;
+  border-color:#ffad38 !important;
+  box-shadow:0 0 0 2px rgba(255,154,22,.16),0 0 16px rgba(255,125,0,.12) !important;
+}
+select:disabled { opacity:.55; cursor:not-allowed; }
+select option { color:#fff8ef; background:#15100c; }
 
 </head>
 <body>
@@ -1716,7 +2289,7 @@ header .nav{min-height:88px!important;padding-top:8px!important;padding-bottom:8
 
 <!-- Post Ad -->
 <div class="modal" id="postModal"><div class="modal-box">
-  <div class="modal-top"><h2>Post Your Advertisement</h2><button class="close" onclick="closeModal('postModal')">×</button></div>
+  <div class="modal-top"><h2>Post Your Advertisement</h2><button class="close" type="button" aria-label="Close Post Ad form" onclick="closeModal('postModal')">×</button></div>
   <form id="postForm" novalidate><input type="hidden" name="editingId" id="editingAdId" value="">
     <div class="post-step-indicator" id="postStepIndicator">STEP 1 OF 2 · BASIC DETAILS</div>
     <div class="post-form-step" id="postStep1">
@@ -1981,12 +2554,22 @@ fillDistricts(document.getElementById("postDistrict"));
 fillAreas(document.getElementById("postDistrict"),document.getElementById("postArea"));
 renderDistrictList();
 fillDistrictFilterOptions();
-document.getElementById("districtFilterCategory").addEventListener("change",updateDistrictFilterSubcategories);
+document.getElementById("districtFilterCategory").addEventListener("change",()=>{
+  updateDistrictFilterSubcategories();
+  const sub=document.getElementById("districtFilterSubcategory");
+  if(sub)sub.value="";
+  applyDistrictListingFilters();
+});
+document.getElementById("districtFilterSubcategory").addEventListener("change",applyDistrictListingFilters);
 document.getElementById("districtFilterDistrict").addEventListener("change",()=>{
   activeDistrictListing=document.getElementById("districtFilterDistrict").value;
   updateDistrictFilterAreas();
   document.getElementById("districtFilterArea").value="";
+  applyDistrictListingFilters();
 });
+document.getElementById("districtFilterArea").addEventListener("change",applyDistrictListingFilters);
+document.getElementById("districtFilterSort").addEventListener("change",applyDistrictListingFilters);
+document.getElementById("districtFilterDistance").addEventListener("change",applyDistrictListingFilters);
 populateSearchSubcategories(searchCategorySelect.value);
 updateSearchFilterSteps();
 
@@ -2122,6 +2705,7 @@ function showCategoryListingResults(mainCategory,subcategory=""){
   if(panel)panel.hidden=false;
   document.body.classList.add("search-results-mode");
   activeDistrictListing="";
+  // Category/subcategory pages always reset the district to All Districts.
   // Category pages start with all Tamil Nadu districts. Customers can narrow
   // the results later with the District dropdown if they want.
   const district=document.getElementById("districtFilterDistrict");
@@ -3319,7 +3903,30 @@ async function clientLogout(auto=false){
   if(!auto)toast("Logged out successfully.");
 }
 function getCurrentClient(){try{return JSON.parse(localStorage.getItem("24adz_client")||"null")}catch{return null}}
-async function startPostAd(){try{await a24InitAuth();if(!a24Token()){openModal("loginModal");toast("Login or register to post an ad.");return}resetPostFormForNew();openModal("postModal")}catch(e){toast(e.message||"Login service unavailable.")}}
+async function startPostAd(){
+  // Dismiss My24Adz/My Ads immediately; otherwise its overlay can cover the form.
+  closeModal("clientDashboardModal");
+  // Existing signed-in sessions can open the form without waiting for another
+  // auth/network round trip (the dashboard already initialized Supabase).
+  if(a24Token()){
+    resetPostFormForNew();
+    openModal("postModal");
+    return;
+  }
+  try{
+    await a24InitAuth();
+    if(!a24Token()){
+      closeModal("postModal");
+      openModal("loginModal");
+      toast("Login or register to post an ad.");
+      return;
+    }
+    resetPostFormForNew();
+    openModal("postModal");
+  }catch(e){
+    toast(e.message||"Login service unavailable.");
+  }
+}
 function resetPostFormForNew(){const f=document.getElementById("postForm");f.reset();document.getElementById("editingAdId").value="";goPostStep(1);}
 function classifyMyAd(a){
  const status=String(a.status||"").toLowerCase();
@@ -3499,6 +4106,97 @@ a24InitAuth().catch(e=>{console.warn("24Adz Supabase Auth:",e.message);toast(e.m
 .my24-clean-menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
 .my24-clean-menu .btn{min-height:42px}
 @media(max-width:480px){.my24-ads-scroll{grid-template-columns:1fr}.my24-ad-card{max-width:100%}}
+
+/* 24adz mobile compact 4-column ad listing: desktop layout remains unchanged */
+@media (max-width: 600px) {
+  #adsSection .ads,
+  #adsList.ads {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    align-items: start;
+    margin-bottom: 24px !important;
+  }
+  #adsSection .ad-card,
+  #adsList .ad-card {
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    border-radius: 9px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-image,
+  #adsList .ad-image,
+  #adsSection .ad-card.vip-ad-card .ad-image,
+  #adsList .ad-card.vip-ad-card .ad-image {
+    width: 100% !important;
+    height: 76px !important;
+    min-height: 76px !important;
+    max-height: 76px !important;
+    flex: 0 0 76px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-image img,
+  #adsList .ad-image img,
+  #adsSection .ad-image .ad-artwork,
+  #adsList .ad-image .ad-artwork {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+  #adsSection .ad-body,
+  #adsList .ad-body {
+    display: block !important;
+    min-width: 0 !important;
+    padding: 6px !important;
+    gap: 0 !important;
+  }
+  #adsSection .ad-body h3,
+  #adsList .ad-body h3 {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    overflow: hidden !important;
+    overflow-wrap: anywhere !important;
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+    min-height: 25px !important;
+    max-height: 25px !important;
+    margin: 0 0 4px !important;
+  }
+  #adsSection .ad-price,
+  #adsList .ad-price {
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+    margin: 3px 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+  #adsSection .ad-meta,
+  #adsList .ad-meta {
+    font-size: 9px !important;
+    line-height: 1.25 !important;
+    max-height: 23px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-actions,
+  #adsList .ad-actions {
+    display: none !important;
+  }
+  #adsSection .vip-ribbon,
+  #adsList .vip-ribbon {
+    font-size: 8px !important;
+    padding: 2px 4px !important;
+    margin: 0 0 4px !important;
+    letter-spacing: 0 !important;
+  }
+  #adsSection .ads-scroll-sentinel {
+    grid-column: 1 / -1 !important;
+  }
+}
+
 </style>
 
 <script id="24adz-category-form-controller">
@@ -3700,6 +4398,97 @@ a24InitAuth().catch(e=>{console.warn("24Adz Supabase Auth:",e.message);toast(e.m
 .myads-tabs{display:flex;gap:0;overflow-x:auto;white-space:nowrap;border-bottom:1px solid #ddd;margin:0 0 16px;scrollbar-width:thin}.myads-tabs .btn{border:0!important;border-radius:0!important;background:transparent!important;color:#42484e!important;box-shadow:none!important;padding:12px 14px!important}.myads-tabs .btn-primary{color:#075b98!important;border-bottom:3px solid #075b98!important;font-weight:800}.myads-empty{text-align:center;padding:48px 12px;min-height:250px;color:#444}.myads-empty>span{display:block;font-size:46px;margin-bottom:16px}.myads-empty p{font-size:17px;margin:0 0 18px}
 .my24-account-panel{padding:0!important;overflow:hidden}.my24-account-panel>h3{padding:16px 18px;margin:0;background:#075b98;color:#fff}.my24-account-hero{display:flex;align-items:center;flex-direction:column;gap:7px;padding:22px 12px;background:linear-gradient(145deg,#182c42,#425a70);color:white;text-align:center}.my24-avatar{width:76px;height:76px;border-radius:50%;display:grid;place-items:center;background:#075b98;border:2px solid #fff;font-size:30px;font-weight:800}.my24-account-hero small{opacity:.85;overflow-wrap:anywhere}.my24-account-hero .btn{color:white;border-color:white}.my24-primary-action,.my24-vip-action{width:calc(100% - 32px);margin:12px 16px 0;padding:15px;border:0;border-radius:9px;background:linear-gradient(110deg,#075b98,#159bd0);color:#fff;text-align:left;font-size:16px;font-weight:700}.my24-primary-action span,.my24-vip-action span{float:right;font-size:22px}.my24-vip-action{margin-top:10px;background:linear-gradient(110deg,#ed3c78,#ff941e)}.my24-menu-row{width:100%;display:flex;align-items:center;gap:15px;padding:17px 18px;border:0;border-bottom:1px solid #e5e5e5;background:#fff;text-align:left;font-size:16px;color:#30343a;min-height:64px}.my24-menu-row span{width:32px;font-size:23px}.my24-menu-row b{margin-left:auto;font-size:24px;color:#777;font-weight:400}.my24-back{border:0;background:#eef4f8;color:#075b98;border-radius:8px;padding:9px 12px;font-weight:700;margin-bottom:12px}
 @media(max-width:600px){.myads-tabs .btn{font-size:13px!important;padding:12px 10px!important}.myads-intro{align-items:flex-start}.my24-ads-scroll{grid-template-columns:1fr}.my24-menu-row{min-height:62px}}
+
+/* 24adz mobile compact 4-column ad listing: desktop layout remains unchanged */
+@media (max-width: 600px) {
+  #adsSection .ads,
+  #adsList.ads {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    align-items: start;
+    margin-bottom: 24px !important;
+  }
+  #adsSection .ad-card,
+  #adsList .ad-card {
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    border-radius: 9px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-image,
+  #adsList .ad-image,
+  #adsSection .ad-card.vip-ad-card .ad-image,
+  #adsList .ad-card.vip-ad-card .ad-image {
+    width: 100% !important;
+    height: 76px !important;
+    min-height: 76px !important;
+    max-height: 76px !important;
+    flex: 0 0 76px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-image img,
+  #adsList .ad-image img,
+  #adsSection .ad-image .ad-artwork,
+  #adsList .ad-image .ad-artwork {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+  #adsSection .ad-body,
+  #adsList .ad-body {
+    display: block !important;
+    min-width: 0 !important;
+    padding: 6px !important;
+    gap: 0 !important;
+  }
+  #adsSection .ad-body h3,
+  #adsList .ad-body h3 {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    overflow: hidden !important;
+    overflow-wrap: anywhere !important;
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+    min-height: 25px !important;
+    max-height: 25px !important;
+    margin: 0 0 4px !important;
+  }
+  #adsSection .ad-price,
+  #adsList .ad-price {
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+    margin: 3px 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+  #adsSection .ad-meta,
+  #adsList .ad-meta {
+    font-size: 9px !important;
+    line-height: 1.25 !important;
+    max-height: 23px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-actions,
+  #adsList .ad-actions {
+    display: none !important;
+  }
+  #adsSection .vip-ribbon,
+  #adsList .vip-ribbon {
+    font-size: 8px !important;
+    padding: 2px 4px !important;
+    margin: 0 0 4px !important;
+    letter-spacing: 0 !important;
+  }
+  #adsSection .ads-scroll-sentinel {
+    grid-column: 1 / -1 !important;
+  }
+}
+
 </style>
 
 
@@ -3736,7 +4525,219 @@ a24InitAuth().catch(e=>{console.warn("24Adz Supabase Auth:",e.message);toast(e.m
 }
 .forgot-password-link:visited{color:#ff9b24!important}
 .forgot-password-link:hover{color:#ffc15c!important}
+
+/* 24adz mobile compact 4-column ad listing: desktop layout remains unchanged */
+@media (max-width: 600px) {
+  #adsSection .ads,
+  #adsList.ads {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    align-items: start;
+    margin-bottom: 24px !important;
+  }
+  #adsSection .ad-card,
+  #adsList .ad-card {
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    border-radius: 9px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-image,
+  #adsList .ad-image,
+  #adsSection .ad-card.vip-ad-card .ad-image,
+  #adsList .ad-card.vip-ad-card .ad-image {
+    width: 100% !important;
+    height: 76px !important;
+    min-height: 76px !important;
+    max-height: 76px !important;
+    flex: 0 0 76px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-image img,
+  #adsList .ad-image img,
+  #adsSection .ad-image .ad-artwork,
+  #adsList .ad-image .ad-artwork {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+  #adsSection .ad-body,
+  #adsList .ad-body {
+    display: block !important;
+    min-width: 0 !important;
+    padding: 6px !important;
+    gap: 0 !important;
+  }
+  #adsSection .ad-body h3,
+  #adsList .ad-body h3 {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    overflow: hidden !important;
+    overflow-wrap: anywhere !important;
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+    min-height: 25px !important;
+    max-height: 25px !important;
+    margin: 0 0 4px !important;
+  }
+  #adsSection .ad-price,
+  #adsList .ad-price {
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+    margin: 3px 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+  #adsSection .ad-meta,
+  #adsList .ad-meta {
+    font-size: 9px !important;
+    line-height: 1.25 !important;
+    max-height: 23px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-actions,
+  #adsList .ad-actions {
+    display: none !important;
+  }
+  #adsSection .vip-ribbon,
+  #adsList .vip-ribbon {
+    font-size: 8px !important;
+    padding: 2px 4px !important;
+    margin: 0 0 4px !important;
+    letter-spacing: 0 !important;
+  }
+  #adsSection .ads-scroll-sentinel {
+    grid-column: 1 / -1 !important;
+  }
+}
+
 </style>
+
+
+<style id="24adz-myads-match-mobile-4ads">
+/* My Ads published listings use the same compact four-across mobile layout.
+   Scoped only to My Ads; homepage, forms, API and other dashboard sections stay unchanged. */
+#myAdsPanel .my24-ads-scroll{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:7px!important;
+  max-height:72vh!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  padding:2px 2px 12px!important;
+  align-items:stretch;
+}
+#myAdsPanel .my24-ad-card{
+  width:100%!important;
+  min-width:0!important;
+  height:190px!important;
+  min-height:190px!important;
+  max-height:190px!important;
+  overflow:hidden!important;
+  box-sizing:border-box!important;
+  border-radius:9px!important;
+}
+#myAdsPanel .my24-ad-card .ad-image,
+#myAdsPanel .my24-ad-card img{
+  max-width:100%!important;
+}
+#myAdsPanel .my24-ad-card .ad-image{
+  height:72px!important;
+  min-height:72px!important;
+  max-height:72px!important;
+}
+#myAdsPanel .my24-ad-card .ad-body{
+  min-width:0!important;
+  padding:6px!important;
+  gap:2px!important;
+}
+#myAdsPanel .my24-ad-card .ad-body h3{
+  font-size:10px!important;
+  line-height:1.2!important;
+  margin:2px 0!important;
+  display:-webkit-box!important;
+  -webkit-line-clamp:2!important;
+  -webkit-box-orient:vertical!important;
+  overflow:hidden!important;
+  overflow-wrap:anywhere!important;
+}
+#myAdsPanel .my24-ad-card .ad-meta{
+  font-size:9px!important;
+  line-height:1.25!important;
+  overflow-wrap:anywhere!important;
+}
+#myAdsPanel .my24-ad-card .ad-price{
+  font-size:11px!important;
+  margin:3px 0!important;
+}
+#myAdsPanel .my24-ad-card .ad-actions{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:3px!important;
+  margin-top:4px!important;
+}
+#myAdsPanel .my24-ad-card .ad-actions a,
+#myAdsPanel .my24-ad-card .ad-actions button{
+  min-width:0!important;
+  min-height:24px!important;
+  padding:3px 2px!important;
+  font-size:8px!important;
+  line-height:1.1!important;
+  white-space:normal!important;
+}
+@media(min-width:481px){
+  #myAdsPanel .my24-ads-scroll{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))!important;gap:12px!important}
+  #myAdsPanel .my24-ad-card{height:260px!important;min-height:260px!important;max-height:260px!important}
+  #myAdsPanel .my24-ad-card .ad-image{height:112px!important;min-height:112px!important;max-height:112px!important}
+  #myAdsPanel .my24-ad-card .ad-body{padding:9px!important}
+  #myAdsPanel .my24-ad-card .ad-body h3{font-size:14px!important}
+  #myAdsPanel .my24-ad-card .ad-meta{font-size:11px!important}
+  #myAdsPanel .my24-ad-card .ad-price{font-size:15px!important}
+  #myAdsPanel .my24-ad-card .ad-actions{grid-template-columns:1fr 1fr!important}
+  #myAdsPanel .my24-ad-card .ad-actions a,
+  #myAdsPanel .my24-ad-card .ad-actions button{font-size:10px!important;min-height:30px!important}
+}
+</style>
+
+
+<style id="24adz-copy-protection">
+/* Deterrence only: keep form controls selectable and usable. */
+html, body, body * { -webkit-user-select: none !important; user-select: none !important; -webkit-touch-callout: none; }
+input, textarea, select, option, [contenteditable="true"], .allow-copy,
+input *, textarea *, select * { -webkit-user-select: text !important; user-select: text !important; -webkit-touch-callout: default; }
+img { -webkit-user-drag: none; user-drag: none; }
+</style>
+<script id="24adz-copy-guard">
+(() => {
+  const isFormField = (node) => !!(node && node.closest &&
+    node.closest('input,textarea,select,[contenteditable="true"],.allow-copy'));
+  document.addEventListener('contextmenu', (e) => {
+    if (!isFormField(e.target)) e.preventDefault();
+  }, true);
+  document.addEventListener('selectstart', (e) => {
+    if (!isFormField(e.target)) e.preventDefault();
+  }, true);
+  document.addEventListener('copy', (e) => {
+    if (!isFormField(e.target)) { e.preventDefault(); }
+  }, true);
+  document.addEventListener('cut', (e) => {
+    if (!isFormField(e.target)) e.preventDefault();
+  }, true);
+  document.addEventListener('dragstart', (e) => {
+    if (e.target && e.target.tagName === 'IMG') e.preventDefault();
+  }, true);
+  document.addEventListener('keydown', (e) => {
+    if (isFormField(e.target)) return;
+    const key = String(e.key || '').toLowerCase();
+    if ((e.ctrlKey || e.metaKey) && ['c','x','u'].includes(key)) e.preventDefault();
+  }, true);
+})();
+</script>
 
 </body>
 </html>
@@ -3747,6 +4748,97 @@ a24InitAuth().catch(e=>{console.warn("24Adz Supabase Auth:",e.message);toast(e.m
 #clientDashboardContent .my24-ads-scroll{grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr));max-height:72vh;overflow-y:auto;overscroll-behavior:contain;content-visibility:auto}
 #clientDashboardContent .my24-ad-card{contain:content}
 @media(max-width:480px){#clientDashboardContent .my24-ads-scroll{grid-template-columns:1fr}#clientDashboardContent .my24-ad-card{height:288px!important}}
+
+/* 24adz mobile compact 4-column ad listing: desktop layout remains unchanged */
+@media (max-width: 600px) {
+  #adsSection .ads,
+  #adsList.ads {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    align-items: start;
+    margin-bottom: 24px !important;
+  }
+  #adsSection .ad-card,
+  #adsList .ad-card {
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    border-radius: 9px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-image,
+  #adsList .ad-image,
+  #adsSection .ad-card.vip-ad-card .ad-image,
+  #adsList .ad-card.vip-ad-card .ad-image {
+    width: 100% !important;
+    height: 76px !important;
+    min-height: 76px !important;
+    max-height: 76px !important;
+    flex: 0 0 76px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-image img,
+  #adsList .ad-image img,
+  #adsSection .ad-image .ad-artwork,
+  #adsList .ad-image .ad-artwork {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+  #adsSection .ad-body,
+  #adsList .ad-body {
+    display: block !important;
+    min-width: 0 !important;
+    padding: 6px !important;
+    gap: 0 !important;
+  }
+  #adsSection .ad-body h3,
+  #adsList .ad-body h3 {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    overflow: hidden !important;
+    overflow-wrap: anywhere !important;
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+    min-height: 25px !important;
+    max-height: 25px !important;
+    margin: 0 0 4px !important;
+  }
+  #adsSection .ad-price,
+  #adsList .ad-price {
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+    margin: 3px 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+  #adsSection .ad-meta,
+  #adsList .ad-meta {
+    font-size: 9px !important;
+    line-height: 1.25 !important;
+    max-height: 23px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-actions,
+  #adsList .ad-actions {
+    display: none !important;
+  }
+  #adsSection .vip-ribbon,
+  #adsList .vip-ribbon {
+    font-size: 8px !important;
+    padding: 2px 4px !important;
+    margin: 0 0 4px !important;
+    letter-spacing: 0 !important;
+  }
+  #adsSection .ads-scroll-sentinel {
+    grid-column: 1 / -1 !important;
+  }
+}
+
 </style>
 
 <style id="24adz-my24adz-home-theme-fix">
@@ -3800,4 +4892,95 @@ a24InitAuth().catch(e=>{console.warn("24Adz Supabase Auth:",e.message);toast(e.m
   #adsSection #adsList .ad-card .ad-meta{font-size:15px;line-height:1.75}
   #adsSection #adsList .ad-card .ad-actions a,#adsSection #adsList .ad-card .ad-actions button{min-height:47px;font-size:14px}
 }
+
+/* 24adz mobile compact 4-column ad listing: desktop layout remains unchanged */
+@media (max-width: 600px) {
+  #adsSection .ads,
+  #adsList.ads {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    align-items: start;
+    margin-bottom: 24px !important;
+  }
+  #adsSection .ad-card,
+  #adsList .ad-card {
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    border-radius: 9px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-image,
+  #adsList .ad-image,
+  #adsSection .ad-card.vip-ad-card .ad-image,
+  #adsList .ad-card.vip-ad-card .ad-image {
+    width: 100% !important;
+    height: 76px !important;
+    min-height: 76px !important;
+    max-height: 76px !important;
+    flex: 0 0 76px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-image img,
+  #adsList .ad-image img,
+  #adsSection .ad-image .ad-artwork,
+  #adsList .ad-image .ad-artwork {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+  #adsSection .ad-body,
+  #adsList .ad-body {
+    display: block !important;
+    min-width: 0 !important;
+    padding: 6px !important;
+    gap: 0 !important;
+  }
+  #adsSection .ad-body h3,
+  #adsList .ad-body h3 {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    overflow: hidden !important;
+    overflow-wrap: anywhere !important;
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+    min-height: 25px !important;
+    max-height: 25px !important;
+    margin: 0 0 4px !important;
+  }
+  #adsSection .ad-price,
+  #adsList .ad-price {
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+    margin: 3px 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+  #adsSection .ad-meta,
+  #adsList .ad-meta {
+    font-size: 9px !important;
+    line-height: 1.25 !important;
+    max-height: 23px !important;
+    overflow: hidden !important;
+  }
+  #adsSection .ad-actions,
+  #adsList .ad-actions {
+    display: none !important;
+  }
+  #adsSection .vip-ribbon,
+  #adsList .vip-ribbon {
+    font-size: 8px !important;
+    padding: 2px 4px !important;
+    margin: 0 0 4px !important;
+    letter-spacing: 0 !important;
+  }
+  #adsSection .ads-scroll-sentinel {
+    grid-column: 1 / -1 !important;
+  }
+}
+
 </style>
