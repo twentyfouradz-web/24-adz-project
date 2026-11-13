@@ -2417,29 +2417,6 @@ select option { color:#fff8ef; background:#15100c; }
     <button type="button" class="reference-all-locations" onclick="document.getElementById('districtQuickSearch').scrollIntoView({behavior:'smooth'})">Other Popular Locations → View all 38 districts</button>
   </section>
 
-  <section class="pricing-section" id="listingPlans">
-    <div class="coin-purchase-clean">
-      <div class="price-card" id="coinPurchaseContact" style="margin-top:16px;padding:18px;border:1px solid rgba(255,145,0,.45);border-radius:14px">
-      <h3 style="margin:0 0 8px">Buy Coins for Your Wallet</h3>
-      <p style="margin:0 0 10px">After using your 3 free ads, contact Admin on WhatsApp to purchase Coins and continue posting or renew VIP ads.</p>
-      
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button type="button" class="btn btn-primary" onclick="showCoinPackages()">Buy Coins on WhatsApp</button>
-        <a class="btn btn-outline" id="coinPurchaseWhatsAppLink" href="https://wa.me/918870017424?text=Hello%2024Adz%20Admin%2C%20I%20want%20to%20buy%20Coins." target="_blank" rel="noopener">Chat with Admin</a>
-      </div>
-      
-    </div>
-    </div>
-  </section>
-  <section class="district-quick-search" id="districtQuickSearch" aria-label="Search by district">
-    <div class="district-search-heading">
-      <span class="district-search-kicker">EXPLORE TAMIL NADU</span>
-      <h2>Find Ads by <span>District</span></h2>
-      <p>Select a district to view its available advertisements.</p>
-    </div>
-    <div class="district-list" id="districtList" aria-label="Tamil Nadu districts"></div>
-  </section>
-
   <section id="adsSection">
     <button type="button" class="results-back" onclick="closeSearchResults()">← Back to Home</button>
     <div class="listing-head"><h2 class="section-title" id="adsHeading" style="margin:0">Latest <span>Listings</span></h2><span class="muted" id="resultCount">0 listings</span></div>
@@ -2475,10 +2452,21 @@ select option { color:#fff8ef; background:#15100c; }
       <button type="button" class="btn btn-outline" onclick="resetDistrictListingFilters()">Reset Filters</button>
     </div>
     <div class="ads" id="adsList"><div class="empty">No advertisements yet. Contact the Admin if you want to advertise here.</div></div>
-    <section class="district-area-directory" id="districtAreaDirectory" hidden aria-label="Published ads by local area"></section>
     <div class="ads-pagination" id="adsPagination" aria-label="Advertisement pages"></div>
+    <section class="district-area-directory" id="districtAreaDirectory" hidden aria-label="Published ads by local area"></section>
     <section class="category-seo-content" id="categorySeoContent" hidden aria-label="Category information"></section>
   </section>
+
+
+  <section class="district-quick-search" id="districtQuickSearch" aria-label="Search by district">
+    <div class="district-search-heading">
+      <span class="district-search-kicker">EXPLORE TAMIL NADU</span>
+      <h2>Find Ads by <span>District</span></h2>
+      <p>Select a district to view its available advertisements.</p>
+    </div>
+    <div class="district-list" id="districtList" aria-label="Tamil Nadu districts"></div>
+  </section>
+
 </main>
 <nav class="mobile-bottom-nav" aria-label="Main navigation">
   <button type="button" class="bottom-nav-item active" onclick="goHomeTop()"><span class="bottom-nav-icon">⌂</span><span>Home</span></button>
@@ -3314,22 +3302,20 @@ function renderCategorySeoContent(){
 function renderAds(items=ads,page=1){
   renderCategorySeoContent();
   if(adsScrollObserver){adsScrollObserver.disconnect();adsScrollObserver=null;}
-  // Homepage shows only active VIP ads in non-Personals categories.
-  // Category/district result pages continue to show all matching active ads.
-  const isHomepage=!document.body.classList.contains("search-results-mode");
+  // Homepage and district/area result views show every published, active listing.
+  // Active VIP promotions lead; standard/free listings follow them.
+  // Within each group, newest VIP promotion / newest publication appears first.
   const now=Date.now();
   const sorted=[...items].filter(a=>{
     if(String(a.status||"Active").toLowerCase()==="paused")return false;
     const expiry=getAdExpiryTime(a);
     const vipActive=isVipAd(a) && !!expiry && expiry>now;
     a._activeVip=vipActive;
-    const main=String(a.category||"").trim().toLowerCase();
-    if(isHomepage && (main==="personals" || !vipActive))return false;
     return true;
   }).sort((a,b)=>{
     const vipDiff=Number(!!b._activeVip)-Number(!!a._activeVip);
     if(vipDiff)return vipDiff;
-    // VIP: latest successful promotion timestamp. Free: latest ad publish timestamp.
+    // VIP: newest successful promotion first. Free: newest published first.
     const aTime=Number(a._activeVip ? a.vipStartedAt : a.createdAt)||getAdStartTime(a);
     const bTime=Number(b._activeVip ? b.vipStartedAt : b.createdAt)||getAdStartTime(b);
     return bTime-aTime;
@@ -6215,6 +6201,112 @@ body{overflow-y:auto!important;touch-action:pan-y!important;-webkit-overflow-scr
   #adDetailsBody h2{font-size:19px!important}
 }
 
+
+/* 24ADZ MOBILE LISTING READABILITY FIX
+   Scoped to published-ad cards on small screens; leaves data/API/actions untouched. */
+@media(max-width:600px){
+  #adsSection .ad-card{
+    display:flex!important;
+    flex-direction:row!important;
+    align-items:stretch!important;
+    min-height:245px;
+    height:auto!important;
+  }
+  #adsSection .ad-image{
+    flex:0 0 39%!important;
+    width:39%!important;
+    height:auto!important;
+    min-height:245px!important;
+    max-height:none!important;
+    align-self:stretch;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    overflow:hidden;
+    border-bottom:0!important;
+    border-right:2px solid #ff9a16;
+    background:#090909!important;
+  }
+  #adsSection .ad-image img,
+  #adsSection .ad-image .ad-artwork{
+    display:block!important;
+    width:100%!important;
+    height:100%!important;
+    min-height:245px!important;
+    max-height:none!important;
+    object-fit:contain!important;
+    object-position:center center!important;
+    background:#090909;
+  }
+  #adsSection .ad-image:after{display:none!important}
+  #adsSection .ad-body{
+    flex:1 1 61%!important;
+    width:61%!important;
+    min-width:0!important;
+    padding:12px 10px!important;
+    overflow-wrap:anywhere;
+  }
+  #adsSection .ad-body h3{
+    display:block!important;
+    overflow:visible!important;
+    -webkit-line-clamp:unset!important;
+    -webkit-box-orient:initial!important;
+    white-space:normal!important;
+    overflow-wrap:anywhere;
+    font-size:16px!important;
+    line-height:1.3!important;
+    margin:0 0 8px!important;
+  }
+  #adsSection .ad-meta{
+    display:block!important;
+    overflow:visible!important;
+    font-size:12px!important;
+    line-height:1.5!important;
+    overflow-wrap:anywhere;
+  }
+  #adsSection .ad-card-description{
+    display:block!important;
+    white-space:normal!important;
+    overflow:visible!important;
+    -webkit-line-clamp:unset!important;
+    line-height:1.45!important;
+    margin-top:4px;
+  }
+  #adsSection .ad-price{
+    display:block!important;
+    font-size:18px!important;
+    line-height:1.3!important;
+    margin:8px 0!important;
+    overflow-wrap:anywhere;
+  }
+  #adsSection .ad-actions{
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:5px!important;
+    margin-top:10px!important;
+  }
+  #adsSection .ad-actions a,
+  #adsSection .ad-actions button{
+    min-width:0!important;
+    min-height:40px!important;
+    padding:7px 3px!important;
+    font-size:10px!important;
+    line-height:1.2!important;
+    overflow-wrap:anywhere;
+  }
+  #adsSection .ad-open-hint{
+    display:block!important;
+    font-size:10px!important;
+    line-height:1.35!important;
+    margin-top:8px!important;
+  }
+}
+@media(max-width:360px){
+  #adsSection .ad-image{flex-basis:36%!important;width:36%!important}
+  #adsSection .ad-body{width:64%!important;padding:10px 8px!important}
+  #adsSection .ad-body h3{font-size:15px!important}
+  #adsSection .ad-meta{font-size:11px!important}
+}
 </style>
 
 </body></html>
