@@ -3616,7 +3616,17 @@ var a24Session=null;
 var a24AuthReady=null;
 var a24SyncPromise=null;
 async function a24InitAuth(){
-  if(a24AuthReady)return a24AuthReady;
+  // Re-read Supabase's persisted session on every protected navigation.
+  // This prevents a stale in-memory token from sending logged-in users back
+  // to the login modal after a successful sign-in.
+  if(a24AuthReady){
+    await a24AuthReady;
+    if(a24Supabase){
+      const refreshed=await a24Supabase.auth.getSession();
+      if(!refreshed.error)a24Session=refreshed.data.session||null;
+    }
+    return a24Supabase;
+  }
   a24AuthReady=(async()=>{
     if(!window.supabase?.createClient)throw new Error("Supabase library could not load. Refresh the page and try again.");
     const cfg=await fetch("https://api.24adz.com/api/public/auth-config",{cache:"no-store"}).then(async r=>{const d=await r.json();if(!r.ok||!d.success)throw new Error(d.error||"Supabase configuration unavailable");return d;});
@@ -3638,7 +3648,9 @@ async function a24InitAuth(){
       openModal("loginModal");
       toast("Registration Successfully! Your email has been verified. Please log in using the same email or registered mobile number.");
     }else if(a24Session?.user?.email_confirmed_at){
-      try{await a24SyncClient();}catch(e){console.warn("24Adz profile sync:",e.message);await a24Supabase.auth.signOut();a24Session=null;}
+      // A temporary profile-sync/API failure must not destroy a valid Supabase
+      // login session. Keep the session; protected API calls can retry syncing.
+      try{await a24SyncClient();}catch(e){console.warn("24Adz profile sync (session preserved):",e.message);}
     }else if(a24Session){
       await a24Supabase.auth.signOut();a24Session=null;
       localStorage.removeItem("24adz_client");
