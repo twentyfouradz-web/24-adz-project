@@ -6368,4 +6368,135 @@ body{overflow-y:auto!important;touch-action:pan-y!important;-webkit-overflow-scr
 }
 </style>
 
+
+
+<!-- 24ADZ SAFE UI PATCH — remove the redundant Search Listings card and
+     present district filters as a compact dropdown, without changing data/API logic. -->
+<style id="adz24-filter-dropdown-final-fix">
+  /* The hero already has the quick keyword search; keep the redundant card hidden.
+     Keep its markup/IDs in the DOM so existing scripts remain compatible. */
+  #searchPanel,
+  #searchPanel[hidden],
+  .search-panel {
+    display: none !important;
+  }
+
+  /* Compact dropdown panel shown only after the visitor taps FILTERS. */
+  #districtResultsFilters.home-filter-dropdown {
+    position: relative;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    max-height: 0;
+    margin: 0 0 16px;
+    padding: 0 12px;
+    overflow: hidden;
+    border: 1px solid rgba(255,151,31,.34);
+    border-radius: 14px;
+    background: linear-gradient(145deg,#17110c,#090807);
+    box-shadow: 0 10px 28px rgba(0,0,0,.42);
+    transition: max-height .22s ease, padding .22s ease;
+  }
+  #districtResultsFilters.home-filter-dropdown.is-collapsed {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: 52px !important;
+    padding: 0 10px !important;
+    overflow: hidden !important;
+  }
+  #districtResultsFilters.home-filter-dropdown:not(.is-collapsed) {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: min(58vh, 390px) !important;
+    padding: 10px 12px 12px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  #districtResultsFilters .district-filter-drag-handle {
+    position: sticky;
+    top: -10px;
+    z-index: 6;
+    min-height: 38px;
+    margin: -10px -12px 10px;
+    padding: 8px 12px;
+    border: 0;
+    border-bottom: 1px solid rgba(255,151,31,.25);
+    border-radius: 12px 12px 0 0;
+    background: linear-gradient(110deg,#2a190c,#17100b);
+    font-size: 12px;
+    letter-spacing: 1.8px;
+    touch-action: manipulation;
+  }
+  #districtResultsFilters .district-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 8px;
+  }
+  #districtResultsFilters .field {
+    width: 100%;
+    min-width: 0;
+    min-height: 42px;
+    height: 42px;
+    margin: 0;
+    padding: 9px 10px;
+    border-radius: 9px;
+    font-size: 13px;
+  }
+  #districtResultsFilters .district-distance-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 9px;
+    font-size: 11px;
+  }
+  #districtResultsFilters .district-distance-actions .btn,
+  #districtResultsFilters > .btn {
+    min-height: 38px;
+    margin: 8px 6px 0 0;
+    padding: 9px 12px;
+    border-radius: 9px;
+    font-size: 12px;
+  }
+  #districtResultsFilters .district-distance-status {
+    flex: 1 1 150px;
+    line-height: 1.35;
+  }
+  @media(max-width:600px) {
+    #districtResultsFilters.home-filter-dropdown {
+      margin-bottom: 12px;
+      border-radius: 12px;
+    }
+    #districtResultsFilters.home-filter-dropdown:not(.is-collapsed) {
+      max-height: min(56vh, 350px) !important;
+      padding: 9px 10px 11px !important;
+    }
+    #districtResultsFilters .district-filter-drag-handle {
+      margin: -9px -10px 9px;
+      min-height: 38px;
+    }
+    #districtResultsFilters .district-filter-grid {
+      grid-template-columns: repeat(2,minmax(0,1fr));
+      gap: 7px;
+    }
+    #districtResultsFilters .field {
+      min-height: 40px;
+      height: 40px;
+      padding: 8px;
+      font-size: 12px;
+    }
+    #districtResultsFilters .district-distance-actions .btn,
+    #districtResultsFilters > .btn {
+      min-height: 36px;
+      padding: 8px 10px;
+      font-size: 11px;
+    }
+  }
+  @media(prefers-reduced-motion:reduce) {
+    #districtResultsFilters.home-filter-dropdown { transition:none; }
+  }
+</style>
+
 </body></html>
