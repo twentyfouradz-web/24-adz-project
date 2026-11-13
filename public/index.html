@@ -2354,7 +2354,7 @@ select option { color:#fff8ef; background:#15100c; }
 </section>
 
 <main class="wrap">
-  <section class="search-panel" id="searchPanel" aria-label="Search listings">
+  <section class="search-panel" id="searchPanel" aria-label="Search listings" hidden>
     <button type="button" class="btn btn-primary search-toggle" id="searchToggle" aria-expanded="false" aria-controls="searchFields" onclick="toggleSearchForm()">Search Listings</button>
     <div id="searchFields" class="search-fields" hidden>
       <input id="keyword" class="field" placeholder="Search listings or business name">
@@ -2417,40 +2417,27 @@ select option { color:#fff8ef; background:#15100c; }
     <button type="button" class="reference-all-locations" onclick="document.getElementById('districtQuickSearch').scrollIntoView({behavior:'smooth'})">Other Popular Locations → View all 38 districts</button>
   </section>
 
+  <div class="district-results-filters home-filter-dropdown" id="districtResultsFilters">
+    <button type="button" class="district-filter-drag-handle" id="districtFilterDragHandle" aria-expanded="false" aria-controls="districtFilterKeyword">FILTERS</button>
+    <div class="voice-field-wrap filter-voice-wrap"><input class="field" id="districtFilterKeyword" placeholder="Search by keyword or ad title" aria-label="Search by keyword"><button class="voice-input-btn" type="button" aria-label="Speak filter keyword" onclick="start24AdVoice(this)">🎙</button></div>
+    <div class="district-filter-grid">
+      <select class="field" id="districtFilterCategory"><option value="">All Categories</option></select>
+      <select class="field" id="districtFilterSubcategory"><option value="">All Subcategories</option></select>
+      <select class="field" id="districtFilterDistrict"><option value="">All Districts</option></select>
+      <select class="field" id="districtFilterArea"><option value="">All Areas</option></select>
+      <input class="field" id="districtFilterMinPrice" type="number" min="0" placeholder="Minimum Price (₹)">
+      <input class="field" id="districtFilterMaxPrice" type="number" min="0" placeholder="Maximum Price (₹)">
+      <select class="field" id="districtFilterDistance" aria-label="Filter by distance"><option value="">Any Distance</option><option value="5">Within 5 km</option><option value="10">Within 10 km</option><option value="25">Within 25 km</option><option value="50">Within 50 km</option><option value="100">Within 100 km</option></select>
+      <select class="field" id="districtFilterSort"><option value="newest">Newest First</option><option value="price-low">Price: Low to High</option><option value="price-high">Price: High to Low</option></select>
+    </div>
+    <div class="district-distance-actions"><button type="button" class="btn btn-outline" id="useMyLocationForDistance">⌖ Use My Location</button><span class="district-distance-status" id="districtDistanceStatus" role="status" aria-live="polite">Choose a distance and share your location to find nearby ads.</span></div>
+    <button type="button" class="btn btn-primary" onclick="applyDistrictListingFilters();collapseDistrictFilters()">Apply Filters</button>
+    <button type="button" class="btn btn-outline" onclick="resetDistrictListingFilters()">Reset Filters</button>
+  </div>
+
   <section id="adsSection">
     <button type="button" class="results-back" onclick="closeSearchResults()">← Back to Home</button>
     <div class="listing-head"><h2 class="section-title" id="adsHeading" style="margin:0">Latest <span>Listings</span></h2><span class="muted" id="resultCount">0 listings</span></div>
-    <div class="district-results-filters" id="districtResultsFilters" hidden>
-      <button type="button" class="district-filter-drag-handle" id="districtFilterDragHandle" aria-expanded="false" aria-controls="districtFilterKeyword">FILTERS</button>
-      <div class="voice-field-wrap filter-voice-wrap"><input class="field" id="districtFilterKeyword" placeholder="Search by keyword or ad title" aria-label="Search by keyword"><button class="voice-input-btn" type="button" aria-label="Speak filter keyword" onclick="start24AdVoice(this)">🎙</button></div>
-      <div class="district-filter-grid">
-        <select class="field" id="districtFilterCategory"><option value="">All Categories</option></select>
-        <select class="field" id="districtFilterSubcategory"><option value="">All Subcategories</option></select>
-        <select class="field" id="districtFilterDistrict"><option value="">All Districts</option></select>
-        <select class="field" id="districtFilterArea"><option value="">All Areas</option></select>
-        <input class="field" id="districtFilterMinPrice" type="number" min="0" placeholder="Minimum Price (₹)">
-        <input class="field" id="districtFilterMaxPrice" type="number" min="0" placeholder="Maximum Price (₹)">
-        <select class="field" id="districtFilterDistance" aria-label="Filter by distance">
-          <option value="">Any Distance</option>
-          <option value="5">Within 5 km</option>
-          <option value="10">Within 10 km</option>
-          <option value="25">Within 25 km</option>
-          <option value="50">Within 50 km</option>
-          <option value="100">Within 100 km</option>
-        </select>
-        <select class="field" id="districtFilterSort">
-          <option value="newest">Newest First</option>
-          <option value="price-low">Price: Low to High</option>
-          <option value="price-high">Price: High to Low</option>
-        </select>
-      </div>
-      <div class="district-distance-actions">
-        <button type="button" class="btn btn-outline" id="useMyLocationForDistance">⌖ Use My Location</button>
-        <span class="district-distance-status" id="districtDistanceStatus" role="status" aria-live="polite">Choose a distance and share your location to find nearby ads.</span>
-      </div>
-      <button type="button" class="btn btn-primary" onclick="applyDistrictListingFilters();collapseDistrictFilters()">Apply Filters</button>
-      <button type="button" class="btn btn-outline" onclick="resetDistrictListingFilters()">Reset Filters</button>
-    </div>
     <div class="ads" id="adsList"><div class="empty">No advertisements yet. Contact the Admin if you want to advertise here.</div></div>
     <div class="ads-pagination" id="adsPagination" aria-label="Advertisement pages"></div>
     <section class="district-area-directory" id="districtAreaDirectory" hidden aria-label="Published ads by local area"></section>
@@ -5952,6 +5939,17 @@ body{overflow-y:auto!important;touch-action:pan-y!important;-webkit-overflow-scr
 #myAdsPanel .my24-ad-card .my24-ad-actions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important;margin-top:10px!important}
 #myAdsPanel .my24-ad-card .my24-ad-actions .btn{min-width:0!important;padding:8px 5px!important;font-size:12px!important}
 @media(max-width:600px){#myAdsPanel .my24-ads-scroll{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}#myAdsPanel .my24-ad-card>.ad-image{height:125px!important;min-height:125px!important;max-height:125px!important}#myAdsPanel .my24-ad-card>.ad-body{padding:9px!important}#myAdsPanel .my24-ad-card h3{font-size:13px!important}#myAdsPanel .my24-ad-card .ad-meta{font-size:10px!important;line-height:1.35!important}#myAdsPanel .my24-ad-card .vip-ribbon{font-size:9px!important;padding:4px!important}#myAdsPanel .my24-ad-card .ad-price{font-size:14px!important}#myAdsPanel .my24-ad-card .my24-ad-actions{grid-template-columns:1fr!important;gap:5px!important}#myAdsPanel .my24-ad-card .my24-ad-actions .btn{font-size:10px!important;padding:6px 3px!important}}
+</style>
+
+<style id="24adz-home-filter-card">
+/* Home filter card: sits between Top Locations and Latest Listings; filter logic unchanged. */
+.home-filter-dropdown{display:block;width:min(760px,100%);height:auto!important;max-height:none!important;min-height:0!important;margin:0 auto 38px!important;padding:16px!important;border:2px solid rgba(255,157,48,.42)!important;border-radius:32px!important;background:linear-gradient(145deg,rgba(24,15,9,.96),rgba(7,7,7,.99))!important;box-shadow:0 16px 38px rgba(0,0,0,.42),inset 0 0 0 1px rgba(255,190,105,.08)!important}
+.home-filter-dropdown.is-collapsed{height:auto!important;max-height:none!important;min-height:0!important;overflow:hidden!important;padding:16px!important}
+.home-filter-dropdown>#districtFilterDragHandle{display:flex!important;width:100%;min-height:1.65in!important;margin:0!important;padding:18px!important;box-sizing:border-box;border:2px solid rgba(255,176,76,.62)!important;border-radius:28px!important;background:linear-gradient(145deg,#1b120b,#100b07)!important;color:#ffb04b!important;font-size:clamp(20px,4vw,30px)!important;font-weight:950!important;letter-spacing:3px!important;justify-content:center!important;box-shadow:inset 0 0 22px rgba(255,129,0,.07),0 5px 18px rgba(0,0,0,.28)!important}
+.home-filter-dropdown>#districtFilterDragHandle:before{content:"⌕"!important;font-size:30px!important}
+.home-filter-dropdown>#districtFilterDragHandle:after{content:"⌄"!important;font-size:27px!important}
+.home-filter-dropdown:not(.is-collapsed)>#districtFilterDragHandle{margin-bottom:14px!important}
+@media(max-width:600px){.home-filter-dropdown{width:100%;padding:12px!important;margin-bottom:30px!important;border-radius:27px!important}.home-filter-dropdown.is-collapsed{padding:12px!important}.home-filter-dropdown>#districtFilterDragHandle{min-height:1.55in!important;border-radius:24px!important;font-size:23px!important}}
 </style>
 
 
