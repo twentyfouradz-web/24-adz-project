@@ -2400,7 +2400,7 @@ select option { color:#fff8ef; background:#15100c; }
     <div class="listing-head"><h2 class="section-title" id="adsHeading" style="margin:0">Latest <span>Listings</span></h2><span class="muted" id="resultCount">0 listings</span></div>
     <div class="district-results-filters" id="districtResultsFilters" hidden>
       <button type="button" class="district-filter-drag-handle" id="districtFilterDragHandle" aria-expanded="false" aria-controls="districtFilterKeyword">FILTERS</button>
-      <input class="field" id="districtFilterKeyword" placeholder="Search by keyword or ad title" aria-label="Search by keyword">
+      <div class="voice-field-wrap filter-voice-wrap"><input class="field" id="districtFilterKeyword" placeholder="Search by keyword or ad title" aria-label="Search by keyword"><button class="voice-input-btn" type="button" aria-label="Speak filter keyword" onclick="start24AdVoice(this)">🎙</button></div>
       <div class="district-filter-grid">
         <select class="field" id="districtFilterCategory"><option value="">All Categories</option></select>
         <select class="field" id="districtFilterSubcategory"><option value="">All Subcategories</option></select>
@@ -2461,11 +2461,11 @@ select option { color:#fff8ef; background:#15100c; }
   <form id="postForm" novalidate><input type="hidden" name="editingId" id="editingAdId" value="">
     <div class="post-step-indicator" id="postStepIndicator">STEP 1 OF 2 · BASIC DETAILS</div>
     <div class="post-form-step" id="postStep1">
-      <label>Advertisement Title *</label><input class="field" name="title" required placeholder="Enter ad title">
+      <label>Advertisement Title *</label><div class="voice-field-wrap"><input class="field" name="title" required placeholder="Enter ad title"><button class="voice-input-btn" type="button" data-voice-target="postTitleVoice" aria-label="Speak advertisement title" onclick="start24AdVoice(this)">🎙 Speak</button></div>
       <label>Category *</label><select class="field" name="category" id="postCategory" required><option value="">Select Category</option><option>Cars</option><option>Bikes</option><option>Real Estate</option><option>Hotel Rooms</option><option>Fashion &amp; Beauty</option><option>Mobiles</option><option>Jobs</option><option>Personals</option><option>Massage & Spa</option><option>Full Body Massage</option><option>Head Massage</option><option>Foot Massage</option><option>Spa & Wellness</option><option>Beauty & Wellness</option><option>Other Services</option></select>
       <label>Subcategory</label><select class="field" name="subcategory" id="postSubcategory"><option value="">Select Subcategory</option></select>
       <div id="categorySpecificFields" class="category-specific-fields" aria-live="polite"></div>
-      <label>Description *</label><textarea class="field" name="description" required placeholder="Describe your ad. You can enter text, numbers, phone numbers and other details." maxlength="5000"></textarea>
+      <label>Description *</label><div class="voice-field-wrap voice-textarea-wrap"><textarea class="field" name="description" required placeholder="Describe your ad. You can enter text, numbers, phone numbers and other details." maxlength="5000"></textarea><button class="voice-input-btn" type="button" data-voice-target="postDescriptionVoice" aria-label="Speak advertisement description" onclick="start24AdVoice(this)">🎙 Speak</button></div>
       <label>District *</label><select class="field" name="district" id="postDistrict" required onchange="updatePostAreas()"><option value="">Select District</option></select>
       <button class="btn btn-primary post-next-btn" type="button" onclick="goPostStep(2)">Next · Continue</button>
     </div>
@@ -4069,7 +4069,6 @@ function renderMyAdsTab(tab){
   const location=[a.area,a.district].filter(Boolean).map(escapeDashboardText).join(", ");
   const image=(a.image_url||a.image)?`<img loading="lazy" decoding="async" src="${escapeDashboardText(a.image_url||a.image)}" alt="" style="width:100%;height:100%;object-fit:cover">`:`<div style="height:100%;display:grid;place-items:center;font-size:30px">📢</div>`;
   let cardDetails={};try{cardDetails=JSON.parse(a.details_json||"{}")}catch(_){cardDetails={}}
-  const extraRows=Object.entries(cardDetails).filter(([k,v])=>k!=="subcategory"&&v!==null&&v!==undefined&&String(v).trim()!=="").slice(0,4).map(([k,v])=>`<span><strong>${escapeDashboardText(k.replace(/[_-]+/g," "))}:</strong> ${escapeDashboardText(typeof v==="object"?JSON.stringify(v):v)}</span>`).join("");
   return `<article class="ad-card my24-ad-card" role="button" tabindex="0" aria-label="Open ${escapeDashboardText(a.title||"advertisement")}" onclick="openAdDetails('${id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openAdDetails('${id}')}" style="cursor:pointer">
    <div class="ad-image">${image}</div>
    <div class="ad-body">
@@ -4080,7 +4079,6 @@ function renderMyAdsTab(tab){
       ${a.subcategory?`<span><strong>Subcategory:</strong> ${escapeDashboardText(a.subcategory)}</span>`:""}
       <span><strong>District:</strong> ${escapeDashboardText(a.district||"—")}</span>
       ${a.area?`<span><strong>Area:</strong> ${escapeDashboardText(a.area)}</span>`:""}
-      ${a.description?`<span class="ad-card-description">${escapeDashboardText(String(a.description).trim().slice(0,90))}${String(a.description).trim().length>90?"…":""}</span>`:""}
       <span><strong>Published:</strong> ${escapeDashboardText(published)}</span>
     </div>
     <div class="ad-price">${a.price?"₹"+escapeDashboardText(a.price):"Contact for price"}</div>
@@ -5783,74 +5781,70 @@ body{overflow-y:auto!important;touch-action:pan-y!important;-webkit-overflow-scr
 </style>
 
 
-<style id="24adz-myads-published-card-size-and-compact-details">
-/* My Ads cards follow the published listing card dimensions and black/orange theme. */
-@media (max-width:600px){
-  #clientDashboardModal .modal-box.client-dashboard{
-    width:calc(100vw - 24px)!important;
-    max-width:calc(100vw - 24px)!important;
-    margin:0 auto!important;
-  }
+<style id="24adz-myads-published-card-parity-final">
+/* Keep My Ads and published listing cards visually aligned; only card presentation is affected. */
+@media(max-width:600px){
+  #myAdsPanel .my24-ads-scroll{display:grid!important;grid-template-columns:minmax(0,1fr)!important;width:100%!important;max-width:100%!important;gap:14px!important;padding:2px 0 14px!important;overflow:visible!important}
+  #myAdsPanel .my24-ads-scroll>.my24-ad-card{display:flex!important;flex-direction:column!important;width:100%!important;max-width:100%!important;min-width:0!important;height:auto!important;min-height:0!important;max-height:none!important;margin:0!important;box-sizing:border-box!important;overflow:hidden!important}
+  #myAdsPanel .my24-ad-card>.ad-image{display:block!important;width:100%!important;height:190px!important;min-height:190px!important;max-height:190px!important;overflow:hidden!important}
+  #myAdsPanel .my24-ad-card>.ad-image img{width:100%!important;height:100%!important;object-fit:cover!important}
+  #myAdsPanel .my24-ad-card>.ad-body{width:100%!important;min-width:0!important;padding:13px!important;box-sizing:border-box!important;overflow:visible!important}
+  #myAdsPanel .my24-ad-card h3{font-size:17px!important;line-height:1.3!important;margin:5px 0 8px!important}
+  #myAdsPanel .my24-ad-card .ad-meta{font-size:13px!important;line-height:1.5!important;overflow-wrap:anywhere!important}
+  #myAdsPanel .my24-ad-card .ad-card-description,#adsSection .ad-card .ad-card-description,#adsList .ad-card .ad-card-description{display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;overflow:hidden!important;max-height:3em!important;line-height:1.5!important;overflow-wrap:anywhere!important}
+  #myAdsPanel .my24-ad-card .my24-ad-actions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;margin-top:12px!important}
 }
-#clientDashboardContent #myAdsPanel .my24-ads-scroll{
-  display:flex!important;flex-direction:column!important;gap:16px!important;
-  width:100%!important;max-width:100%!important;min-width:0!important;
-  height:auto!important;max-height:none!important;overflow:visible!important;
-  padding:4px 0 20px!important;box-sizing:border-box!important;
-}
-#clientDashboardContent #myAdsPanel .my24-ads-scroll>.my24-ad-card{
-  display:flex!important;flex-direction:column!important;flex:0 0 auto!important;
-  width:100%!important;max-width:100%!important;min-width:0!important;
-  height:auto!important;min-height:0!important;max-height:none!important;
-  margin:0!important;overflow:hidden!important;box-sizing:border-box!important;
-  border-radius:16px!important;
-}
-#clientDashboardContent #myAdsPanel .my24-ad-card>.ad-image{
-  display:block!important;width:100%!important;
-  height:clamp(245px,78vw,360px)!important;min-height:245px!important;max-height:360px!important;
-  flex:0 0 auto!important;overflow:hidden!important;
-  border:0!important;border-bottom:1px solid rgba(255,158,48,.28)!important;
-}
-#clientDashboardContent #myAdsPanel .my24-ad-card>.ad-image img{
-  display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;
-}
-#clientDashboardContent #myAdsPanel .my24-ad-card>.ad-body{
-  display:flex!important;flex-direction:column!important;gap:0!important;
-  width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;
-  padding:17px 16px 18px!important;overflow:visible!important;box-sizing:border-box!important;
-}
-#clientDashboardContent #myAdsPanel .my24-ad-card .vip-ribbon{
-  align-self:flex-start!important;max-width:100%!important;margin:0 0 8px!important;
-}
-#clientDashboardContent #myAdsPanel .my24-ad-card .ad-body h3{
-  display:block!important;font-size:23px!important;line-height:1.25!important;
-  max-height:none!important;margin:5px 0 12px!important;overflow-wrap:anywhere!important;
-}
-#clientDashboardContent #myAdsPanel .my24-ad-card .ad-meta{
-  display:grid!important;gap:3px!important;font-size:15px!important;line-height:1.65!important;
-  max-height:none!important;overflow:visible!important;overflow-wrap:anywhere!important;
-}
-#clientDashboardContent #myAdsPanel .my24-ad-card .ad-card-description{
-  display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;
-  overflow:hidden!important;margin-top:5px!important;line-height:1.5!important;
-}
-#clientDashboardContent #myAdsPanel .my24-ad-card .ad-price{
-  display:block!important;font-size:clamp(21px,2.4vw,27px)!important;margin:14px 0 8px!important;
-}
-#clientDashboardContent #myAdsPanel .my24-ad-card .my24-ad-actions{
-  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
-  gap:10px!important;margin-top:12px!important;padding-top:0!important;
-}
-#clientDashboardContent #myAdsPanel .my24-ad-card .my24-ad-actions button{
-  min-width:0!important;min-height:47px!important;padding:8px 5px!important;
-  font-size:14px!important;white-space:nowrap!important;
-}
-@media(min-width:601px){
-  #clientDashboardContent #myAdsPanel .my24-ad-card>.ad-image{height:clamp(270px,48vw,470px)!important;min-height:270px!important}
-  #clientDashboardContent #myAdsPanel .my24-ad-card>.ad-body{padding:22px 24px 20px!important}
-  #clientDashboardContent #myAdsPanel .my24-ad-card .ad-body h3{font-size:clamp(22px,3.2vw,34px)!important}
-  #clientDashboardContent #myAdsPanel .my24-ad-card .ad-meta{font-size:clamp(15px,1.8vw,19px)!important;line-height:1.8!important}
-}
+</style>
+
+<script id="24adz-voice-input-and-locanto-form-enhancement">
+/* Voice typing uses the browser's built-in speech recognition; no external service or key. */
+(function(){
+ let activeRecognition=null;
+ window.start24AdVoice=function(button){
+  const wrap=button.closest('.voice-field-wrap');
+  const target=wrap&&wrap.querySelector('input,textarea');
+  if(!target){return;}
+  const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!Speech){toast('Voice typing is not supported in this browser. Please use Chrome.');return;}
+  if(activeRecognition){try{activeRecognition.stop()}catch(e){} activeRecognition=null;}
+  const recognition=new Speech();activeRecognition=recognition;
+  recognition.lang='ta-IN';recognition.interimResults=true;recognition.continuous=false;
+  const old=button.textContent;button.textContent='🔴 Listening…';button.classList.add('is-listening');
+  let finalText='';
+  recognition.onresult=function(event){let interim='';for(let i=event.resultIndex;i<event.results.length;i++){const value=event.results[i][0].transcript;if(event.results[i].isFinal)finalText+=value;else interim+=value;}target.value=(target.dataset.voiceOriginal||'')+(target.dataset.voiceOriginal?' ':'')+finalText+interim;target.dispatchEvent(new Event('input',{bubbles:true}));};
+  target.dataset.voiceOriginal=target.value.trim();
+  recognition.onerror=function(event){if(event.error!=='no-speech'&&event.error!=='aborted')toast('Voice input error: '+event.error);};
+  recognition.onend=function(){button.textContent=old;button.classList.remove('is-listening');activeRecognition=null;delete target.dataset.voiceOriginal;if(target.id==='districtFilterKeyword'&&target.value.trim()&&typeof applyDistrictListingFilters==='function'){applyDistrictListingFilters();if(typeof collapseDistrictFilters==='function')collapseDistrictFilters();}};
+  try{recognition.start();}catch(e){button.textContent=old;button.classList.remove('is-listening');activeRecognition=null;toast('Could not start microphone. Check browser microphone permission.');}
+ };
+})();
+</script>
+<style id="24adz-locanto-style-form-and-compact-card-fix">
+/* Scoped enhancement: preserve existing theme, fields, handlers, APIs and modal behavior. */
+#postModal .modal-box{max-width:650px!important;width:min(94vw,650px)!important;border-radius:18px!important}
+#postModal .post-step-indicator{position:sticky;top:0;z-index:4;padding:12px 14px!important;margin:0 0 16px!important;border:1px solid rgba(255,153,35,.35)!important;border-radius:12px!important;background:linear-gradient(110deg,#251609,#100d0a)!important;color:#ffb34d!important;font-weight:800!important;letter-spacing:.7px!important;text-align:center!important}
+#postModal .post-form-step>label{display:block;margin:13px 0 6px!important;font-weight:700!important;color:#f4e8da!important}
+#postModal .post-form-step .field{min-height:47px!important;border-radius:10px!important;margin-bottom:7px!important}
+#postModal .post-form-step textarea.field{min-height:150px!important;height:150px!important;max-height:260px!important;resize:vertical!important}
+#postModal .post-next-btn,#postModal .post-step-actions .btn{min-height:49px!important;border-radius:11px!important;font-weight:800!important}
+.voice-field-wrap{display:flex;align-items:stretch;gap:7px;width:100%;margin-bottom:8px}
+.voice-field-wrap>.field{flex:1;min-width:0;margin-bottom:0!important}
+.voice-input-btn{flex:0 0 auto;min-width:82px;border:1px solid rgba(255,157,48,.5);border-radius:10px;background:#241609;color:#ffbd68;font-weight:800;padding:8px 10px;cursor:pointer;touch-action:manipulation}
+.voice-input-btn.is-listening{background:#5b1710;color:#fff;border-color:#ff553d;animation:voicePulse 1s infinite}
+.filter-voice-wrap{margin:0 0 10px}.filter-voice-wrap .voice-input-btn{min-width:48px}
+@keyframes voicePulse{50%{box-shadow:0 0 0 5px rgba(255,70,40,.18)}}
+/* My Ads cards reuse the Published Ad card footprint; long descriptions stay in full detail view. */
+#myAdsPanel .my24-ads-scroll{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))!important;gap:18px!important;width:100%!important;overflow:visible!important}
+#myAdsPanel .my24-ad-card{width:100%!important;min-width:0!important;max-width:none!important;height:auto!important;min-height:0!important;display:flex!important;flex-direction:column!important;cursor:pointer!important}
+#myAdsPanel .my24-ad-card>.ad-image{height:185px!important;min-height:185px!important;max-height:185px!important;width:100%!important;overflow:hidden!important}
+#myAdsPanel .my24-ad-card>.ad-image img{width:100%!important;height:100%!important;object-fit:cover!important}
+#myAdsPanel .my24-ad-card>.ad-body{padding:13px!important;min-width:0!important}
+#myAdsPanel .my24-ad-card h3{font-size:17px!important;line-height:1.3!important;margin:6px 0 8px!important}
+#myAdsPanel .my24-ad-card .ad-meta{font-size:12px!important;line-height:1.45!important}
+#myAdsPanel .my24-ad-card .ad-meta>*{margin:2px 0!important}
+#myAdsPanel .my24-ad-card .my24-ad-actions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important;margin-top:10px!important}
+#myAdsPanel .my24-ad-card .my24-ad-actions .btn{min-width:0!important;padding:8px 5px!important;font-size:12px!important}
+@media(max-width:600px){#myAdsPanel .my24-ads-scroll{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}#myAdsPanel .my24-ad-card>.ad-image{height:125px!important;min-height:125px!important;max-height:125px!important}#myAdsPanel .my24-ad-card>.ad-body{padding:9px!important}#myAdsPanel .my24-ad-card h3{font-size:13px!important}#myAdsPanel .my24-ad-card .ad-meta{font-size:10px!important;line-height:1.35!important}#myAdsPanel .my24-ad-card .vip-ribbon{font-size:9px!important;padding:4px!important}#myAdsPanel .my24-ad-card .ad-price{font-size:14px!important}#myAdsPanel .my24-ad-card .my24-ad-actions{grid-template-columns:1fr!important;gap:5px!important}#myAdsPanel .my24-ad-card .my24-ad-actions .btn{font-size:10px!important;padding:6px 3px!important}}
 </style>
 
 </body></html>
