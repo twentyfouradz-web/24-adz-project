@@ -3316,17 +3316,15 @@ function renderCategorySeoContent(){
 function renderAds(items=ads,page=1){
   renderCategorySeoContent();
   if(adsScrollObserver){adsScrollObserver.disconnect();adsScrollObserver=null;}
-  // Homepage shows only active VIP ads in non-Personals categories.
-  // Category/district result pages continue to show all matching active ads.
-  const isHomepage=!document.body.classList.contains("search-results-mode");
+  // Show every published ad on the homepage and in filtered results.
+  // Active VIP ads are ranked first; free published ads follow by publish date.
+  // The public API already returns only approved/published records.
   const now=Date.now();
   const sorted=[...items].filter(a=>{
     if(String(a.status||"Active").toLowerCase()==="paused")return false;
     const expiry=getAdExpiryTime(a);
     const vipActive=isVipAd(a) && !!expiry && expiry>now;
     a._activeVip=vipActive;
-    const main=String(a.category||"").trim().toLowerCase();
-    if(isHomepage && (main==="personals" || !vipActive))return false;
     return true;
   }).sort((a,b)=>{
     const vipDiff=Number(!!b._activeVip)-Number(!!a._activeVip);
@@ -3611,10 +3609,12 @@ document.querySelectorAll("[data-password-target]").forEach(button=>{
 });
 
 // Client identity, email confirmation and password recovery are managed by Supabase Auth.
-let a24Supabase=null;
-var a24Session=null; // var avoids cross-script temporal-dead-zone failures during early homepage callbacks.
-let a24AuthReady=null;
-let a24SyncPromise=null;
+// Use var-backed shared auth state so early callbacks cannot hit a lexical
+// temporal-dead-zone if a mobile browser fires an initialization path early.
+var a24Supabase=null;
+var a24Session=null;
+var a24AuthReady=null;
+var a24SyncPromise=null;
 async function a24InitAuth(){
   if(a24AuthReady)return a24AuthReady;
   a24AuthReady=(async()=>{
