@@ -2250,6 +2250,51 @@ select option { color:#fff8ef; background:#15100c; }
 }
 </style>
 
+
+<style id="24adz-locanto-card-area-category-fixes">
+/* My Ads card follows the published listing card's Locanto-style image/detail layout. */
+@media(max-width:600px){
+  .my24-ads-scroll .my24-ad-card{
+    grid-template-columns:40% minmax(0,1fr)!important;
+    grid-template-rows:210px!important;
+    height:210px!important;min-height:210px!important;max-height:210px!important;
+  }
+  .my24-ads-scroll .my24-ad-card>.ad-image{
+    grid-column:1!important;grid-row:1!important;
+    height:210px!important;min-height:210px!important;max-height:210px!important;
+  }
+  .my24-ads-scroll .my24-ad-card>.ad-body{
+    grid-column:2!important;grid-row:1!important;
+    height:210px!important;min-height:0!important;max-height:210px!important;
+    padding:9px 9px 8px!important;overflow:hidden!important;
+  }
+  .my24-ads-scroll .my24-ad-card .ad-meta{
+    display:flex!important;flex-direction:column!important;
+    gap:2px!important;max-height:75px!important;font-size:10px!important;
+    line-height:1.3!important;overflow:hidden!important;
+  }
+  .my24-ads-scroll .my24-ad-card .my24-ad-description{
+    display:block!important;color:#c9c0b5!important;
+    font-size:10px!important;line-height:1.25!important;
+  }
+  .my24-ads-scroll .my24-ad-card .ad-price{font-size:16px!important;margin:4px 0!important}
+  .my24-ads-scroll .my24-ad-card .my24-ad-actions{gap:4px!important;padding-top:4px!important}
+  .my24-ads-scroll .my24-ad-card .my24-ad-actions button{
+    min-height:29px!important;padding:4px 5px!important;font-size:10px!important;
+  }
+}
+.category-seo-content{margin:26px 0 42px;padding:0 2px}
+.category-seo-inner{border:1px solid rgba(255,151,31,.25);border-radius:16px;padding:20px;background:linear-gradient(145deg,rgba(31,22,14,.92),rgba(10,10,10,.98))}
+.category-seo-kicker{color:#ffad3b;font-size:10px;font-weight:900;letter-spacing:1.7px}
+.category-seo-inner h2{color:#fff2df;font-size:20px;margin:8px 0 10px}
+.category-seo-inner p{color:#c7bdb2;font-size:13px;line-height:1.7;margin:0}
+.category-seo-links{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+.category-seo-links span{border:1px solid rgba(255,158,48,.28);background:#17120d;color:#ffc477;border-radius:999px;padding:6px 10px;font-size:11px}
+.district-area-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px}
+.district-area-link{min-width:0}
+@media(max-width:600px){.category-seo-inner{padding:16px}.category-seo-inner h2{font-size:18px}}
+</style>
+
 </head>
 <body>
 <header>
@@ -2432,6 +2477,7 @@ select option { color:#fff8ef; background:#15100c; }
     <div class="ads" id="adsList"><div class="empty">No advertisements yet. Contact the Admin if you want to advertise here.</div></div>
     <section class="district-area-directory" id="districtAreaDirectory" hidden aria-label="Published ads by local area"></section>
     <div class="ads-pagination" id="adsPagination" aria-label="Advertisement pages"></div>
+    <section class="category-seo-content" id="categorySeoContent" hidden aria-label="Category information"></section>
   </section>
 </main>
 <nav class="mobile-bottom-nav" aria-label="Main navigation">
@@ -2969,8 +3015,8 @@ function renderDistrictAreaDirectory(district){
   if(!district || !districtAreas[district]){
     panel.hidden=true;panel.innerHTML="";return;
   }
-  const areaNames=[...new Set([district,...(districtAreas[district]||[])])]
-    .filter(Boolean).sort((a,b)=>a.localeCompare(b));
+  const areaNames=[...new Set((districtAreas[district]||[]).filter(Boolean))]
+    .sort((a,b)=>a.localeCompare(b));
   const countFor=name=>ads.filter(ad=>
     normalizeLocationName(ad.district)===normalizeLocationName(district) &&
     normalizeLocationName(ad.area)===normalizeLocationName(name) &&
@@ -3192,7 +3238,30 @@ function categoryArtwork(category){
   </svg>`;
 }
 
+
+const CATEGORY_SEO_COPY={
+ "Cars":{title:"Buy & Sell Cars in Tamil Nadu",body:"Find new and used cars listed by owners and dealers across Tamil Nadu. Compare prices, models, fuel types and locations, then contact the advertiser directly to arrange a viewing. Always inspect the vehicle, verify documents and complete ownership transfer safely.",links:"Used Cars · New Cars · Hatchbacks · Sedans · SUVs · Cars by Owner"},
+ "Bikes":{title:"Buy & Sell Bikes in Tamil Nadu",body:"Explore motorcycles and scooters for sale across Tamil Nadu. Browse listings by model, price and local area, and connect with sellers to check vehicle condition, service history and documents before purchase.",links:"Motorcycles · Scooters · Electric Bikes · Used Bikes · Bikes by Owner"},
+ "Mobiles":{title:"Mobiles for Sale in Tamil Nadu",body:"Discover smartphones and mobile phones listed across Tamil Nadu. Compare brands, storage, condition and prices. Meet sellers safely and check the device, IMEI and accessories before making payment.",links:"Android Phones · iPhones · New Mobiles · Used Mobiles · Tablets"},
+ "Jobs":{title:"Jobs & Employment Opportunities in Tamil Nadu",body:"Search job opportunities posted by employers and recruiters across Tamil Nadu. Find openings by role and location, review the job details and contact the advertiser directly. Never pay a fee to secure a job or interview.",links:"Full-time Jobs · Part-time Jobs · Work from Home · Driver Jobs · Office Jobs"},
+ "Real Estate":{title:"Property for Rent & Sale in Tamil Nadu",body:"Browse houses, apartments, plots and commercial properties listed across Tamil Nadu. Explore rental and sale opportunities by district and local area. Verify ownership, visit the property and review all terms before paying an advance.",links:"Houses for Rent · Flats for Rent · Houses for Sale · Land for Sale · Commercial Property"},
+ "Hotel Rooms":{title:"Hotel Rooms & Accommodation in Tamil Nadu",body:"Find hotel rooms, lodges and short-stay accommodation listed across Tamil Nadu. Check the location, facilities, availability and pricing with the property before confirming a booking.",links:"Hotels · Lodges · Rooms · Guest Houses · Service Apartments"},
+ "Fashion & Beauty":{title:"Fashion & Beauty Services in Tamil Nadu",body:"Explore fashion, beauty products and personal care services advertised across Tamil Nadu. Review the service or product information, compare options and contact the advertiser to confirm details and pricing.",links:"Beauty Services · Clothing · Accessories · Salons · Wellness"},
+ "Personals":{title:"Personal & Wellness Services in Tamil Nadu",body:"Browse personal care and wellness service listings published on 24Adz. Read each listing carefully, confirm the service details and location directly with the advertiser, and make informed, safe choices.",links:"Massage & Spa · Full Body Massage · Head Massage · Foot Massage · Spa & Wellness"}
+};
+function renderCategorySeoContent(){
+ const panel=document.getElementById("categorySeoContent");if(!panel)return;
+ const main=String(document.getElementById("districtFilterCategory")?.value||document.getElementById("searchCategory")?.value||"").trim();
+ const sub=String(document.getElementById("districtFilterSubcategory")?.value||document.getElementById("searchSubcategory")?.value||"").trim();
+ const copy=CATEGORY_SEO_COPY[main];
+ if(!copy){panel.hidden=true;panel.innerHTML="";return;}
+ const title=sub?`${sub} in Tamil Nadu`:copy.title;
+ panel.hidden=false;
+ panel.innerHTML=`<div class="category-seo-inner"><span class="category-seo-kicker">24ADZ.COM · TAMIL NADU CLASSIFIEDS</span><h2>${escapeHtml(title)}</h2><p>${escapeHtml(copy.body)}</p><div class="category-seo-links">${copy.links.split(" · ").map(label=>`<span>${escapeHtml(label)}</span>`).join("")}</div></div>`;
+}
+
 function renderAds(items=ads,page=1){
+  renderCategorySeoContent();
   if(adsScrollObserver){adsScrollObserver.disconnect();adsScrollObserver=null;}
   // Homepage shows only active VIP ads in non-Personals categories.
   // Category/district result pages continue to show all matching active ads.
@@ -4080,6 +4149,7 @@ function renderMyAdsTab(tab){
       <span><strong>District:</strong> ${escapeDashboardText(a.district||"—")}</span>
       ${a.area?`<span><strong>Area:</strong> ${escapeDashboardText(a.area)}</span>`:""}
       <span><strong>Published:</strong> ${escapeDashboardText(published)}</span>
+      ${a.description?`<span class="my24-ad-description">${escapeDashboardText(String(a.description).trim().slice(0,105))}${String(a.description).trim().length>105?"…":""}</span>`:""}
     </div>
     <div class="ad-price">${a.price?"₹"+escapeDashboardText(a.price):"Contact for price"}</div>
     <div class="my24-ad-actions">
