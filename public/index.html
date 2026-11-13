@@ -3616,17 +3616,7 @@ var a24Session=null;
 var a24AuthReady=null;
 var a24SyncPromise=null;
 async function a24InitAuth(){
-  // Re-read Supabase's persisted session on every protected navigation.
-  // This prevents a stale in-memory token from sending logged-in users back
-  // to the login modal after a successful sign-in.
-  if(a24AuthReady){
-    await a24AuthReady;
-    if(a24Supabase){
-      const refreshed=await a24Supabase.auth.getSession();
-      if(!refreshed.error)a24Session=refreshed.data.session||null;
-    }
-    return a24Supabase;
-  }
+  if(a24AuthReady)return a24AuthReady;
   a24AuthReady=(async()=>{
     if(!window.supabase?.createClient)throw new Error("Supabase library could not load. Refresh the page and try again.");
     const cfg=await fetch("https://api.24adz.com/api/public/auth-config",{cache:"no-store"}).then(async r=>{const d=await r.json();if(!r.ok||!d.success)throw new Error(d.error||"Supabase configuration unavailable");return d;});
@@ -3636,29 +3626,28 @@ async function a24InitAuth(){
     const hashParams=new URLSearchParams(location.hash.replace(/^#/,""));
     const queryParams=new URLSearchParams(location.search);
     const isSignupReturn=hashParams.get("type")==="signup"||queryParams.get("email_confirm")==="1";
-    if(a24Session?.user?.email_confirmed_at && isSignupReturn){
-      const verifiedEmail=String(a24Session.user.email||"").toLowerCase();
-      try{await a24SyncClient();}catch(e){console.warn("24Adz verified profile sync:",e.message);}
-      await a24Supabase.auth.signOut();
+    if(isSignupReturn){
+      const verifiedEmail=String(a24Session?.user?.email||localStorage.getItem("24adz_pending_email")||"").toLowerCase();
+      const verified=!!(a24Session?.user?.email_confirmed_at||a24Session?.user?.confirmed_at);
+      // Email confirmation never leaves a client signed in; explicit login is required.
+      if(a24Session)await a24Supabase.auth.signOut();
       a24Session=null;localStorage.removeItem("24adz_client");
       localStorage.removeItem("24adz_pending_email");
       history.replaceState({},"",location.pathname);
       const loginEmail=document.querySelector('#loginForm [name="email"]');
-      if(loginEmail)loginEmail.value=verifiedEmail;
+      if(loginEmail&&verifiedEmail)loginEmail.value=verifiedEmail;
       openModal("loginModal");
-      toast("Registration Successfully! Your email has been verified. Please log in using the same email or registered mobile number.");
-    }else if(a24Session?.user?.email_confirmed_at){
-      // A temporary profile-sync/API failure must not destroy a valid Supabase
-      // login session. Keep the session; protected API calls can retry syncing.
-      try{await a24SyncClient();}catch(e){console.warn("24Adz profile sync (session preserved):",e.message);}
+      toast(verified?"Your email has been verified successfully. Please log in to continue.":"Please complete email verification, then log in to continue.");
+    }else if(a24Session?.user?.email_confirmed_at||a24Session?.user?.confirmed_at){
+      try{await a24SyncClient();}catch(e){console.warn("24Adz profile sync:",e.message);await a24Supabase.auth.signOut();a24Session=null;}
     }else if(a24Session){
       await a24Supabase.auth.signOut();a24Session=null;
       localStorage.removeItem("24adz_client");
     }
     a24Supabase.auth.onAuthStateChange((_event,session)=>{
-      a24Session=session||null;
-      if(session?.user?.email_confirmed_at){setTimeout(()=>a24SyncClient().catch(e=>console.warn("24Adz profile sync:",e.message)),0);}
-      else {localStorage.removeItem("24adz_client");}
+      const verified=!!(session?.user?.email_confirmed_at||session?.user?.confirmed_at);
+      a24Session=verified?session:null;
+      if(!verified)localStorage.removeItem("24adz_client");
       updateAccountNav();
     });
     updateAccountNav();
@@ -3691,26 +3680,34 @@ document.getElementById("registerForm").addEventListener("submit",async e=>{
   if(button)button.disabled=true;
   try{
     await a24InitAuth();
+    // Registration is separate from login; clear any pre-existing client session.
+    if(a24Supabase){
+      const current=await a24Supabase.auth.getSession();
+      if(current.error)throw current.error;
+      if(current.data?.session)await a24Supabase.auth.signOut();
+    }
+    a24Session=null;localStorage.removeItem("24adz_client");
     if(!/^[6-9]\d{9}$/.test(mobile))throw new Error("Enter a valid 10-digit mobile number.");
     const check=await fetch("https://api.24adz.com/api/public/check-mobile",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mobile})});
     const checkData=await check.json().catch(()=>({}));
     if(!check.ok)throw new Error(checkData.error||"Unable to verify mobile number. Please try again.");
     if(checkData.registered){showDuplicate();return;}
-    const {data,error}=await a24Supabase.auth.signUp({email,password:String(f.get("password")),options:{data:{full_name:name,mobile},emailRedirectTo:location.origin+"/?email_confirm=1"}});
+    const {data,error}=await a24Supabase.auth.signUp({email,password:String(f.get("password")),options:{data:{full_name:name,mobile},emailRedirectTo:"https://www.24adz.com/?email_confirm=1"}});
     if(error){
       if(/already registered|already exists|user exists|duplicate/i.test(error.message||"")){showDuplicate();return;}
       throw error;
     }
     // Supabase can return an empty identities array for an email that is already registered.
     if(data.user && Array.isArray(data.user.identities) && data.user.identities.length===0){showDuplicate();return;}
-    localStorage.setItem("24adz_pending_email",email);
     const confirmationWasRequired=!data.session;
     if(data.session)await a24Supabase.auth.signOut();
     a24Session=null;localStorage.removeItem("24adz_client");
+    if(!confirmationWasRequired){
+      throw new Error("Email verification is disabled in Supabase. Enable Confirm email in Authentication settings before registering customers.");
+    }
+    localStorage.setItem("24adz_pending_email",email);
     e.target.reset();closeModal("registerModal");
-    toast(confirmationWasRequired
-      ?"Please check your email inbox. We have sent a verification link. Open it to complete registration."
-      :"Account created, but email confirmation must be enabled in Supabase Auth settings.");
+    toast("Registration submitted. Please check your email and open the verification link. Then log in.");
   }catch(x){toast(x.message||"Registration failed.");}finally{if(button)button.disabled=false;}
 });
 document.getElementById("googleLoginBtn").addEventListener("click",async function(){
@@ -4107,6 +4104,17 @@ window.ADZ24_MAIN_CATEGORY_ICONS={Cars:'🚗',Bikes:'🏍️',Mobiles:'📱',Job
 <script id="24adz-client-bridge">
 const A24_API="https://api.24adz.com";let a24Client=null;
 function a24Token(){return a24Session?.access_token||""}
+async function a24GetValidSession(){
+ await a24InitAuth();
+ if(!a24Supabase)throw new Error("Login service unavailable. Please refresh and try again.");
+ let result=await a24Supabase.auth.getSession();
+ if(result.error)throw result.error;
+ let session=result.data?.session||null;
+ const verified=!!(session?.user?.email_confirmed_at||session?.user?.confirmed_at);
+ a24Session=verified?session:null;
+ updateAccountNav();
+ return verified?session:null;
+}
 async function a24Call(path,method="GET",body){await a24InitAuth();const token=a24Token();const r=await fetch(A24_API+path,{method,headers:{...(body?{"Content-Type":"application/json"}:{}),...(token?{Authorization:"Bearer "+token}:{})},body:body?JSON.stringify(body):undefined});const d=await r.json().catch(()=>({}));if(!r.ok||d.success===false){const e=new Error(d.error||"Request failed");e.status=r.status;throw e}return d}
 async function refreshPostWalletBalance(){
  const balanceEl=document.getElementById("postWalletBalance");
@@ -4169,30 +4177,24 @@ async function clientLogout(auto=false){
 }
 function getCurrentClient(){try{return JSON.parse(localStorage.getItem("24adz_client")||"null")}catch{return null}}
 async function startPostAd(){
-  // Dismiss My24Adz/My Ads immediately; otherwise its overlay can cover the form.
-  closeModal("clientDashboardModal");
-  // Existing signed-in sessions can open the form without waiting for another
-  // auth/network round trip (the dashboard already initialized Supabase).
-  if(a24Token()){
-    resetPostFormForNew();
-    openModal("postModal");
-    refreshPostWalletBalance();
-    return;
+ closeModal("clientDashboardModal");
+ try{
+  const session=await a24GetValidSession();
+  if(!session?.access_token){
+   closeModal("postModal");
+   openModal("loginModal");
+   toast("Please log in with your verified email to post an ad.");
+   return;
   }
-  try{
-    await a24InitAuth();
-    if(!a24Token()){
-      closeModal("postModal");
-      openModal("loginModal");
-      toast("Login or register to post an ad.");
-      return;
-    }
-    resetPostFormForNew();
-    openModal("postModal");
-    refreshPostWalletBalance();
-  }catch(e){
-    toast(e.message||"Login service unavailable.");
-  }
+  a24MarkActivity();
+  resetPostFormForNew();
+  openModal("postModal");
+  refreshPostWalletBalance();
+ }catch(e){
+  console.error("24Adz Post Ad authentication:",e);
+  closeModal("postModal");
+  toast(e.message||"Unable to verify your login. Please try again.");
+ }
 }
 function resetPostFormForNew(){const f=document.getElementById("postForm");f.reset();document.getElementById("editingAdId").value="";goPostStep(1);}
 function formatMyAdDate(value){
@@ -4252,8 +4254,8 @@ function renderMyAdsTab(tab){
 }
 async function openClientDashboard(){
  try{
-  await a24InitAuth();
-  if(!a24Token()){openModal("loginModal");return}
+  const session=await a24GetValidSession();
+  if(!session?.access_token){openModal("loginModal");return}
   const [me,own,msgs,coinHistory]=await Promise.all([a24Call("/api/client/me"),a24Call("/api/client/ads"),a24Call("/api/client/messages"),a24Call("/api/client/coin-transactions")]);
   const c=me.client,w=me.wallet,limits=me.freeAds,transactions=coinHistory.transactions||[];
   const ads=(own.ads||[]).filter(a=>String(a.owner_client_id||"")===String(c.id));
