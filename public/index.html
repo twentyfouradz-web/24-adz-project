@@ -2417,7 +2417,11 @@ select option { color:#fff8ef; background:#15100c; }
     <button type="button" class="reference-all-locations" onclick="document.getElementById('districtQuickSearch').scrollIntoView({behavior:'smooth'})">Other Popular Locations → View all 38 districts</button>
   </section>
 
-  <div class="district-results-filters home-filter-dropdown" id="districtResultsFilters">
+
+
+  <section id="adsSection">
+    <button type="button" class="results-back" onclick="closeSearchResults()">← Back to Home</button>
+    <div class="district-results-filters home-filter-dropdown is-collapsed" id="districtResultsFilters">
     <button type="button" class="district-filter-drag-handle" id="districtFilterDragHandle" aria-expanded="false" aria-controls="districtFilterKeyword">FILTERS</button>
     <div class="voice-field-wrap filter-voice-wrap"><input class="field" id="districtFilterKeyword" placeholder="Search by keyword or ad title" aria-label="Search by keyword"><button class="voice-input-btn" type="button" aria-label="Speak filter keyword" onclick="start24AdVoice(this)">🎙</button></div>
     <div class="district-filter-grid">
@@ -2434,9 +2438,6 @@ select option { color:#fff8ef; background:#15100c; }
     <button type="button" class="btn btn-primary" onclick="if(applyDistrictListingFilters())collapseDistrictFilters()">Apply Filters</button>
     <button type="button" class="btn btn-outline" onclick="resetDistrictListingFilters()">Reset Filters</button>
   </div>
-
-  <section id="adsSection">
-    <button type="button" class="results-back" onclick="closeSearchResults()">← Back to Home</button>
     <div class="listing-head"><h2 class="section-title" id="adsHeading" style="margin:0">Latest <span>Listings</span></h2><span class="muted" id="resultCount">0 listings</span></div>
     <div class="ads" id="adsList"><div class="empty">No advertisements yet. Contact the Admin if you want to advertise here.</div></div>
     <div class="ads-pagination" id="adsPagination" aria-label="Advertisement pages"></div>
@@ -6637,4 +6638,209 @@ body{overflow-y:auto!important;touch-action:pan-y!important;-webkit-overflow-scr
 }
 </style>
 
+
+<style id="24adz-compact-results-filters">
+/* Keep filters out of the category/homepage flow; show a compact control in listing results. */
+#adsSection #districtResultsFilters.home-filter-dropdown{
+  display:block!important;
+  position:relative;
+  width:min(100%,760px)!important;
+  max-width:760px!important;
+  height:auto!important;
+  min-height:0!important;
+  margin:0 auto 14px!important;
+  padding:0 9px!important;
+  border:1px solid rgba(255,151,31,.38)!important;
+  border-radius:12px!important;
+  overflow:hidden!important;
+  background:linear-gradient(145deg,#17110c,#090807)!important;
+  box-shadow:0 8px 22px rgba(0,0,0,.3)!important;
+  transition:max-height .2s ease,padding .2s ease;
+}
+#adsSection #districtResultsFilters.home-filter-dropdown.is-collapsed{
+  max-height:44px!important;
+  padding:0 8px!important;
+}
+#adsSection #districtResultsFilters.home-filter-dropdown:not(.is-collapsed){
+  max-height:min(48vh,390px)!important;
+  padding:8px 10px 10px!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+#adsSection #districtFilterDragHandle{
+  min-height:42px!important;height:42px!important;
+  margin:0!important;padding:7px 10px!important;
+  border:0!important;border-radius:9px!important;
+  font-size:12px!important;letter-spacing:1.2px!important;
+}
+#adsSection #districtResultsFilters:not(.is-collapsed) #districtFilterDragHandle{
+  margin:0 0 8px!important;
+}
+#adsSection #districtResultsFilters .filter-voice-wrap{
+  display:grid!important;grid-template-columns:minmax(0,1fr) 40px!important;
+  gap:6px!important;margin:0 0 8px!important;
+}
+#adsSection #districtResultsFilters .filter-voice-wrap .field,
+#adsSection #districtResultsFilters .district-filter-grid .field{
+  width:100%!important;min-width:0!important;height:39px!important;min-height:39px!important;
+  margin:0!important;padding:7px 9px!important;font-size:12px!important;border-radius:8px!important;
+}
+#adsSection #districtResultsFilters .filter-voice-wrap .voice-input-btn{
+  min-height:39px!important;height:39px!important;width:40px!important;
+}
+#adsSection #districtResultsFilters .district-filter-grid{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;
+}
+#adsSection #districtResultsFilters .district-distance-actions{
+  display:flex!important;flex-direction:row!important;align-items:center!important;
+  flex-wrap:wrap!important;gap:7px!important;margin:8px 0 3px!important;
+}
+#adsSection #districtResultsFilters .district-distance-actions .btn,
+#adsSection #districtResultsFilters > .btn{
+  width:auto!important;min-height:36px!important;margin:5px 6px 0 0!important;
+  padding:8px 11px!important;font-size:12px!important;border-radius:8px!important;
+}
+#adsSection #districtResultsFilters .district-distance-status{
+  flex:1 1 150px!important;font-size:11px!important;line-height:1.3!important;
+}
+@media(max-width:600px){
+ #adsSection #districtResultsFilters.home-filter-dropdown{margin-bottom:10px!important}
+ #adsSection #districtResultsFilters.home-filter-dropdown:not(.is-collapsed){max-height:min(52vh,360px)!important}
+ #adsSection #districtResultsFilters .district-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ #adsSection #districtResultsFilters .district-filter-grid .field{font-size:12px!important}
+}
+</style>
+
 </body></html>
+
+
+<style id="24adz-published-image-myads-size-final">
+/* Final visual-only card alignment: preserve published card footprint and match My Ads to it. */
+@media(max-width:600px){
+  /* Published cards keep their existing dimensions; show the complete source image. */
+  #adsSection .ad-card .ad-image img,
+  #adsSection .ad-card .ad-image .ad-artwork{
+    object-fit:contain!important;
+    object-position:center center!important;
+    background:#090909!important;
+  }
+
+  /* My Ads use the same single-row card geometry as Published Ads. */
+  #myAdsPanel .my24-ads-scroll{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:14px!important;
+    width:100%!important;
+  }
+  #myAdsPanel .my24-ad-card{
+    display:flex!important;
+    flex-direction:row!important;
+    align-items:stretch!important;
+    width:100%!important;
+    min-width:0!important;
+    min-height:245px!important;
+    height:auto!important;
+    overflow:hidden!important;
+    border-radius:17px!important;
+  }
+  #myAdsPanel .my24-ad-card>.ad-image{
+    flex:0 0 39%!important;
+    width:39%!important;
+    height:auto!important;
+    min-height:245px!important;
+    max-height:none!important;
+    align-self:stretch!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    overflow:hidden!important;
+    border-right:2px solid #ff9a16!important;
+    border-bottom:0!important;
+    background:#090909!important;
+  }
+  #myAdsPanel .my24-ad-card>.ad-image img{
+    display:block!important;
+    width:100%!important;
+    height:100%!important;
+    min-height:245px!important;
+    max-height:none!important;
+    object-fit:contain!important;
+    object-position:center center!important;
+    background:#090909!important;
+  }
+  #myAdsPanel .my24-ad-card>.ad-body{
+    flex:1 1 61%!important;
+    width:61%!important;
+    min-width:0!important;
+    padding:12px 10px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    justify-content:center!important;
+    gap:3px!important;
+    overflow-wrap:anywhere!important;
+  }
+  #myAdsPanel .my24-ad-card .vip-ribbon{
+    align-self:flex-start!important;
+    max-width:100%!important;
+    font-size:9px!important;
+    line-height:1.25!important;
+    padding:4px 7px!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  #myAdsPanel .my24-ad-card h3{
+    display:block!important;
+    font-size:16px!important;
+    line-height:1.3!important;
+    margin:0 0 7px!important;
+    white-space:normal!important;
+    overflow:visible!important;
+    overflow-wrap:anywhere!important;
+  }
+  #myAdsPanel .my24-ad-card .ad-meta{
+    display:flex!important;
+    flex-direction:column!important;
+    gap:2px!important;
+    font-size:12px!important;
+    line-height:1.5!important;
+    color:#ddd!important;
+    overflow:visible!important;
+    overflow-wrap:anywhere!important;
+  }
+  #myAdsPanel .my24-ad-card .ad-meta>*{
+    display:block!important;
+    margin:0!important;
+  }
+  #myAdsPanel .my24-ad-card .ad-price{
+    display:block!important;
+    font-size:18px!important;
+    line-height:1.3!important;
+    margin:8px 0!important;
+    color:#ffad32!important;
+    overflow-wrap:anywhere!important;
+  }
+  #myAdsPanel .my24-ad-card .my24-ad-actions{
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:5px!important;
+    margin-top:8px!important;
+  }
+  #myAdsPanel .my24-ad-card .my24-ad-actions .btn{
+    min-width:0!important;
+    min-height:36px!important;
+    padding:6px 3px!important;
+    font-size:10px!important;
+    overflow-wrap:anywhere!important;
+  }
+}
+@media(max-width:360px){
+  #adsSection .ad-card .ad-image{flex-basis:36%!important;width:36%!important}
+  #adsSection .ad-card .ad-body{width:64%!important;padding:10px 8px!important}
+  #myAdsPanel .my24-ad-card>.ad-image{flex-basis:36%!important;width:36%!important}
+  #myAdsPanel .my24-ad-card>.ad-body{width:64%!important;padding:10px 8px!important}
+  #myAdsPanel .my24-ad-card h3{font-size:15px!important}
+  #myAdsPanel .my24-ad-card .ad-meta{font-size:11px!important}
+}
+</style>
