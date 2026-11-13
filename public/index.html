@@ -2519,8 +2519,6 @@ select option { color:#fff8ef; background:#15100c; }
       <label>Area *</label><select class="field" name="area" id="postArea" required><option value="">Select Area</option></select>
       <label>Price (₹)</label><input class="field" name="price" type="number" min="0" placeholder="Enter price">
       <label>Ad Duration / VIP Coins *</label><select class="field" name="days" id="adDuration" required><option value="0">Standard / Free (first 3 ads)</option><option value="3">3 Days · 300 Coins</option><option value="5">5 Days · 500 Coins</option><option value="7">7 Days · 700 Coins</option></select>
-      <p id="postWalletBalance" class="small-note" style="margin:-3px 0 12px;padding:11px 13px;border:1px solid rgba(255,145,0,.35);border-radius:10px;background:rgba(255,145,0,.07);font-weight:700">Available Coins: Loading…</p>
-      <p id="postVipCost" class="small-note" style="margin:-6px 0 12px;color:#ffad32;font-weight:700" aria-live="polite">Select a VIP duration to see the Coins required.</p>
       <label>Contact Name *</label><input class="field" name="contact" required placeholder="Your name">
       <label>Mobile Number *</label><input class="field" name="phone" type="tel" required pattern="[0-9+ -]{10,15}" placeholder="Mobile number">
       <label>WhatsApp Number</label><input class="field" name="whatsapp" type="tel" pattern="[0-9+ -]{10,15}" placeholder="WhatsApp number (if different)">
@@ -3316,15 +3314,17 @@ function renderCategorySeoContent(){
 function renderAds(items=ads,page=1){
   renderCategorySeoContent();
   if(adsScrollObserver){adsScrollObserver.disconnect();adsScrollObserver=null;}
-  // Show every published ad on the homepage and in filtered results.
-  // Active VIP ads are ranked first; free published ads follow by publish date.
-  // The public API already returns only approved/published records.
+  // Homepage shows only active VIP ads in non-Personals categories.
+  // Category/district result pages continue to show all matching active ads.
+  const isHomepage=!document.body.classList.contains("search-results-mode");
   const now=Date.now();
   const sorted=[...items].filter(a=>{
     if(String(a.status||"Active").toLowerCase()==="paused")return false;
     const expiry=getAdExpiryTime(a);
     const vipActive=isVipAd(a) && !!expiry && expiry>now;
     a._activeVip=vipActive;
+    const main=String(a.category||"").trim().toLowerCase();
+    if(isHomepage && (main==="personals" || !vipActive))return false;
     return true;
   }).sort((a,b)=>{
     const vipDiff=Number(!!b._activeVip)-Number(!!a._activeVip);
@@ -3550,13 +3550,11 @@ function clearRejectedImage(){
 
 
 // Category-specific fields are rendered by the single unified controller below.
-document.getElementById("adDuration")?.addEventListener("change",refreshPostWalletBalance);
 document.getElementById("postForm").addEventListener("submit",async e=>{
  e.preventDefault();
- let validSession=null;
- try{validSession=await a24GetValidSession();}catch(authError){toast(authError.message||"Login service unavailable.");return;}
+ try{await a24InitAuth();}catch(authError){toast(authError.message||"Login service unavailable.");return;}
  const client=getCurrentClient();
- if(!validSession){toast("Please login to publish your advertisement.");closeModal("postModal");openModal("loginModal");return;}
+ if(!a24Token()){toast("Please login to publish your advertisement.");closeModal("postModal");openModal("loginModal");return;}
  
  const invalid=[...e.target.querySelectorAll("input,select,textarea")].find(el=>!el.checkValidity());
  if(invalid){const step=invalid.closest("#postStep1")?1:2;if(currentPostStep!==step)goPostStep(step);invalid.reportValidity();invalid.focus();return;}
@@ -3573,17 +3571,13 @@ document.getElementById("postForm").addEventListener("submit",async e=>{
  if(client&&mobile!==digits(client.mobile||client.phone)){toast("Contact mobile number must match your logged-in account.");goPostStep(2);return;}
  try{
   let imageUrl="";
-  if(file){const fd=new FormData();fd.append("image",file);const up=await fetch("https://api.24adz.com/api/client/images/upload",{method:"POST",headers:{Authorization:"Bearer "+a24Token()},body:fd});const ud=await up.json();if(!up.ok||!ud.success)throw new Error(ud.error||"Image upload failed");imageUrl=ud.url;}
+  if(file){const fd=new FormData();fd.append("image",file);const up=await fetch("/api/client/images/upload",{method:"POST",headers:{Authorization:"Bearer "+a24Token()},body:fd});const ud=await up.json();if(!up.ok||!ud.success)throw new Error(ud.error||"Image upload failed");imageUrl=ud.url;}
   else imageUrl=String(f.get("image")||"");
   const days=Number(f.get("days")||0),plan=days===3?"vip3":days===5?"vip5":days===7?"vip7":"free";
   const categoryDetails=collectCategoryDetails(document.getElementById("categorySpecificFields")); const payload={title:f.get("title"),description:f.get("description"),category:f.get("category"),subcategory:f.get("subcategory"),model_year:categoryDetails.model_year||f.get("model_year"),category_details:categoryDetails,contact_name:f.get("contact"),district:f.get("district"),area:f.get("area"),price:f.get("price"),phone:mobile,whatsapp:f.get("whatsapp")||mobile,image_url:imageUrl,plan};
   const result=editingId?await a24Call("/api/client/ads/"+encodeURIComponent(editingId),"PATCH",payload):await a24Call("/api/client/ads","POST",payload);
   e.target.reset();document.getElementById("editingAdId").value="";
-  fillAreas(document.getElementById("postDistrict"),document.getElementById("postArea"));populateSubcategories(document.getElementById("postCategory"),document.getElementById("postSubcategory"));goPostStep(1);closeModal("postModal");
-  if(!editingId){
-   try{const walletNow=await a24Call("/api/client/me");const balanceNow=Number(walletNow.wallet?.balance)||0;toast((result.message||"Advertisement published.")+" Available Coins: "+balanceNow);}
-   catch{toast(result.message||"Advertisement published.");}
-  }else toast(result.message||"Advertisement updated.");
+  fillAreas(document.getElementById("postDistrict"),document.getElementById("postArea"));populateSubcategories(document.getElementById("postCategory"),document.getElementById("postSubcategory"));goPostStep(1);closeModal("postModal");toast(result.message||(editingId?"Advertisement updated.":"Advertisement published."));
   if(typeof openClientDashboard==="function")openClientDashboard();
  }catch(err){
   const message=String(err.message||"Unable to save advertisement.");
@@ -3610,17 +3604,15 @@ document.querySelectorAll("[data-password-target]").forEach(button=>{
 });
 
 // Client identity, email confirmation and password recovery are managed by Supabase Auth.
-// Use var-backed shared auth state so early callbacks cannot hit a lexical
-// temporal-dead-zone if a mobile browser fires an initialization path early.
-var a24Supabase=null;
-var a24Session=null;
-var a24AuthReady=null;
-var a24SyncPromise=null;
+let a24Supabase=null;
+let a24Session=null;
+let a24AuthReady=null;
+let a24SyncPromise=null;
 async function a24InitAuth(){
   if(a24AuthReady)return a24AuthReady;
   a24AuthReady=(async()=>{
     if(!window.supabase?.createClient)throw new Error("Supabase library could not load. Refresh the page and try again.");
-    const cfg=await fetch("https://api.24adz.com/api/public/auth-config",{cache:"no-store"}).then(async r=>{const d=await r.json();if(!r.ok||!d.success)throw new Error(d.error||"Supabase configuration unavailable");return d;});
+    const cfg=await fetch("/api/public/auth-config",{cache:"no-store"}).then(async r=>{const d=await r.json();if(!r.ok||!d.success)throw new Error(d.error||"Supabase configuration unavailable");return d;});
     a24Supabase=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
     const {data,error}=await a24Supabase.auth.getSession();if(error)throw error;
     a24Session=data.session||null;if(a24Session&&typeof a24MarkActivity==="function")a24MarkActivity();
@@ -3660,7 +3652,7 @@ async function a24SyncClient(profile={}){
   if(a24SyncPromise)return a24SyncPromise;
   a24SyncPromise=(async()=>{
     if(!a24Session?.access_token)throw new Error("Please log in again.");
-    const r=await fetch("https://api.24adz.com/api/client/sync",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+a24Session.access_token},body:JSON.stringify(profile)});
+    const r=await fetch("/api/client/sync",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+a24Session.access_token},body:JSON.stringify(profile)});
     const d=await r.json().catch(()=>({}));if(!r.ok||!d.success)throw new Error(d.error||"Unable to sync your 24Adz account.");
     a24Client=d.client;localStorage.setItem("24adz_client",JSON.stringify(d.client));updateAccountNav();return d.client;
   })();
@@ -3681,7 +3673,7 @@ document.getElementById("registerForm").addEventListener("submit",async e=>{
   try{
     await a24InitAuth();
     if(!/^[6-9]\d{9}$/.test(mobile))throw new Error("Enter a valid 10-digit mobile number.");
-    const check=await fetch("https://api.24adz.com/api/public/check-mobile",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mobile})});
+    const check=await fetch("/api/public/check-mobile",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mobile})});
     const checkData=await check.json().catch(()=>({}));
     if(!check.ok)throw new Error(checkData.error||"Unable to verify mobile number. Please try again.");
     if(checkData.registered){showDuplicate();return;}
@@ -3732,7 +3724,7 @@ document.getElementById("loginForm").addEventListener("submit",async e=>{
     }else{
       const mobile=identity.replace(/\D/g,"");
       if(!/^[6-9]\d{9}$/.test(mobile))throw new Error("Enter your registered email address or 10-digit mobile number.");
-      const r=await fetch("https://api.24adz.com/api/public/login-by-mobile",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mobile,password})});
+      const r=await fetch("/api/public/login-by-mobile",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mobile,password})});
       const result=await r.json().catch(()=>({}));
       if(!r.ok||!result.success)throw new Error(result.error||"Invalid login details or email not verified.");
       ({data,error}=await a24Supabase.auth.setSession({access_token:result.session.access_token,refresh_token:result.session.refresh_token}));
@@ -3821,7 +3813,7 @@ window.ADZ24_MAIN_CATEGORY_ICONS={Cars:'🚗',Bikes:'🏍️',Mobiles:'📱',Job
   window.ADZ24_ADMIN_CONFIG=ADZ24;
   const adz24Escape=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   async function adz24Get(path){
-    const r=await fetch("https://api.24adz.com"+path,{headers:{"Accept":"application/json"},cache:"no-store"});
+    const r=await fetch(path,{headers:{"Accept":"application/json"},cache:"no-store"});
     const d=await r.json().catch(()=>({}));
     if(!r.ok||d.success===false)throw new Error(d.error||"Could not load website settings");
     return d;
@@ -4069,18 +4061,16 @@ window.ADZ24_MAIN_CATEGORY_ICONS={Cars:'🚗',Bikes:'🏍️',Mobiles:'📱',Job
   // Admin settings and dynamic categories are optional enhancements: on API failure,
   // all original homepage controls and local fallback remain available.
   async function hmSync(){
-    // Fetch every Admin-managed public setting from the dedicated API Worker.
-    // A failure in optional categories/settings/form fields must never block the ads feed.
-    const [cat,settings,fields]=await Promise.all([
-      adz24Get("/api/public/categories").catch(e=>{console.warn("24Adz categories sync:",e.message);return null;}),
-      adz24Get("/api/public/settings").catch(e=>{console.warn("24Adz settings sync:",e.message);return null;}),
-      adz24Get("/api/public/form-fields").catch(e=>{console.warn("24Adz form-fields sync:",e.message);return null;})
-    ]);
-    if(cat?.success)adz24ApplyCategoryData(cat.categories||[]);
-    if(settings?.success)hmApplySettings(settings.settings||{});
-    if(fields?.success)hmApplyFields(fields.fields||[]);
-    await hmLoadPublicAds().catch(e=>console.warn("24Adz.com public ads load failed:",e.message));
-    document.dispatchEvent(new CustomEvent("24adz:admin-settings-loaded",{detail:ADZ24}));
+    try{
+      const [cat,settings,fields]=await Promise.all([
+        adz24Get("/api/public/categories"),adz24Get("/api/public/settings"),adz24Get("/api/public/form-fields")
+      ]);
+      adz24ApplyCategoryData(cat.categories||[]);
+      hmApplySettings(settings.settings||{});
+      hmApplyFields(fields.fields||[]);
+      await hmLoadPublicAds().catch(e=>console.warn("24Adz.com public ads fallback:",e.message));
+      document.dispatchEvent(new CustomEvent("24adz:admin-settings-loaded",{detail:ADZ24}));
+    }catch(e){console.warn("24Adz.com admin integration fallback:",e.message)}
   }
   window.addEventListener("DOMContentLoaded",hmSync);
   if(document.readyState!=="loading")hmSync();
@@ -4094,54 +4084,9 @@ window.ADZ24_MAIN_CATEGORY_ICONS={Cars:'🚗',Bikes:'🏍️',Mobiles:'📱',Job
 
 
 <script id="24adz-client-bridge">
-const A24_API="https://api.24adz.com";let a24Client=null;
+const A24_API="";let a24Client=null;
 function a24Token(){return a24Session?.access_token||""}
-// Always recover the authoritative Supabase session before protected actions.
-// This prevents a stale in-memory session from incorrectly sending users back to Login.
-async function a24GetValidSession(){
-  await a24InitAuth();
-  if(!a24Supabase)throw new Error("Login service unavailable. Please refresh and try again.");
-  let result=await a24Supabase.auth.getSession();
-  if(result.error)throw result.error;
-  let session=result.data?.session||null;
-  if(session && session.expires_at && Number(session.expires_at)*1000<Date.now()+60000){
-    const refreshed=await a24Supabase.auth.refreshSession();
-    if(!refreshed.error)session=refreshed.data?.session||session;
-  }
-  const verified=!!(session?.user?.email_confirmed_at||session?.user?.confirmed_at);
-  a24Session=verified?session:null;
-  if(!verified){a24Client=null;}
-  updateAccountNav();
-  return verified?session:null;
-}
-async function a24Call(path,method="GET",body){
-  await a24InitAuth();
-  const protectedCall=String(path).startsWith("/api/client/");
-  const session=protectedCall?await a24GetValidSession():null;
-  const token=protectedCall?(session?.access_token||""):a24Token();
-  if(protectedCall&&!token)throw new Error("Please log in to continue.");
-  const r=await fetch(A24_API+path,{method,headers:{...(body?{"Content-Type":"application/json"}:{}),...(token?{Authorization:"Bearer "+token}:{})},body:body?JSON.stringify(body):undefined});
-  const d=await r.json().catch(()=>({}));
-  if(!r.ok||d.success===false){const e=new Error(d.error||"Request failed");e.status=r.status;throw e}
-  return d;
-}
-async function refreshPostWalletBalance(){
- const balanceEl=document.getElementById("postWalletBalance");
- const costEl=document.getElementById("postVipCost");
- if(!balanceEl)return;
- try{
-  const data=await a24Call("/api/client/me");
-  const balance=Number(data.wallet?.balance)||0;
-  balanceEl.textContent="Available Coins: "+balance;
-  const days=Number(document.getElementById("adDuration")?.value||0);
-  const cost=days===3?300:days===5?500:days===7?700:0;
-  if(costEl)costEl.textContent=days?"VIP cost: "+cost+" Coins · "+(balance>=cost?"Sufficient balance":"Insufficient balance — add Coins to your Wallet"):"Select a VIP duration to see the Coins required.";
- }catch(err){
-  balanceEl.textContent="Available Coins: Unable to load";
-  if(costEl)costEl.textContent="Please log in again to check your Wallet balance.";
- }
-}
-
+async function a24Call(path,method="GET",body){await a24InitAuth();const token=a24Token();const r=await fetch(A24_API+path,{method,headers:{...(body?{"Content-Type":"application/json"}:{}),...(token?{Authorization:"Bearer "+token}:{})},body:body?JSON.stringify(body):undefined});const d=await r.json().catch(()=>({}));if(!r.ok||d.success===false){const e=new Error(d.error||"Request failed");e.status=r.status;throw e}return d}
 /* Keep an active client signed in; end the session after 30 minutes without activity. */
 const A24_IDLE_LIMIT=30*60*1000;
 let a24IdleTimer=null;
@@ -4186,46 +4131,27 @@ async function clientLogout(auto=false){
 }
 function getCurrentClient(){try{return JSON.parse(localStorage.getItem("24adz_client")||"null")}catch{return null}}
 async function startPostAd(){
-  // Close the dashboard first so it cannot cover the Post Ad form.
+  // Dismiss My24Adz/My Ads immediately; otherwise its overlay can cover the form.
   closeModal("clientDashboardModal");
-  try{
-    // Always read the authoritative persisted Supabase session before gating
-    // this action. The in-memory a24Session can briefly be stale after login,
-    // token refresh, or an auth-state callback on mobile browsers.
-    await a24InitAuth();
-    if(!a24Supabase)throw new Error("Login service unavailable. Please refresh and try again.");
-
-    let session=null;
-    const current=await a24Supabase.auth.getSession();
-    if(current.error)throw current.error;
-    session=current.data?.session||null;
-
-    // If the access token expired between login and tapping Post Ad, refresh it
-    // once before asking the user to sign in again.
-    if(!session){
-      const refreshed=await a24Supabase.auth.refreshSession();
-      if(refreshed.error)throw refreshed.error;
-      session=refreshed.data?.session||null;
-    }
-
-    a24Session=session;
-    updateAccountNav();
-
-    if(!session?.access_token || !(session.user?.email_confirmed_at||session.user?.confirmed_at)){
-      closeModal("postModal");
-      openModal("loginModal");
-      toast("Your login session has expired. Please log in again to post an ad.");
-      return;
-    }
-
-    a24MarkActivity();
+  // Existing signed-in sessions can open the form without waiting for another
+  // auth/network round trip (the dashboard already initialized Supabase).
+  if(a24Token()){
     resetPostFormForNew();
     openModal("postModal");
-    refreshPostWalletBalance();
+    return;
+  }
+  try{
+    await a24InitAuth();
+    if(!a24Token()){
+      closeModal("postModal");
+      openModal("loginModal");
+      toast("Login or register to post an ad.");
+      return;
+    }
+    resetPostFormForNew();
+    openModal("postModal");
   }catch(e){
-    console.error("24Adz Post Ad authentication:",e);
-    closeModal("postModal");
-    toast(e.message||"Unable to verify your login. Please try again.");
+    toast(e.message||"Login service unavailable.");
   }
 }
 function resetPostFormForNew(){const f=document.getElementById("postForm");f.reset();document.getElementById("editingAdId").value="";goPostStep(1);}
@@ -4269,9 +4195,12 @@ function renderMyAdsTab(tab){
     <span class="vip-ribbon">${a.is_vip?"VIP PREMIUM":"STANDARD LISTING"} · ${escapeDashboardText(statusLabel)}</span>
     <h3>${escapeDashboardText(a.title||"Advertisement")}</h3>
     <div class="ad-meta">
-      <span><strong>Category:</strong> ${escapeDashboardText(a.category||"—")}${a.subcategory?" · "+escapeDashboardText(a.subcategory):""}</span>
-      <span><strong>Location:</strong> ${escapeDashboardText(location||a.district||"—")}</span>
-      ${a.description?`<span class="my24-ad-description">${escapeDashboardText(String(a.description).trim().slice(0,72))}${String(a.description).trim().length>72?"…":""}</span>`:""}
+      <span><strong>Category:</strong> ${escapeDashboardText(a.category||"—")}</span>
+      ${a.subcategory?`<span><strong>Subcategory:</strong> ${escapeDashboardText(a.subcategory)}</span>`:""}
+      <span><strong>District:</strong> ${escapeDashboardText(a.district||"—")}</span>
+      ${a.area?`<span><strong>Area:</strong> ${escapeDashboardText(a.area)}</span>`:""}
+      <span><strong>Published:</strong> ${escapeDashboardText(published)}</span>
+      ${a.description?`<span class="my24-ad-description">${escapeDashboardText(String(a.description).trim().slice(0,105))}${String(a.description).trim().length>105?"…":""}</span>`:""}
     </div>
     <div class="ad-price">${a.price?"₹"+escapeDashboardText(a.price):"Contact for price"}</div>
     <div class="my24-ad-actions">
@@ -4286,8 +4215,8 @@ function renderMyAdsTab(tab){
 }
 async function openClientDashboard(){
  try{
-  const validSession=await a24GetValidSession();
-  if(!validSession){openModal("loginModal");return}
+  await a24InitAuth();
+  if(!a24Token()){openModal("loginModal");return}
   const [me,own,msgs,coinHistory]=await Promise.all([a24Call("/api/client/me"),a24Call("/api/client/ads"),a24Call("/api/client/messages"),a24Call("/api/client/coin-transactions")]);
   const c=me.client,w=me.wallet,limits=me.freeAds,transactions=coinHistory.transactions||[];
   const ads=(own.ads||[]).filter(a=>String(a.owner_client_id||"")===String(c.id));
@@ -4401,7 +4330,7 @@ async function openClientThread(adId,peer){
 
 function editServerAd(id){const a=(window.__24adzOwnAds||[]).find(x=>String(x.id)===String(id));if(!a)return;closeModal("clientDashboardModal");resetPostFormForNew();const f=document.getElementById("postForm");for(const k of ["title","description","category","district","area","price","phone","whatsapp"])if(f.elements[k])f.elements[k].value=a[k]||"";let details={};try{details=JSON.parse(a.details_json||"{}")}catch{};populateSubcategories(document.getElementById("postCategory"),document.getElementById("postSubcategory"));document.getElementById("postSubcategory").value=details.subcategory||"";document.getElementById("postSubcategory").dispatchEvent(new Event("change"));document.querySelectorAll("#categorySpecificFields [data-detail-key]").forEach(el=>{if(details[el.dataset.detailKey]!==undefined)el.value=details[el.dataset.detailKey]});document.getElementById("editingAdId").value=a.id;updatePostAreas();document.getElementById("postArea").value=a.area||"";goPostStep(1);openModal("postModal");}
 async function deleteServerAd(id){if(!confirm("Delete this advertisement permanently?"))return;try{await a24Call("/api/client/ads/"+encodeURIComponent(id),"DELETE");toast("Advertisement deleted.");openClientDashboard();}catch(e){toast(e.message)}}
-async function getAdminWhatsApp(){try{const r=await fetch("https://api.24adz.com/api/public/settings"),d=await r.json();return String(d.settings?.contact?.whatsapp_number||"8870017424").replace(/\D/g,"")}catch{return "8870017424"}}
+async function getAdminWhatsApp(){try{const r=await fetch("/api/public/settings"),d=await r.json();return String(d.settings?.contact?.whatsapp_number||"8870017424").replace(/\D/g,"")}catch{return "8870017424"}}
 async function syncAdminWhatsAppLinks(){const n=await getAdminWhatsApp(),link=document.getElementById("promoAdminWhatsApp"),coinLink=document.getElementById("coinPurchaseWhatsAppLink"),numberLabel=document.getElementById("coinPurchaseWhatsAppNumber");if(link)link.href="https://wa.me/91"+n+"?text="+encodeURIComponent("Hello Admin, I want to advertise on 24Adz.com. Please share the details.");if(coinLink)coinLink.href="https://wa.me/91"+n+"?text="+encodeURIComponent("Hello 24Adz Admin, I want to buy Coins.");if(numberLabel)numberLabel.textContent="+91 "+n;}
 syncAdminWhatsAppLinks();
 async function showCoinPackages(){
@@ -4412,8 +4341,8 @@ async function showCoinPackages(){
  const waUrl="https://wa.me/91"+number+"?text="+encodeURIComponent(message);
  if(waWindow)waWindow.location.href=waUrl;else window.location.href=waUrl;
 }
-async function openMessages(){try{if(!await a24GetValidSession()){openModal("loginModal");return}await openClientDashboard();if(await a24GetValidSession()&&document.getElementById("my24Messages"))my24Go("my24Messages")}catch(e){toast(e.message||"Unable to open Messages.")}}
-async function openAdChat(adId){try{if(!await a24GetValidSession()){openModal("loginModal");toast("Login to chat with the advertiser.");return}const me=await a24Call("/api/client/me");window.__24adzCurrentClientId=me.client?.id;window.__24adzChatPeer="";document.getElementById("adChatForm").dataset.receiver="";document.getElementById("chatAdId").value=adId;document.getElementById("chatMessage").disabled=false;document.getElementById("adChatForm").querySelector('[type="submit"]').disabled=false;document.getElementById("chatBlockButton").hidden=true;document.getElementById("adChatHistory").textContent="Send a message to start this conversation.";openModal("adChatModal");await renderCurrentChat()}catch(e){toast(e.message||"Chat is unavailable.")}}
+async function openMessages(){try{await a24InitAuth();if(!a24Token()){openModal("loginModal");return}await openClientDashboard();if(a24Token()&&document.getElementById("my24Messages"))my24Go("my24Messages")}catch(e){toast(e.message||"Unable to open Messages.")}}
+async function openAdChat(adId){try{await a24InitAuth();if(!a24Token()){openModal("loginModal");toast("Login to chat with the advertiser.");return}const me=await a24Call("/api/client/me");window.__24adzCurrentClientId=me.client?.id;window.__24adzChatPeer="";document.getElementById("adChatForm").dataset.receiver="";document.getElementById("chatAdId").value=adId;document.getElementById("chatMessage").disabled=false;document.getElementById("adChatForm").querySelector('[type="submit"]').disabled=false;document.getElementById("chatBlockButton").hidden=true;document.getElementById("adChatHistory").textContent="Send a message to start this conversation.";openModal("adChatModal");await renderCurrentChat()}catch(e){toast(e.message||"Chat is unavailable.")}}
 document.getElementById("adChatForm").addEventListener("submit",async e=>{e.preventDefault();try{const form=e.currentTarget,ad_id=document.getElementById("chatAdId").value,message=document.getElementById("chatMessage").value,peer=form.dataset.receiver;await a24Call(peer?"/api/client/chat/reply":"/api/client/chat","POST",peer?{ad_id,receiver_client_id:peer,message}:{ad_id,message});document.getElementById("chatMessage").value="";toast("Message sent.");await renderCurrentChat()}catch(x){toast(x.message)}});
 setInterval(()=>{const modal=document.getElementById("adChatModal");if(modal&&modal.classList.contains("open"))renderCurrentChat()},4000);
 updateAccountNav();
@@ -6288,16 +6217,4 @@ body{overflow-y:auto!important;touch-action:pan-y!important;-webkit-overflow-scr
 
 </style>
 
-<style id="24adz-myads-card-scroll-final">
-#myAdsPanel .my24-ads-scroll{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))!important;gap:18px!important;width:100%!important;max-width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;overscroll-behavior:auto!important}
-#myAdsPanel .my24-ad-card{display:flex!important;flex-direction:column!important;align-self:stretch!important;width:100%!important;min-width:0!important;max-width:none!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:hidden!important;box-sizing:border-box!important}
-#myAdsPanel .my24-ad-card>.ad-image{display:block!important;width:100%!important;height:clamp(270px,48vw,470px)!important;min-height:270px!important;max-height:none!important;flex:0 0 auto!important;overflow:hidden!important}
-#myAdsPanel .my24-ad-card>.ad-image img{width:100%!important;height:100%!important;object-fit:cover!important}
-#myAdsPanel .my24-ad-card>.ad-body{display:block!important;min-width:0!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;padding:15px 17px!important}
-#myAdsPanel .my24-ad-card .ad-meta{display:flex!important;flex-direction:column!important;gap:3px!important;font-size:13px!important;line-height:1.45!important}
-#myAdsPanel .my24-ad-card .my24-ad-description{display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow:hidden!important}
-#clientDashboardModal .modal-box.client-dashboard{overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior-y:contain!important;touch-action:pan-y pinch-zoom!important}
-#clientDashboardModal #clientDashboardContent,#clientDashboardModal #clientDashboardContent .my24-section,#clientDashboardModal #my24Ads,#clientDashboardModal #myAdsPanel{height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;touch-action:pan-y pinch-zoom!important}
-#myAdsPanel .my24-ads-scroll,#myAdsPanel .my24-ad-card,#myAdsPanel .my24-ad-card *{touch-action:pan-y pinch-zoom!important}
-@media(max-width:600px){#myAdsPanel .my24-ads-scroll{grid-template-columns:minmax(0,1fr)!important;gap:14px!important}#myAdsPanel .my24-ad-card>.ad-image{height:clamp(270px,72vw,390px)!important;min-height:270px!important}#myAdsPanel .my24-ad-card>.ad-body{padding:13px!important}#myAdsPanel .my24-ad-card h3{font-size:17px!important;line-height:1.3!important}#myAdsPanel .my24-ad-card .ad-meta{font-size:13px!important}}
-</style></body></html>
+</body></html>
