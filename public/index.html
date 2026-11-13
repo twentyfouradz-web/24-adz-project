@@ -2519,6 +2519,8 @@ select option { color:#fff8ef; background:#15100c; }
       <label>Area *</label><select class="field" name="area" id="postArea" required><option value="">Select Area</option></select>
       <label>Price (₹)</label><input class="field" name="price" type="number" min="0" placeholder="Enter price">
       <label>Ad Duration / VIP Coins *</label><select class="field" name="days" id="adDuration" required><option value="0">Standard / Free (first 3 ads)</option><option value="3">3 Days · 300 Coins</option><option value="5">5 Days · 500 Coins</option><option value="7">7 Days · 700 Coins</option></select>
+      <p id="postWalletBalance" class="small-note" style="margin:-3px 0 12px;padding:11px 13px;border:1px solid rgba(255,145,0,.35);border-radius:10px;background:rgba(255,145,0,.07);font-weight:700">Available Coins: Loading…</p>
+      <p id="postVipCost" class="small-note" style="margin:-6px 0 12px;color:#ffad32;font-weight:700" aria-live="polite">Select a VIP duration to see the Coins required.</p>
       <label>Contact Name *</label><input class="field" name="contact" required placeholder="Your name">
       <label>Mobile Number *</label><input class="field" name="phone" type="tel" required pattern="[0-9+ -]{10,15}" placeholder="Mobile number">
       <label>WhatsApp Number</label><input class="field" name="whatsapp" type="tel" pattern="[0-9+ -]{10,15}" placeholder="WhatsApp number (if different)">
@@ -3550,6 +3552,7 @@ function clearRejectedImage(){
 
 
 // Category-specific fields are rendered by the single unified controller below.
+document.getElementById("adDuration")?.addEventListener("change",refreshPostWalletBalance);
 document.getElementById("postForm").addEventListener("submit",async e=>{
  e.preventDefault();
  try{await a24InitAuth();}catch(authError){toast(authError.message||"Login service unavailable.");return;}
@@ -3577,7 +3580,11 @@ document.getElementById("postForm").addEventListener("submit",async e=>{
   const categoryDetails=collectCategoryDetails(document.getElementById("categorySpecificFields")); const payload={title:f.get("title"),description:f.get("description"),category:f.get("category"),subcategory:f.get("subcategory"),model_year:categoryDetails.model_year||f.get("model_year"),category_details:categoryDetails,contact_name:f.get("contact"),district:f.get("district"),area:f.get("area"),price:f.get("price"),phone:mobile,whatsapp:f.get("whatsapp")||mobile,image_url:imageUrl,plan};
   const result=editingId?await a24Call("/api/client/ads/"+encodeURIComponent(editingId),"PATCH",payload):await a24Call("/api/client/ads","POST",payload);
   e.target.reset();document.getElementById("editingAdId").value="";
-  fillAreas(document.getElementById("postDistrict"),document.getElementById("postArea"));populateSubcategories(document.getElementById("postCategory"),document.getElementById("postSubcategory"));goPostStep(1);closeModal("postModal");toast(result.message||(editingId?"Advertisement updated.":"Advertisement published."));
+  fillAreas(document.getElementById("postDistrict"),document.getElementById("postArea"));populateSubcategories(document.getElementById("postCategory"),document.getElementById("postSubcategory"));goPostStep(1);closeModal("postModal");
+  if(!editingId){
+   try{const walletNow=await a24Call("/api/client/me");const balanceNow=Number(walletNow.wallet?.balance)||0;toast((result.message||"Advertisement published.")+" Available Coins: "+balanceNow);}
+   catch{toast(result.message||"Advertisement published.");}
+  }else toast(result.message||"Advertisement updated.");
   if(typeof openClientDashboard==="function")openClientDashboard();
  }catch(err){
   const message=String(err.message||"Unable to save advertisement.");
@@ -4087,6 +4094,23 @@ window.ADZ24_MAIN_CATEGORY_ICONS={Cars:'🚗',Bikes:'🏍️',Mobiles:'📱',Job
 const A24_API="";let a24Client=null;
 function a24Token(){return a24Session?.access_token||""}
 async function a24Call(path,method="GET",body){await a24InitAuth();const token=a24Token();const r=await fetch(A24_API+path,{method,headers:{...(body?{"Content-Type":"application/json"}:{}),...(token?{Authorization:"Bearer "+token}:{})},body:body?JSON.stringify(body):undefined});const d=await r.json().catch(()=>({}));if(!r.ok||d.success===false){const e=new Error(d.error||"Request failed");e.status=r.status;throw e}return d}
+async function refreshPostWalletBalance(){
+ const balanceEl=document.getElementById("postWalletBalance");
+ const costEl=document.getElementById("postVipCost");
+ if(!balanceEl)return;
+ try{
+  const data=await a24Call("/api/client/me");
+  const balance=Number(data.wallet?.balance)||0;
+  balanceEl.textContent="Available Coins: "+balance;
+  const days=Number(document.getElementById("adDuration")?.value||0);
+  const cost=days===3?300:days===5?500:days===7?700:0;
+  if(costEl)costEl.textContent=days?"VIP cost: "+cost+" Coins · "+(balance>=cost?"Sufficient balance":"Insufficient balance — add Coins to your Wallet"):"Select a VIP duration to see the Coins required.";
+ }catch(err){
+  balanceEl.textContent="Available Coins: Unable to load";
+  if(costEl)costEl.textContent="Please log in again to check your Wallet balance.";
+ }
+}
+
 /* Keep an active client signed in; end the session after 30 minutes without activity. */
 const A24_IDLE_LIMIT=30*60*1000;
 let a24IdleTimer=null;
@@ -4138,6 +4162,7 @@ async function startPostAd(){
   if(a24Token()){
     resetPostFormForNew();
     openModal("postModal");
+    refreshPostWalletBalance();
     return;
   }
   try{
@@ -4150,6 +4175,7 @@ async function startPostAd(){
     }
     resetPostFormForNew();
     openModal("postModal");
+    refreshPostWalletBalance();
   }catch(e){
     toast(e.message||"Login service unavailable.");
   }
@@ -4195,12 +4221,9 @@ function renderMyAdsTab(tab){
     <span class="vip-ribbon">${a.is_vip?"VIP PREMIUM":"STANDARD LISTING"} · ${escapeDashboardText(statusLabel)}</span>
     <h3>${escapeDashboardText(a.title||"Advertisement")}</h3>
     <div class="ad-meta">
-      <span><strong>Category:</strong> ${escapeDashboardText(a.category||"—")}</span>
-      ${a.subcategory?`<span><strong>Subcategory:</strong> ${escapeDashboardText(a.subcategory)}</span>`:""}
-      <span><strong>District:</strong> ${escapeDashboardText(a.district||"—")}</span>
-      ${a.area?`<span><strong>Area:</strong> ${escapeDashboardText(a.area)}</span>`:""}
-      <span><strong>Published:</strong> ${escapeDashboardText(published)}</span>
-      ${a.description?`<span class="my24-ad-description">${escapeDashboardText(String(a.description).trim().slice(0,105))}${String(a.description).trim().length>105?"…":""}</span>`:""}
+      <span><strong>Category:</strong> ${escapeDashboardText(a.category||"—")}${a.subcategory?" · "+escapeDashboardText(a.subcategory):""}</span>
+      <span><strong>Location:</strong> ${escapeDashboardText(location||a.district||"—")}</span>
+      ${a.description?`<span class="my24-ad-description">${escapeDashboardText(String(a.description).trim().slice(0,72))}${String(a.description).trim().length>72?"…":""}</span>`:""}
     </div>
     <div class="ad-price">${a.price?"₹"+escapeDashboardText(a.price):"Contact for price"}</div>
     <div class="my24-ad-actions">
@@ -6217,4 +6240,16 @@ body{overflow-y:auto!important;touch-action:pan-y!important;-webkit-overflow-scr
 
 </style>
 
-</body></html>
+<style id="24adz-myads-card-scroll-final">
+#myAdsPanel .my24-ads-scroll{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))!important;gap:18px!important;width:100%!important;max-width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;overscroll-behavior:auto!important}
+#myAdsPanel .my24-ad-card{display:flex!important;flex-direction:column!important;align-self:stretch!important;width:100%!important;min-width:0!important;max-width:none!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:hidden!important;box-sizing:border-box!important}
+#myAdsPanel .my24-ad-card>.ad-image{display:block!important;width:100%!important;height:clamp(270px,48vw,470px)!important;min-height:270px!important;max-height:none!important;flex:0 0 auto!important;overflow:hidden!important}
+#myAdsPanel .my24-ad-card>.ad-image img{width:100%!important;height:100%!important;object-fit:cover!important}
+#myAdsPanel .my24-ad-card>.ad-body{display:block!important;min-width:0!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;padding:15px 17px!important}
+#myAdsPanel .my24-ad-card .ad-meta{display:flex!important;flex-direction:column!important;gap:3px!important;font-size:13px!important;line-height:1.45!important}
+#myAdsPanel .my24-ad-card .my24-ad-description{display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow:hidden!important}
+#clientDashboardModal .modal-box.client-dashboard{overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior-y:contain!important;touch-action:pan-y pinch-zoom!important}
+#clientDashboardModal #clientDashboardContent,#clientDashboardModal #clientDashboardContent .my24-section,#clientDashboardModal #my24Ads,#clientDashboardModal #myAdsPanel{height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;touch-action:pan-y pinch-zoom!important}
+#myAdsPanel .my24-ads-scroll,#myAdsPanel .my24-ad-card,#myAdsPanel .my24-ad-card *{touch-action:pan-y pinch-zoom!important}
+@media(max-width:600px){#myAdsPanel .my24-ads-scroll{grid-template-columns:minmax(0,1fr)!important;gap:14px!important}#myAdsPanel .my24-ad-card>.ad-image{height:clamp(270px,72vw,390px)!important;min-height:270px!important}#myAdsPanel .my24-ad-card>.ad-body{padding:13px!important}#myAdsPanel .my24-ad-card h3{font-size:17px!important;line-height:1.3!important}#myAdsPanel .my24-ad-card .ad-meta{font-size:13px!important}}
+</style></body></html>
