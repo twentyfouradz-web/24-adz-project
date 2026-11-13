@@ -6046,6 +6046,175 @@ body{overflow-y:auto!important;touch-action:pan-y!important;-webkit-overflow-scr
     font-size:16px;
   }
 }
+
+/* 24Adz Locanto-style listing cards: presentation-only override */
+#adsList.ads{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  gap:12px!important;
+  align-items:stretch;
+}
+#adsList .ad-card{
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:stretch!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:148px;
+  border-radius:13px!important;
+  overflow:hidden!important;
+  cursor:pointer;
+}
+#adsList .ad-card .ad-image{
+  flex:0 0 148px!important;
+  width:148px!important;
+  height:auto!important;
+  min-height:148px!important;
+  align-self:stretch!important;
+  display:grid!important;
+  place-items:center!important;
+  overflow:hidden!important;
+  font-size:38px!important;
+}
+#adsList .ad-card .ad-image img{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:148px!important;
+  object-fit:cover!important;
+}
+#adsList .ad-card .ad-body{
+  flex:1 1 auto!important;
+  min-width:0!important;
+  padding:12px 14px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+  gap:3px!important;
+}
+#adsList .ad-card .vip-ribbon{
+  align-self:flex-start;
+  max-width:100%;
+  margin:0 0 5px!important;
+  padding:4px 7px!important;
+  font-size:9px!important;
+  line-height:1.25!important;
+  letter-spacing:.55px!important;
+}
+#adsList .ad-card .ad-body h3{
+  margin:0 0 4px!important;
+  font-size:17px!important;
+  line-height:1.3!important;
+  overflow-wrap:anywhere;
+}
+#adsList .ad-card .ad-meta{
+  font-size:12px!important;
+  line-height:1.45!important;
+  display:flex;
+  flex-direction:column;
+  gap:1px;
+}
+#adsList .ad-card .ad-meta > div{
+  overflow-wrap:anywhere;
+}
+#adsList .ad-card .ad-card-description{
+  display:-webkit-box!important;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  overflow:hidden!important;
+  color:#c9c0b5!important;
+  margin-top:3px;
+}
+#adsList .ad-card .ad-price{
+  font-size:17px!important;
+  line-height:1.3!important;
+  margin:5px 0 2px!important;
+}
+#adsList .ad-card .ad-actions{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:6px!important;
+  margin-top:6px!important;
+}
+#adsList .ad-card .ad-actions a,
+#adsList .ad-card .ad-actions button{
+  min-height:34px;
+  padding:7px 11px!important;
+  font-size:11px!important;
+}
+#adsList .ad-card .ad-open-hint{
+  margin-top:4px!important;
+  font-size:10px!important;
+}
+#adsList .ad-card.vip-ad-card .ad-image{
+  height:auto!important;
+  min-height:148px!important;
+}
+#adDetailsModal{
+  padding:12px!important;
+  background:rgba(0,0,0,.84)!important;
+}
+#adDetailsModal .ad-details-box{
+  width:min(620px,100%)!important;
+  max-height:94vh!important;
+  border-radius:14px!important;
+  border:1px solid rgba(255,158,48,.38)!important;
+  background:#111!important;
+  padding:16px!important;
+}
+#adDetailsBody{
+  padding:30px 2px 14px!important;
+}
+#adDetailsBody .ad-detail-image{
+  display:block;
+  width:100%!important;
+  height:230px!important;
+  max-height:36vh!important;
+  object-fit:contain!important;
+  background:#080808!important;
+  border-radius:9px!important;
+  margin:0 0 14px!important;
+}
+#adDetailsBody h2{
+  color:#fff!important;
+  font-size:21px!important;
+  line-height:1.3!important;
+  margin:7px 0 14px!important;
+}
+#adDetailsBody p{
+  padding:9px 11px!important;
+  margin:0 0 7px!important;
+  border:1px solid #292929!important;
+  border-radius:8px!important;
+  background:#171717!important;
+  font-size:13px!important;
+  line-height:1.5!important;
+}
+#adDetailsBody p strong{color:#ffb04b!important}
+@media(max-width:600px){
+  #adsList.ads{gap:10px!important}
+  #adsList .ad-card{min-height:116px!important;border-radius:11px!important}
+  #adsList .ad-card .ad-image{
+    flex:0 0 112px!important;
+    width:112px!important;
+    min-height:116px!important;
+    font-size:30px!important;
+  }
+  #adsList .ad-card .ad-image img{min-height:116px!important}
+  #adsList .ad-card .ad-body{padding:9px 10px!important;gap:2px!important}
+  #adsList .ad-card .ad-body h3{font-size:14px!important;line-height:1.25!important}
+  #adsList .ad-card .vip-ribbon{font-size:8px!important;padding:3px 5px!important;margin-bottom:3px!important}
+  #adsList .ad-card .ad-meta{font-size:10px!important;line-height:1.35!important}
+  #adsList .ad-card .ad-price{font-size:15px!important;margin:4px 0 1px!important}
+  #adsList .ad-card .ad-actions{gap:4px!important;margin-top:4px!important}
+  #adsList .ad-card .ad-actions a,
+  #adsList .ad-card .ad-actions button{min-height:29px!important;padding:5px 8px!important;font-size:10px!important}
+  #adsList .ad-card .ad-open-hint{font-size:9px!important;margin-top:3px!important}
+  #adDetailsModal .ad-details-box{padding:13px!important;max-height:95vh!important}
+  #adDetailsBody .ad-detail-image{height:205px!important}
+  #adDetailsBody h2{font-size:19px!important}
+}
+
 </style>
 
 </body></html>
