@@ -1402,6 +1402,22 @@ footer{background:#080706!important;color:#b9aaa0!important;border-top:1px solid
 .coin-package-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:13px 14px;border:1px solid rgba(255,145,0,.38);border-radius:12px;background:rgba(255,145,0,.06);color:var(--text,#fff)}
 .coin-package-row span{color:#ffad32;font-weight:800;white-space:nowrap}
 @media(max-width:420px){.coin-package-list{grid-template-columns:1fr}}
+
+/* District local-area directory and clearer listing filters */
+.district-area-directory{margin:22px 0 34px;padding:20px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,#151515,#0d0d0d)}
+.district-area-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.district-area-heading h3{margin:0;color:#fff;font-size:21px}.district-area-heading p{margin:6px 0 0;color:var(--muted);font-size:14px}
+.district-area-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.district-area-link{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;padding:14px 15px;border:1px solid #292929;border-radius:12px;background:#1b1b1b;color:#f4f4f4;text-align:left;font-weight:700;transition:.18s}
+.district-area-link:hover,.district-area-link.active{border-color:var(--orange);background:#281a0b}
+.district-area-link span:first-child{overflow-wrap:anywhere}.district-area-count{flex:none;color:#ffb24b;font-size:12px;font-weight:800}
+.district-area-link .area-arrow{color:#aaa;font-size:18px}
+.district-results-filters{padding:16px;border:1px solid rgba(255,138,0,.24);border-radius:16px;background:#111}
+.district-filter-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px}
+.district-filter-grid .field{min-width:0}
+.district-results-filters>.btn{width:100%;margin-top:8px}
+@media(max-width:520px){.district-area-directory{padding:15px}.district-area-grid{gap:8px}.district-area-link{padding:12px 10px;font-size:14px}.district-filter-grid{grid-template-columns:1fr}}
+
 </style>
 <style id="adz24PromoStyles">
 .cinematic-ad-promo{position:relative;isolation:isolate;overflow:hidden;width:min(900px,100%);min-height:230px;margin:26px auto 0;padding:28px 20px;box-sizing:border-box;border:1px solid rgba(255,166,52,.72);border-radius:22px;background:radial-gradient(ellipse at 15% 20%,rgba(255,130,0,.28),transparent 42%),linear-gradient(115deg,#090706 0%,#241006 48%,#080706 100%);box-shadow:0 18px 55px rgba(0,0,0,.58),0 0 35px rgba(255,102,0,.16);text-align:center}
@@ -2414,6 +2430,7 @@ select option { color:#fff8ef; background:#15100c; }
       <button type="button" class="btn btn-outline" onclick="resetDistrictListingFilters()">Reset Filters</button>
     </div>
     <div class="ads" id="adsList"><div class="empty">No advertisements yet. Contact the Admin if you want to advertise here.</div></div>
+    <section class="district-area-directory" id="districtAreaDirectory" hidden aria-label="Published ads by local area"></section>
     <div class="ads-pagination" id="adsPagination" aria-label="Advertisement pages"></div>
   </section>
 </main>
@@ -2703,9 +2720,11 @@ document.getElementById("districtFilterDistrict").addEventListener("change",()=>
   activeDistrictListing=document.getElementById("districtFilterDistrict").value;
   updateDistrictFilterAreas();
   document.getElementById("districtFilterArea").value="";
+  if(activeDistrictListing)renderDistrictAreaDirectory(activeDistrictListing);else renderDistrictAreaDirectory("");
   applyDistrictListingFilters();
 });
 document.getElementById("districtFilterArea").addEventListener("change",applyDistrictListingFilters);
+["districtFilterKeyword","districtFilterMinPrice","districtFilterMaxPrice"].forEach(id=>{const el=document.getElementById(id);el.addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();applyDistrictListingFilters();collapseDistrictFilters();}});el.addEventListener("change",applyDistrictListingFilters);});
 document.getElementById("districtFilterSort").addEventListener("change",applyDistrictListingFilters);
 document.getElementById("districtFilterDistance").addEventListener("change",applyDistrictListingFilters);
 populateSearchSubcategories(searchCategorySelect.value);
@@ -2940,6 +2959,40 @@ document.getElementById("attachAdLocation").addEventListener("click",()=>{
   },message=>{status.textContent=message;});
 });
 
+
+function normalizeLocationName(value){
+  return String(value||"").trim().replace(/\s+/g," ").toLocaleLowerCase("en-IN");
+}
+function renderDistrictAreaDirectory(district){
+  const panel=document.getElementById("districtAreaDirectory");
+  if(!panel)return;
+  if(!district || !districtAreas[district]){
+    panel.hidden=true;panel.innerHTML="";return;
+  }
+  const areaNames=[...new Set([district,...(districtAreas[district]||[])])]
+    .filter(Boolean).sort((a,b)=>a.localeCompare(b));
+  const countFor=name=>ads.filter(ad=>
+    normalizeLocationName(ad.district)===normalizeLocationName(district) &&
+    normalizeLocationName(ad.area)===normalizeLocationName(name) &&
+    String(ad.status||"Active").toLowerCase()!=="paused"
+  ).length;
+  const selected=normalizeLocationName(document.getElementById("districtFilterArea")?.value||"");
+  panel.hidden=false;
+  panel.innerHTML=`<div class="district-area-heading"><div><h3>${escapeHtml(district)} District – Local Areas</h3><p>Choose an area to view advertisements published there</p></div><span class="muted">${areaNames.length} Areas</span></div>
+    <div class="district-area-grid">${areaNames.map(name=>{
+      const count=countFor(name);
+      return `<button type="button" class="district-area-link${selected===normalizeLocationName(name)?" active":""}" data-local-area="${escapeAttr(name)}"><span>${escapeHtml(name)}</span><span class="district-area-count">${count} Ads</span><span class="area-arrow">›</span></button>`;
+    }).join("")}</div>`;
+  panel.querySelectorAll("[data-local-area]").forEach(button=>{
+    button.addEventListener("click",()=>{
+      document.getElementById("districtFilterArea").value=button.dataset.localArea;
+      activeDistrictListing=district;
+      applyDistrictListingFilters();
+      document.getElementById("adsSection").scrollIntoView({behavior:"smooth",block:"start"});
+    });
+  });
+}
+
 function openDistrictListings(district){
   const normalizeDistrict=value=>String(value||"").trim().replace(/\s+/g," ").toLocaleLowerCase("en-IN");
   const canonicalDistrict=Object.keys(districtAreas).find(name=>normalizeDistrict(name)===normalizeDistrict(district));
@@ -2964,6 +3017,7 @@ function openDistrictListings(district){
   document.getElementById("districtFilterSort").value="newest";
   document.body.classList.add("search-results-mode");
   document.getElementById("adsHeading").innerHTML='District Listings <span>· '+escapeHtml(district)+'</span>';
+  renderDistrictAreaDirectory(district);
   applyDistrictListingFilters();
   // No automatic page jump: the visitor scrolls the listings manually.
 }
@@ -3007,14 +3061,15 @@ function applyDistrictListingFilters(){
           return aliases(v)===aliases(subcategory);
         })) &&
       (!district||normalizeDistrict(a.district)===normalizeDistrict(district)) &&
-      (!area||String(a.area||"").trim()===area) &&
+      (!area||normalizeDistrict(a.area)===normalizeDistrict(area)) &&
       (min===null||price>=min) && (max===null||price<=max) && withinDistance;
   });
   if(sort==="price-low")filtered.sort((a,b)=>(Number(a.price)||0)-(Number(b.price)||0));
   if(sort==="price-high")filtered.sort((a,b)=>(Number(b.price)||0)-(Number(a.price)||0));
   if(sort==="newest")filtered.sort((a,b)=>getAdStartTime(b)-getAdStartTime(a));
   const headingDistrict=district ? district : "All Districts";
-  document.getElementById("adsHeading").innerHTML='District Listings <span>· '+escapeHtml(headingDistrict)+'</span>';
+  document.getElementById("adsHeading").innerHTML='District Listings <span>· '+escapeHtml(headingDistrict)+(area?" / "+escapeHtml(area):"")+'</span>';
+  if(district)renderDistrictAreaDirectory(district);
   renderAds(filtered,1);
 }
 function resetDistrictListingFilters(){
@@ -3033,6 +3088,7 @@ function resetDistrictListingFilters(){
 function closeSearchResults(){
   document.body.classList.remove("search-results-mode","category-subcategory-mode");
   document.getElementById("districtResultsFilters").hidden=true;
+  const areaDirectory=document.getElementById("districtAreaDirectory");if(areaDirectory){areaDirectory.hidden=true;areaDirectory.innerHTML="";}
   document.getElementById("adsHeading").innerHTML='Latest <span>Listings</span>';
   activeDistrictListing="";
   renderAds(ads,1);
@@ -3211,10 +3267,7 @@ function renderAdCard(a){
         <div><strong>District:</strong> ${escapeHtml(district||"—")}</div>
         <div><strong>Area:</strong> ${escapeHtml(area||"—")}</div>
         <div><strong>Published:</strong> ${escapeHtml(formatMyAdDate(a.publishedAt||a.created_at||a.createdAt))}</div>
-        ${a.age?`<div><strong>Age:</strong> ${escapeHtml(a.age)} years</div>`:""}
-        ${a.posted_by?`<div><strong>Posted by:</strong> ${escapeHtml(a.posted_by)}</div>`:""}
-        ${a.description?`<div class="ad-card-description">${escapeHtml(String(a.description).slice(0,150))}${String(a.description).length>150?"…":""}</div>`:""}
-        ${Object.entries(details).filter(([k,v])=>!["subcategory"].includes(k)&&v!==null&&v!==undefined&&String(v).trim()!=="").slice(0,4).map(([k,v])=>`<div><strong>${escapeHtml(k.replace(/[_-]+/g," "))}:</strong> ${escapeHtml(typeof v==="object"?JSON.stringify(v):v)}</div>`).join("")}
+        ${a.description?`<div class="ad-card-description">${escapeHtml(String(a.description).trim().slice(0,90))}${String(a.description).trim().length>90?"…":""}</div>`:""}
       </div>
       <div class="ad-price">${a.price? "₹"+escapeHtml(a.price):"Contact for price"}</div>
       <div class="ad-actions">
@@ -4027,10 +4080,7 @@ function renderMyAdsTab(tab){
       ${a.subcategory?`<span><strong>Subcategory:</strong> ${escapeDashboardText(a.subcategory)}</span>`:""}
       <span><strong>District:</strong> ${escapeDashboardText(a.district||"—")}</span>
       ${a.area?`<span><strong>Area:</strong> ${escapeDashboardText(a.area)}</span>`:""}
-      ${a.age?`<span><strong>Age:</strong> ${escapeDashboardText(a.age)} years</span>`:""}
-      ${a.posted_by?`<span><strong>Posted by:</strong> ${escapeDashboardText(a.posted_by)}</span>`:""}
-      ${a.description?`<span class="ad-card-description">${escapeDashboardText(String(a.description).slice(0,150))}${String(a.description).length>150?"…":""}</span>`:""}
-      ${extraRows}
+      ${a.description?`<span class="ad-card-description">${escapeDashboardText(String(a.description).trim().slice(0,90))}${String(a.description).trim().length>90?"…":""}</span>`:""}
       <span><strong>Published:</strong> ${escapeDashboardText(published)}</span>
     </div>
     <div class="ad-price">${a.price?"₹"+escapeDashboardText(a.price):"Contact for price"}</div>
@@ -5730,6 +5780,77 @@ body{overflow-y:auto!important;touch-action:pan-y!important;-webkit-overflow-scr
 }
 #my24Ads,#my24Ads .panel,#myAdsPanel{height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;overscroll-behavior:auto!important}
 #clientDashboardModal .modal-box.client-dashboard{overflow-y:auto!important;-webkit-overflow-scrolling:touch!important}
+</style>
+
+
+<style id="24adz-myads-published-card-size-and-compact-details">
+/* My Ads cards follow the published listing card dimensions and black/orange theme. */
+@media (max-width:600px){
+  #clientDashboardModal .modal-box.client-dashboard{
+    width:calc(100vw - 24px)!important;
+    max-width:calc(100vw - 24px)!important;
+    margin:0 auto!important;
+  }
+}
+#clientDashboardContent #myAdsPanel .my24-ads-scroll{
+  display:flex!important;flex-direction:column!important;gap:16px!important;
+  width:100%!important;max-width:100%!important;min-width:0!important;
+  height:auto!important;max-height:none!important;overflow:visible!important;
+  padding:4px 0 20px!important;box-sizing:border-box!important;
+}
+#clientDashboardContent #myAdsPanel .my24-ads-scroll>.my24-ad-card{
+  display:flex!important;flex-direction:column!important;flex:0 0 auto!important;
+  width:100%!important;max-width:100%!important;min-width:0!important;
+  height:auto!important;min-height:0!important;max-height:none!important;
+  margin:0!important;overflow:hidden!important;box-sizing:border-box!important;
+  border-radius:16px!important;
+}
+#clientDashboardContent #myAdsPanel .my24-ad-card>.ad-image{
+  display:block!important;width:100%!important;
+  height:clamp(245px,78vw,360px)!important;min-height:245px!important;max-height:360px!important;
+  flex:0 0 auto!important;overflow:hidden!important;
+  border:0!important;border-bottom:1px solid rgba(255,158,48,.28)!important;
+}
+#clientDashboardContent #myAdsPanel .my24-ad-card>.ad-image img{
+  display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;
+}
+#clientDashboardContent #myAdsPanel .my24-ad-card>.ad-body{
+  display:flex!important;flex-direction:column!important;gap:0!important;
+  width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;
+  padding:17px 16px 18px!important;overflow:visible!important;box-sizing:border-box!important;
+}
+#clientDashboardContent #myAdsPanel .my24-ad-card .vip-ribbon{
+  align-self:flex-start!important;max-width:100%!important;margin:0 0 8px!important;
+}
+#clientDashboardContent #myAdsPanel .my24-ad-card .ad-body h3{
+  display:block!important;font-size:23px!important;line-height:1.25!important;
+  max-height:none!important;margin:5px 0 12px!important;overflow-wrap:anywhere!important;
+}
+#clientDashboardContent #myAdsPanel .my24-ad-card .ad-meta{
+  display:grid!important;gap:3px!important;font-size:15px!important;line-height:1.65!important;
+  max-height:none!important;overflow:visible!important;overflow-wrap:anywhere!important;
+}
+#clientDashboardContent #myAdsPanel .my24-ad-card .ad-card-description{
+  display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;
+  overflow:hidden!important;margin-top:5px!important;line-height:1.5!important;
+}
+#clientDashboardContent #myAdsPanel .my24-ad-card .ad-price{
+  display:block!important;font-size:clamp(21px,2.4vw,27px)!important;margin:14px 0 8px!important;
+}
+#clientDashboardContent #myAdsPanel .my24-ad-card .my24-ad-actions{
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:10px!important;margin-top:12px!important;padding-top:0!important;
+}
+#clientDashboardContent #myAdsPanel .my24-ad-card .my24-ad-actions button{
+  min-width:0!important;min-height:47px!important;padding:8px 5px!important;
+  font-size:14px!important;white-space:nowrap!important;
+}
+@media(min-width:601px){
+  #clientDashboardContent #myAdsPanel .my24-ad-card>.ad-image{height:clamp(270px,48vw,470px)!important;min-height:270px!important}
+  #clientDashboardContent #myAdsPanel .my24-ad-card>.ad-body{padding:22px 24px 20px!important}
+  #clientDashboardContent #myAdsPanel .my24-ad-card .ad-body h3{font-size:clamp(22px,3.2vw,34px)!important}
+  #clientDashboardContent #myAdsPanel .my24-ad-card .ad-meta{font-size:clamp(15px,1.8vw,19px)!important;line-height:1.8!important}
+}
 </style>
 
 </body></html>
