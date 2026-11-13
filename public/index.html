@@ -3251,13 +3251,64 @@ const CATEGORY_SEO_COPY={
 };
 function renderCategorySeoContent(){
  const panel=document.getElementById("categorySeoContent");if(!panel)return;
- const main=String(document.getElementById("districtFilterCategory")?.value||document.getElementById("searchCategory")?.value||"").trim();
- const sub=String(document.getElementById("districtFilterSubcategory")?.value||document.getElementById("searchSubcategory")?.value||"").trim();
+ const districtMode=document.body.classList.contains("search-results-mode");
+ const main=String(
+   (districtMode?document.getElementById("districtFilterCategory")?.value:"")||
+   document.getElementById("searchCategory")?.value||
+   document.getElementById("districtFilterCategory")?.value||""
+ ).trim();
+ const sub=String(
+   (districtMode?document.getElementById("districtFilterSubcategory")?.value:"")||
+   document.getElementById("searchSubcategory")?.value||
+   document.getElementById("districtFilterSubcategory")?.value||""
+ ).trim();
+ const district=String(
+   (districtMode?document.getElementById("districtFilterDistrict")?.value:"")||
+   document.getElementById("searchDistrict")?.value||
+   document.getElementById("districtFilterDistrict")?.value||""
+ ).trim();
+ const area=String(
+   (districtMode?document.getElementById("districtFilterArea")?.value:"")||
+   document.getElementById("searchArea")?.value||""
+ ).trim();
  const copy=CATEGORY_SEO_COPY[main];
  if(!copy){panel.hidden=true;panel.innerHTML="";return;}
- const title=sub?`${sub} in Tamil Nadu`:copy.title;
+ const allSubcategories=(categories[main]||[]).filter(Boolean);
+ const chosen=(sub && sub.toLowerCase()!==main.toLowerCase())?sub:main;
+ const place=district||"Tamil Nadu";
+ const isCars=main.toLowerCase()==="cars";
+ let kicker="24ADZ.COM · TAMIL NADU CLASSIFIEDS";
+ let title=copy.title;
+ let body=copy.body;
+ let tags=allSubcategories.length?allSubcategories:copy.links.split(" · ");
+ if(isCars){
+   if(district){
+     kicker=`24ADZ.COM · ${district.toUpperCase()} CLASSIFIEDS`;
+     title=`Cars Buy & Sell in ${district}`;
+     body=`Buy and sell new cars, used cars, car rentals and car services in ${district}, Tamil Nadu. Explore car listings by local area, compare models and prices, and contact advertisers directly. Check vehicle condition and documents before completing a purchase.`;
+   }else{
+     title="Buy & Sell Quickly – New Cars, Used Cars, Car Rentals & Car Services in Tamil Nadu";
+     body="Find new cars, used cars, car rentals and car services across Tamil Nadu. Browse listings by district and local area, compare vehicle details and prices, and contact advertisers directly. Inspect vehicles and verify documents before purchase.";
+   }
+ }else{
+   const subject=chosen;
+   if(district){
+     kicker=`24ADZ.COM · ${district.toUpperCase()} CLASSIFIEDS`;
+     title=`${subject} in ${district}`;
+     body=`Browse ${subject.toLowerCase()} listings in ${district}, Tamil Nadu. Explore available advertisements by local area, compare details and prices, and contact the advertiser directly to confirm availability and terms.`;
+   }else{
+     title=sub?`${sub} in Tamil Nadu`:copy.title;
+     body=copy.body;
+   }
+ }
+ if(area){
+   title=isCars?`Cars Buy & Sell in ${area}, ${district||"Tamil Nadu"}`:`${chosen} in ${area}, ${district||"Tamil Nadu"}`;
+   body=isCars
+     ? `Find new cars, used cars, car rentals and car services in ${area}, ${district||"Tamil Nadu"}. Browse local advertisements, compare vehicle details and prices, and contact sellers or service providers directly.`
+     : `Explore ${chosen.toLowerCase()} advertisements in ${area}, ${district||"Tamil Nadu"}. Check listing details, compare available options and contact the advertiser directly.`;
+ }
  panel.hidden=false;
- panel.innerHTML=`<div class="category-seo-inner"><span class="category-seo-kicker">24ADZ.COM · TAMIL NADU CLASSIFIEDS</span><h2>${escapeHtml(title)}</h2><p>${escapeHtml(copy.body)}</p><div class="category-seo-links">${copy.links.split(" · ").map(label=>`<span>${escapeHtml(label)}</span>`).join("")}</div></div>`;
+ panel.innerHTML=`<div class="category-seo-inner"><span class="category-seo-kicker">${escapeHtml(kicker)}</span><h2>${escapeHtml(title)}</h2><p>${escapeHtml(body)}</p><div class="category-seo-links">${tags.map(label=>`<span>${escapeHtml(label)}</span>`).join("")}</div></div>`;
 }
 
 function renderAds(items=ads,page=1){
