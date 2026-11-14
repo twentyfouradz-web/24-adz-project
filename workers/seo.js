@@ -59,6 +59,63 @@ ${ads.length ? `<section class="ad-grid" aria-label="Published advertisements">$
 </main><footer>© ${new Date().getFullYear()} 24Adz.com · Tamil Nadu Classifieds</footer></body></html>`;
 };
 
+
+const sitemapResponse = (xml, method = "GET") => new Response(method === "HEAD" ? null : xml, {
+  status: 200,
+  headers: {
+    "Content-Type": "application/xml; charset=utf-8",
+    "Cache-Control": "public, max-age=300, s-maxage=1800",
+    "X-Content-Type-Options": "nosniff"
+  }
+});
+async function buildSitemap(env) {
+  const base = "https://www.24adz.com";
+  const urls = new Map();
+  const add = (path, lastmod) => {
+    const clean = path.replace(/\/+/g, "/").replace(/\/?$/, "/");
+    urls.set(clean, lastmod || new Date().toISOString().slice(0, 10));
+  };
+  add("/");
+  const [catResult, districtResult, adsResult] = await Promise.all([
+    env.DB.prepare("SELECT id,name,slug,parent_id FROM categories WHERE active=1 ORDER BY sort_order,id").all(),
+    env.DB.prepare("SELECT id,name FROM districts ORDER BY name").all(),
+    env.DB.prepare("SELECT id,category,district,area,details_json,created_at FROM ads WHERE status='approved' AND (expires_at IS NULL OR datetime(expires_at)>datetime('now')) ORDER BY created_at DESC LIMIT 20000").all()
+  ]);
+  const cats = catResult.results || [], districts = districtResult.results || [], ads = adsResult.results || [];
+  const mains = cats.filter(c => c.parent_id === null);
+  const subs = cats.filter(c => c.parent_id !== null);
+  const mainByName = new Map(mains.map(c => [String(c.name).toLowerCase(), c]));
+  const subByKey = new Map(subs.map(c => [`${c.parent_id}:${String(c.name).toLowerCase()}`, c]));
+  const districtByName = new Map(districts.map(d => [String(d.name).toLowerCase(), d]));
+  // Only add listing landing pages that have at least one currently published ad.
+  for (const ad of ads) {
+    const main = mainByName.get(String(ad.category || "").trim().toLowerCase());
+    if (!main) continue;
+    const mainSlug = seoSlug(main.slug || main.name);
+    add(`/${mainSlug}/`, ad.created_at);
+    let subName = "";
+    try { subName = JSON.parse(ad.details_json || "{}").subcategory || ""; } catch {}
+    const sub = subByKey.get(`${main.id}:${String(subName).trim().toLowerCase()}`);
+    if (sub) add(`/${mainSlug}/${seoSlug(sub.slug || sub.name)}/`, ad.created_at);
+    const district = districtByName.get(String(ad.district || "").trim().toLowerCase());
+    if (!district) continue;
+    const dSlug = seoSlug(district.name);
+    add(`/tamil-nadu/${dSlug}/`, ad.created_at);
+    add(`/tamil-nadu/${dSlug}/${mainSlug}/`, ad.created_at);
+    if (sub) add(`/tamil-nadu/${dSlug}/${mainSlug}/${seoSlug(sub.slug || sub.name)}/`, ad.created_at);
+    if (ad.area) {
+      const aSlug = seoSlug(ad.area);
+      add(`/tamil-nadu/${dSlug}/${aSlug}/`, ad.created_at);
+      add(`/tamil-nadu/${dSlug}/${aSlug}/${mainSlug}/`, ad.created_at);
+      if (sub) add(`/tamil-nadu/${dSlug}/${aSlug}/${mainSlug}/${seoSlug(sub.slug || sub.name)}/`, ad.created_at);
+    }
+  }
+  const body = [...urls.entries()].map(([path, lastmod]) =>
+    `<url><loc>${base}${path.split("/").map((part, i) => i ? encodeURIComponent(decodeURIComponent(part)) : "").join("/")}</loc><lastmod>${String(lastmod).slice(0,10)}</lastmod></url>`
+  ).join("");
+  return `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${body}</urlset>`;
+}
+
 export async function handleSeoRequest(req, env) {
   if (!["GET", "HEAD"].includes(req.method)) return null;
   const url = new URL(req.url);
@@ -66,6 +123,11 @@ export async function handleSeoRequest(req, env) {
   try { path = decodeURIComponent(url.pathname); } catch { return seoResponse("<h1>Bad URL</h1>", 400, true, req.method); }
   path = path.replace(/\/+/g, "/");
   const cleanPath = path.replace(/\/+$/, "") || "/";
+  if (cleanPath === "/sitemap.xml") {
+    if (!env.DB) return new Response("Sitemap temporarily unavailable", { status: 503 });
+    try { return sitemapResponse(await buildSitemap(env), req.method); }
+    catch (error) { console.error("24Adz sitemap error:", error); return new Response("Sitemap temporarily unavailable", { status: 503 }); }
+  }
   if (cleanPath === "/" || cleanPath.startsWith("/api/") || cleanPath.startsWith("/admin")) return null;
   // Static assets and files must continue through the existing ASSETS binding.
   if (/\.[a-z0-9]{2,8}$/i.test(cleanPath)) return null;
@@ -162,8 +224,8 @@ export async function handleSeoRequest(req, env) {
     if (district) labels.push(district.name);
     const locationText = [area?.name, district?.name, "Tamil Nadu"].filter(Boolean).join(", ");
     const heading = labels.length ? `${labels.join(" in ")} Classified Ads` : "Tamil Nadu Classified Ads";
-    const title = `${heading} | 24Adz.com`;
-    const description = `Browse ${subcategory?.name || mainCategory?.name || "classified"} ads${locationText ? ` in ${locationText}` : " across Tamil Nadu"} on 24Adz.com.`;
+    const title = `${heading} | 24Adz Tamil Nadu Classifieds`;
+    const description = `Find ${subcategory?.name || mainCategory?.name || "classified"} ads${locationText ? ` in ${locationText}` : " across Tamil Nadu"}. Browse latest listings, compare prices and contact advertisers on 24Adz.com.`;
     const canonical = `https://www.24adz.com${cleanPath}/`;
     const crumbs = [];
     if (district) crumbs.push({ label: "Tamil Nadu", url: "/tamil-nadu/" }, { label: district.name, url: `/tamil-nadu/${seoSlug(district.name)}/` });
