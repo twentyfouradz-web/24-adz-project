@@ -2453,6 +2453,7 @@ select option { color:#fff8ef; background:#15100c; }
 .category-seo-inner p{color:#c7bdb2;font-size:13px;line-height:1.7;margin:0}
 .category-seo-links{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
 .category-seo-links span{border:1px solid rgba(255,158,48,.28);background:#17120d;color:#ffc477;border-radius:999px;padding:6px 10px;font-size:11px}
+.category-seo-link{border:1px solid rgba(255,158,48,.28);background:#17120d;color:#ffc477;border-radius:999px;padding:7px 11px;font-size:11px;font:inherit;cursor:pointer}.category-seo-link.active,.category-seo-link:focus-visible{background:#3a240f;border-color:#ffad3b;color:#fff1d9;outline:none}.category-seo-subcard{margin-top:12px}.category-seo-inner+.category-seo-inner{margin-top:12px}
 .district-area-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px}
 .district-area-link{min-width:0}
 @media(max-width:600px){.category-seo-inner{padding:16px}.category-seo-inner h2{font-size:18px}}
@@ -3306,35 +3307,53 @@ document.getElementById("attachAdLocation").addEventListener("click",()=>{
 function normalizeLocationName(value){
   return String(value||"").trim().replace(/\s+/g," ").toLocaleLowerCase("en-IN");
 }
-function renderDistrictAreaDirectory(district){
+function renderDistrictAreaDirectory(selectedDistrict){
   const panel=document.getElementById("districtAreaDirectory");
   if(!panel)return;
-  if(!district || !districtAreas[district]){
-    panel.hidden=true;panel.innerHTML="";return;
-  }
-  const areaNames=[...new Set((districtAreas[district]||[]).filter(Boolean))]
-    .sort((a,b)=>a.localeCompare(b));
-  const countFor=name=>ads.filter(ad=>
+  const selectedArea=normalizeLocationName(document.getElementById("districtFilterArea")?.value||"");
+  const activeDistrict=String(selectedDistrict||activeDistrictListing||"").trim();
+  const countFor=(district,name)=>ads.filter(ad=>
     normalizeLocationName(ad.district)===normalizeLocationName(district) &&
     normalizeLocationName(ad.area)===normalizeLocationName(name) &&
     String(ad.status||"Active").toLowerCase()!=="paused"
   ).length;
-  const selected=normalizeLocationName(document.getElementById("districtFilterArea")?.value||"");
+  const districtNames=Object.keys(districtAreas).sort((a,b)=>a.localeCompare(b));
   panel.hidden=false;
-  panel.innerHTML=`<div class="district-area-heading"><div><h3>${escapeHtml(district)} District – Local Areas</h3><p>Choose an area to view advertisements published there</p></div><span class="muted">${areaNames.length} Areas</span></div>
-    <div class="district-area-grid">${areaNames.map(name=>{
-      const count=countFor(name);
-      return `<button type="button" class="district-area-link${selected===normalizeLocationName(name)?" active":""}" data-local-area="${escapeAttr(name)}"><span>${escapeHtml(name)}</span><span class="district-area-count">${count} Ads</span><span class="area-arrow">›</span></button>`;
+  panel.innerHTML=`<div class="district-area-heading">
+      <div><h3>Local Areas Across Tamil Nadu</h3><p>Choose a district, then select a local area to view matching advertisements</p></div>
+      <span class="muted">${districtNames.length} Districts</span>
+    </div>
+    <div class="all-district-area-list">${districtNames.map(district=>{
+      const areaNames=[...new Set((districtAreas[district]||[]).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+      const districtOpen=normalizeLocationName(activeDistrict)===normalizeLocationName(district);
+      return `<details class="district-area-group"${districtOpen?" open":""}>
+        <summary><span>${escapeHtml(district)}</span><span class="district-area-total">${areaNames.length} Areas</span><span class="district-area-summary-arrow">›</span></summary>
+        <div class="district-area-grid">${areaNames.map(name=>{
+          const count=countFor(district,name);
+          const active=districtOpen&&selectedArea===normalizeLocationName(name);
+          return `<button type="button" class="district-area-link${active?" active":""}" data-local-district="${escapeAttr(district)}" data-local-area="${escapeAttr(name)}"><span>${escapeHtml(name)}</span><span class="district-area-count">${count} Ads</span><span class="area-arrow">›</span></button>`;
+        }).join("")}</div>
+      </details>`;
     }).join("")}</div>`;
-  panel.querySelectorAll("[data-local-area]").forEach(button=>{
+  panel.querySelectorAll("[data-local-area][data-local-district]").forEach(button=>{
     button.addEventListener("click",()=>{
-      document.getElementById("districtFilterArea").value=button.dataset.localArea;
+      const district=button.dataset.localDistrict;
+      const area=button.dataset.localArea;
+      openDistrictListings(district);
+      const areaSelect=document.getElementById("districtFilterArea");
+      if(areaSelect){
+        updateDistrictFilterAreas();
+        areaSelect.value=area;
+      }
       activeDistrictListing=district;
       applyDistrictListingFilters();
+      renderDistrictAreaDirectory(district);
       document.getElementById("adsSection").scrollIntoView({behavior:"smooth",block:"start"});
     });
   });
 }
+
+renderDistrictAreaDirectory();
 
 function openDistrictListings(district){
   const normalizeDistrict=value=>String(value||"").trim().replace(/\s+/g," ").toLocaleLowerCase("en-IN");
@@ -3555,75 +3574,77 @@ function categoryArtwork(category){
 
 
 const CATEGORY_SEO_COPY={
- "Cars":{title:"Buy & Sell Cars in Tamil Nadu",body:"Find new and used cars listed by owners and dealers across Tamil Nadu. Compare prices, models, fuel types and locations, then contact the advertiser directly to arrange a viewing. Always inspect the vehicle, verify documents and complete ownership transfer safely.",links:"Used Cars · New Cars · Hatchbacks · Sedans · SUVs · Cars by Owner"},
- "Bikes":{title:"Buy & Sell Bikes in Tamil Nadu",body:"Explore motorcycles and scooters for sale across Tamil Nadu. Browse listings by model, price and local area, and connect with sellers to check vehicle condition, service history and documents before purchase.",links:"Motorcycles · Scooters · Electric Bikes · Used Bikes · Bikes by Owner"},
- "Mobiles":{title:"Mobiles for Sale in Tamil Nadu",body:"Discover smartphones and mobile phones listed across Tamil Nadu. Compare brands, storage, condition and prices. Meet sellers safely and check the device, IMEI and accessories before making payment.",links:"Android Phones · iPhones · New Mobiles · Used Mobiles · Tablets"},
- "Jobs":{title:"Jobs & Employment Opportunities in Tamil Nadu",body:"Search job opportunities posted by employers and recruiters across Tamil Nadu. Find openings by role and location, review the job details and contact the advertiser directly. Never pay a fee to secure a job or interview.",links:"Full-time Jobs · Part-time Jobs · Work from Home · Driver Jobs · Office Jobs"},
- "Real Estate":{title:"Property for Rent & Sale in Tamil Nadu",body:"Browse houses, apartments, plots and commercial properties listed across Tamil Nadu. Explore rental and sale opportunities by district and local area. Verify ownership, visit the property and review all terms before paying an advance.",links:"Houses for Rent · Flats for Rent · Houses for Sale · Land for Sale · Commercial Property"},
- "Hotel Rooms":{title:"Hotel Rooms & Accommodation in Tamil Nadu",body:"Find hotel rooms, lodges and short-stay accommodation listed across Tamil Nadu. Check the location, facilities, availability and pricing with the property before confirming a booking.",links:"Hotels · Lodges · Rooms · Guest Houses · Service Apartments"},
- "Fashion & Beauty":{title:"Fashion & Beauty Services in Tamil Nadu",body:"Explore fashion, beauty products and personal care services advertised across Tamil Nadu. Review the service or product information, compare options and contact the advertiser to confirm details and pricing.",links:"Beauty Services · Clothing · Accessories · Salons · Wellness"},
- "Personals":{title:"Personal & Wellness Services in Tamil Nadu",body:"Browse personal care and wellness service listings published on 24Adz. Read each listing carefully, confirm the service details and location directly with the advertiser, and make informed, safe choices.",links:"Massage & Spa · Full Body Massage · Head Massage · Foot Massage · Spa & Wellness"}
+ "Cars":{title:"Buy & Sell Cars in Tamil Nadu",body:"Find new and used cars listed by owners and dealers across Tamil Nadu. Compare prices, models, fuel types and locations, then contact the advertiser directly to arrange a viewing. Always inspect the vehicle, verify documents and complete ownership transfer safely."},
+ "Vehicles & Rentals":{title:"Vehicles & Rentals Across Tamil Nadu",body:"Explore passenger and goods vehicles, autos, vans, tempo travellers and vehicle rental services across Tamil Nadu. Find local and outstation travel options, compare vehicle types and rental details, and contact providers directly to confirm availability and pricing."},
+ "Cars Rentals":{title:"Car Rentals Across Tamil Nadu",body:"Find self-drive and chauffeur-driven car rentals across Tamil Nadu. Explore daily, weekly, monthly, outstation and airport pickup options by district and local area. Compare rental prices, confirm availability, check the terms and contact rental providers directly."},
+ "Bikes":{title:"Buy & Sell Bikes in Tamil Nadu",body:"Explore new and used motorcycles and scooters for sale across Tamil Nadu. Browse by model, price and local area, and connect with sellers to check vehicle condition, service history and documents before purchase."},
+ "Mobiles":{title:"Mobiles for Sale in Tamil Nadu",body:"Discover new and used smartphones and mobile phones listed across Tamil Nadu. Compare brands, storage, condition and prices. Meet sellers safely and check the device, IMEI and accessories before making payment."},
+ "Jobs":{title:"Jobs & Employment Opportunities in Tamil Nadu",body:"Search job opportunities posted by employers and recruiters across Tamil Nadu. Find openings by role and location, review the job details and contact the advertiser directly. Never pay a fee to secure a job or interview."},
+ "Real Estate":{title:"Property for Rent & Sale in Tamil Nadu",body:"Browse houses, apartments, plots and commercial properties listed across Tamil Nadu. Explore rental and sale opportunities by district and local area. Verify ownership, visit the property and review all terms before paying an advance."},
+ "Hotel Rooms":{title:"Hotel Rooms & Accommodation in Tamil Nadu",body:"Find hotel rooms, lodges and short-stay accommodation listed across Tamil Nadu. Check the location, facilities, availability and pricing with the property before confirming a booking."},
+ "Fashion & Beauty":{title:"Fashion & Beauty in Tamil Nadu",body:"Explore fashion, beauty products and personal care services advertised across Tamil Nadu. Review the service or product information, compare options and contact the advertiser to confirm details and pricing."},
+ "Personals":{title:"Personal Care & Wellness Services in Tamil Nadu",body:"Browse personal care and wellness service listings published on 24Adz. Read each listing carefully, confirm the service details and location directly with the advertiser, and make informed, safe choices."}
 };
+function selectSeoCategory(main,sub){
+ try{main=decodeURIComponent(main);sub=decodeURIComponent(sub||"");}catch(_){}
+ const cat=document.getElementById("searchCategory");
+ if(cat){cat.value=main;cat.dispatchEvent(new Event("change",{bubbles:true}));}
+ const subSelect=document.getElementById("searchSubcategory");
+ if(subSelect){subSelect.value=sub||"";}
+ const district=document.getElementById("searchDistrict");if(district)district.value="";
+ const area=document.getElementById("searchArea");if(area){area.innerHTML='<option value="">Select Area</option>';area.value="";area.disabled=true;}
+ const keyword=document.getElementById("keyword");if(keyword)keyword.value="";
+ if(typeof showCategoryListingResults==="function")showCategoryListingResults(main,sub||"");
+ else if(typeof searchAds==="function")searchAds();
+ const panel=document.getElementById("categorySeoContent");if(panel)panel.scrollIntoView({behavior:"smooth",block:"start"});
+}
 function renderCategorySeoContent(){
  const panel=document.getElementById("categorySeoContent");if(!panel)return;
  const districtMode=document.body.classList.contains("search-results-mode");
- const main=String(
-   (districtMode?document.getElementById("districtFilterCategory")?.value:"")||
-   document.getElementById("searchCategory")?.value||
-   document.getElementById("districtFilterCategory")?.value||""
- ).trim();
- const sub=String(
-   (districtMode?document.getElementById("districtFilterSubcategory")?.value:"")||
-   document.getElementById("searchSubcategory")?.value||
-   document.getElementById("districtFilterSubcategory")?.value||""
- ).trim();
- const district=String(
-   (districtMode?document.getElementById("districtFilterDistrict")?.value:"")||
-   document.getElementById("searchDistrict")?.value||
-   document.getElementById("districtFilterDistrict")?.value||""
- ).trim();
- const area=String(
-   (districtMode?document.getElementById("districtFilterArea")?.value:"")||
-   document.getElementById("searchArea")?.value||""
- ).trim();
- const copy=CATEGORY_SEO_COPY[main];
- if(!copy){panel.hidden=true;panel.innerHTML="";return;}
- const allSubcategories=(categories[main]||[]).filter(Boolean);
- const chosen=(sub && sub.toLowerCase()!==main.toLowerCase())?sub:main;
- const place=district||"Tamil Nadu";
- const isCars=main.toLowerCase()==="cars";
- let kicker="24ADZ.COM · TAMIL NADU CLASSIFIEDS";
- let title=copy.title;
- let body=copy.body;
- let tags=allSubcategories.length?allSubcategories:copy.links.split(" · ");
- if(isCars){
-   if(district){
-     kicker=`24ADZ.COM · ${district.toUpperCase()} CLASSIFIEDS`;
-     title=`Cars Buy & Sell in ${district}`;
-     body=`Buy and sell new cars, used cars, car rentals and car services in ${district}, Tamil Nadu. Explore car listings by local area, compare models and prices, and contact advertisers directly. Check vehicle condition and documents before completing a purchase.`;
-   }else{
-     title="Buy & Sell Quickly – New Cars, Used Cars, Car Rentals & Car Services in Tamil Nadu";
-     body="Find new cars, used cars, car rentals and car services across Tamil Nadu. Browse listings by district and local area, compare vehicle details and prices, and contact advertisers directly. Inspect vehicles and verify documents before purchase.";
+ const main=String((districtMode?document.getElementById("districtFilterCategory")?.value:"")||document.getElementById("searchCategory")?.value||document.getElementById("districtFilterCategory")?.value||"").trim();
+ const sub=String((districtMode?document.getElementById("districtFilterSubcategory")?.value:"")||document.getElementById("searchSubcategory")?.value||document.getElementById("districtFilterSubcategory")?.value||"").trim();
+ const district=String((districtMode?document.getElementById("districtFilterDistrict")?.value:"")||document.getElementById("searchDistrict")?.value||document.getElementById("districtFilterDistrict")?.value||"").trim();
+ const area=String((districtMode?document.getElementById("districtFilterArea")?.value:"")||document.getElementById("searchArea")?.value||"").trim();
+ const place=area?(district?`${area}, ${district}`:area):(district||"Tamil Nadu");
+ const allMains=Object.keys(categories);
+ const selectedMains=main&&categories[main]?[main]:allMains;
+ const makeBody=(category,subcategory)=>{
+   const base=CATEGORY_SEO_COPY[category]?.body||`Explore ${category.toLowerCase()} listings across Tamil Nadu. Compare available options, review listing details and contact advertisers directly to confirm information, availability and terms.`;
+   if(!subcategory)return base.replace(/across Tamil Nadu/g,`in ${place}`);
+   const c=category.toLowerCase(), item=subcategory.toLowerCase();
+   let detail;
+   if(c.includes("car")||c.includes("vehicle")||c==="bikes")detail=`Browse ${item} listings in ${place}. Compare vehicle models, condition, prices and location details, then contact the advertiser to confirm availability and inspect the vehicle and documents before purchase or rental.`;
+   else if(c==="mobiles")detail=`Find ${item} listings in ${place}. Compare phone brands, model, storage, condition and asking price. Check the device and IMEI in person and confirm all details with the seller before payment.`;
+   else if(c==="jobs")detail=`Explore ${item} opportunities in ${place}. Review role responsibilities, employer details, work location and salary information, then contact the advertiser directly. Do not pay recruitment or interview fees.`;
+   else if(c==="real estate")detail=`Browse ${item} in ${place}. Compare property location, size, rent or sale price and facilities. Visit the property and verify ownership documents and agreement terms before paying an advance.`;
+   else if(c==="hotel rooms")detail=`Discover ${item} in ${place}. Check room facilities, location, rates and availability directly with the property before confirming your stay.`;
+   else if(c==="fashion & beauty")detail=`Explore ${item} in ${place}. Review product or service details, compare available options and pricing, and contact the advertiser to confirm the information before booking or buying.`;
+   else detail=`Explore ${item} listings in ${place}. Review the description, service details and location, and contact the advertiser directly to confirm availability, terms and pricing.`;
+   return detail;
+ };
+ const makeTags=(category,activeSub)=>{
+   const subs=categories[category]||[];
+   return `<button type="button" class="category-seo-link${!activeSub?' active':''}" onclick="selectSeoCategory('${encodeURIComponent(category)}','')">All ${escapeHtml(category)}</button>`+subs.map(label=>`<button type="button" class="category-seo-link${label===activeSub?' active':''}" onclick="selectSeoCategory('${encodeURIComponent(category)}','${encodeURIComponent(label)}')">${escapeHtml(label)}</button>`).join("");
+ };
+ const cards=[];
+ selectedMains.forEach(category=>{
+   const copy=CATEGORY_SEO_COPY[category]||{title:`${category} in Tamil Nadu`,body:`Explore ${category.toLowerCase()} listings across Tamil Nadu. Compare available options, review details and contact advertisers directly to confirm availability and terms.`};
+   const isSelected=category===main;
+   const chosenSub=isSelected&&sub&&sub!==main?sub:"";
+   const suffix=area?` in ${area}${district?`, ${district}`:""}`:district?` in ${district}`:" in Tamil Nadu";
+   const heading=chosenSub?`${chosenSub}${suffix}`:`${copy.title.replace(/ in Tamil Nadu| across Tamil Nadu/gi,"")}${suffix}`;
+   const description=makeBody(category,chosenSub);
+   const kicker=`24ADZ.COM · ${place.toUpperCase()} CLASSIFIEDS`;
+   cards.push(`<article class="category-seo-inner"><span class="category-seo-kicker">${escapeHtml(kicker)}</span><h2>${escapeHtml(heading)}</h2><p>${escapeHtml(description)}</p><div class="category-seo-links">${makeTags(category,chosenSub)}</div></article>`);
+   if(!chosenSub){
+     (categories[category]||[]).forEach(child=>{
+       const childTitle=`${child}${suffix}`;
+       cards.push(`<article class="category-seo-inner category-seo-subcard"><span class="category-seo-kicker">24ADZ.COM · ${escapeHtml(category.toUpperCase())}</span><h2>${escapeHtml(childTitle)}</h2><p>${escapeHtml(makeBody(category,child))}</p><div class="category-seo-links">${makeTags(category,child)}</div></article>`);
+     });
    }
- }else{
-   const subject=chosen;
-   if(district){
-     kicker=`24ADZ.COM · ${district.toUpperCase()} CLASSIFIEDS`;
-     title=`${subject} in ${district}`;
-     body=`Browse ${subject.toLowerCase()} listings in ${district}, Tamil Nadu. Explore available advertisements by local area, compare details and prices, and contact the advertiser directly to confirm availability and terms.`;
-   }else{
-     title=sub?`${sub} in Tamil Nadu`:copy.title;
-     body=copy.body;
-   }
- }
- if(area){
-   title=isCars?`Cars Buy & Sell in ${area}, ${district||"Tamil Nadu"}`:`${chosen} in ${area}, ${district||"Tamil Nadu"}`;
-   body=isCars
-     ? `Find new cars, used cars, car rentals and car services in ${area}, ${district||"Tamil Nadu"}. Browse local advertisements, compare vehicle details and prices, and contact sellers or service providers directly.`
-     : `Explore ${chosen.toLowerCase()} advertisements in ${area}, ${district||"Tamil Nadu"}. Check listing details, compare available options and contact the advertiser directly.`;
- }
+ });
  panel.hidden=false;
- panel.innerHTML=`<div class="category-seo-inner"><span class="category-seo-kicker">${escapeHtml(kicker)}</span><h2>${escapeHtml(title)}</h2><p>${escapeHtml(body)}</p><div class="category-seo-links">${tags.map(label=>`<span>${escapeHtml(label)}</span>`).join("")}</div></div>`;
+ panel.innerHTML=cards.join("");
 }
 
 function renderAds(items=ads,page=1){
@@ -7236,6 +7257,23 @@ body{overflow-y:auto!important;touch-action:pan-y!important;-webkit-overflow-scr
   #adsList .ad-card .ad-actions a,
   #adsList .ad-card .ad-actions button {font-size:10px!important}
 }
+</style>
+
+
+<style id="24adz-all-district-local-area-and-rental-seo">
+.all-district-area-list{display:grid;grid-template-columns:1fr;gap:9px}
+.district-area-group{overflow:hidden;border:1px solid rgba(255,153,35,.24);border-radius:13px;background:linear-gradient(145deg,#19130e,#0b0b0b)}
+.district-area-group>summary{display:flex;align-items:center;gap:10px;min-height:54px;padding:12px 15px;list-style:none;cursor:pointer;color:#fff4e5;font-weight:800}
+.district-area-group>summary::-webkit-details-marker{display:none}
+.district-area-group>summary>span:first-child{flex:1}
+.district-area-total{color:#ffb04b;font-size:12px;white-space:nowrap}
+.district-area-summary-arrow{color:#ffad43;font-size:23px;transition:transform .2s}
+.district-area-group[open]>summary{border-bottom:1px solid rgba(255,153,35,.2);background:rgba(255,132,0,.07)}
+.district-area-group[open]>.district-area-grid{padding:12px}
+.district-area-group[open] .district-area-summary-arrow{transform:rotate(90deg)}
+.district-area-group .district-area-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(min-width:700px){.district-area-group .district-area-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:520px){.district-area-group>summary{min-height:50px;padding:11px 12px}.district-area-group[open]>.district-area-grid{padding:9px}.district-area-group .district-area-link{padding:11px 9px;font-size:13px}}
 </style>
 
 </body></html>
