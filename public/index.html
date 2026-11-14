@@ -6268,25 +6268,122 @@ body{overflow-y:auto!important;touch-action:pan-y!important;-webkit-overflow-scr
 </style>
 
 <script id="24adz-voice-input-and-locanto-form-enhancement">
-/* Voice typing uses the browser's built-in speech recognition; no external service or key. */
+/* Reliable mobile voice typing; isolated to existing Speak buttons and fields. */
 (function(){
  let activeRecognition=null;
+ let activeButton=null;
+ let activeTimer=null;
+
+ function finishVoice(button, recognition, message){
+  if(recognition&&recognition.__24adzFinished)return;
+  if(recognition)recognition.__24adzFinished=true;
+  if(activeTimer){clearTimeout(activeTimer);activeTimer=null;}
+  if(button){
+   button.textContent=button.dataset.voiceOldText||'🎙 Speak';
+   button.classList.remove('is-listening');
+   button.disabled=false;
+   delete button.dataset.voiceOldText;
+  }
+  if(activeRecognition===recognition)activeRecognition=null;
+  if(activeButton===button)activeButton=null;
+  if(message && typeof window.toast==='function')window.toast(message);
+ }
+
  window.start24AdVoice=function(button){
-  const wrap=button.closest('.voice-field-wrap');
+  const wrap=button&&button.closest('.voice-field-wrap');
   const target=wrap&&wrap.querySelector('input,textarea');
-  if(!target){return;}
+  if(!target){if(typeof window.toast==='function')window.toast('Voice field not found.');return;}
+
   const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!Speech){toast('Voice typing is not supported in this browser. Please use Chrome.');return;}
-  if(activeRecognition){try{activeRecognition.stop()}catch(e){} activeRecognition=null;}
-  const recognition=new Speech();activeRecognition=recognition;
-  recognition.lang='ta-IN';recognition.interimResults=true;recognition.continuous=false;
-  const old=button.textContent;button.textContent='🔴 Listening…';button.classList.add('is-listening');
+  if(!Speech){
+   if(typeof window.toast==='function')window.toast('Voice typing needs Google Chrome. Open 24adz.com in Chrome and try again.');
+   return;
+  }
+
+  /* SpeechRecognition accepts one language per session. Let the user choose Tamil or Indian English without changing the page layout. */
+  let savedVoiceLanguage='TA';
+  try{savedVoiceLanguage=localStorage.getItem('24adz_voice_language')||'TA';}catch(e){}
+  const languageChoice=window.prompt('Voice language / குரல் மொழி தேர்வு செய்யவும்:\nTA = தமிழ்\nEN = English',savedVoiceLanguage);
+  if(languageChoice===null)return;
+  const normalizedChoice=String(languageChoice).trim().toUpperCase();
+  let voiceLanguage;
+  if(['TA','TAMIL','தமிழ்','TA-IN'].includes(normalizedChoice))voiceLanguage='ta-IN';
+  else if(['EN','ENGLISH','ஆங்கிலம்','EN-IN'].includes(normalizedChoice))voiceLanguage='en-IN';
+  else{if(typeof window.toast==='function')window.toast('TA அல்லது EN மட்டும் உள்ளிடவும். / Enter TA or EN.');return;}
+  try{localStorage.setItem('24adz_voice_language',voiceLanguage==='ta-IN'?'TA':'EN');}catch(e){}
+
+  if(activeRecognition){
+   const previous=activeRecognition, previousButton=activeButton;
+   try{previous.stop();}catch(e){}
+   finishVoice(previousButton,previous);
+  }
+
+  let recognition;
+  try{recognition=new Speech();}
+  catch(e){if(typeof window.toast==='function')window.toast('Could not open voice typing. Check microphone permission.');return;}
+
+  activeRecognition=recognition;
+  activeButton=button;
+  const oldText=button.textContent;
+  button.dataset.voiceOldText=oldText;
+  button.textContent='🔴 Listening…';
+  button.classList.add('is-listening');
+  button.disabled=false;
+
+  const original=target.value.trim();
   let finalText='';
-  recognition.onresult=function(event){let interim='';for(let i=event.resultIndex;i<event.results.length;i++){const value=event.results[i][0].transcript;if(event.results[i].isFinal)finalText+=value;else interim+=value;}target.value=(target.dataset.voiceOriginal||'')+(target.dataset.voiceOriginal?' ':'')+finalText+interim;target.dispatchEvent(new Event('input',{bubbles:true}));};
-  target.dataset.voiceOriginal=target.value.trim();
-  recognition.onerror=function(event){if(event.error!=='no-speech'&&event.error!=='aborted')toast('Voice input error: '+event.error);};
-  recognition.onend=function(){button.textContent=old;button.classList.remove('is-listening');activeRecognition=null;delete target.dataset.voiceOriginal;if(target.id==='districtFilterKeyword'&&target.value.trim()&&typeof applyDistrictListingFilters==='function'){applyDistrictListingFilters();if(typeof collapseDistrictFilters==='function')collapseDistrictFilters();}};
-  try{recognition.start();}catch(e){button.textContent=old;button.classList.remove('is-listening');activeRecognition=null;toast('Could not start microphone. Check browser microphone permission.');}
+  let gotResult=false;
+  recognition.lang=voiceLanguage;
+  recognition.interimResults=true;
+  recognition.continuous=false;
+  recognition.maxAlternatives=1;
+
+  recognition.onstart=function(){
+   if(activeRecognition!==recognition)return;
+   if(activeTimer)clearTimeout(activeTimer);
+   activeTimer=setTimeout(function(){
+    if(activeRecognition===recognition){
+     try{recognition.stop();}catch(e){}
+     finishVoice(button,recognition,gotResult?'Voice typing stopped.':'No voice detected. Tap Speak and try again.');
+    }
+   },20000);
+  };
+
+  recognition.onresult=function(event){
+   if(activeRecognition!==recognition)return;
+   let interim='';
+   for(let i=event.resultIndex;i<event.results.length;i++){
+    const result=event.results[i];
+    const value=(result[0]&&result[0].transcript||'').trim();
+    if(result.isFinal){if(value)finalText+=(finalText?' ':'')+value;}
+    else if(value)interim+=(interim?' ':'')+value;
+   }
+   const spoken=(finalText||interim).trim();
+   target.value=original+(original&&spoken?' ':'')+spoken;
+   target.dispatchEvent(new Event('input',{bubbles:true}));
+   if(finalText)gotResult=true;
+  };
+
+  recognition.onerror=function(event){
+   let message='';
+   if(event.error==='not-allowed'||event.error==='service-not-allowed')message='Microphone permission denied. Allow microphone access for Chrome.';
+   else if(event.error==='audio-capture')message='Microphone not available. Check your phone microphone.';
+   else if(event.error==='network')message='Voice service network error. Check internet and try again.';
+   else if(event.error==='no-speech')message='No voice detected. Tap Speak and speak clearly.';
+   else if(event.error!=='aborted')message='Voice input error: '+event.error;
+   finishVoice(button,recognition,message);
+  };
+
+  recognition.onend=function(){
+   finishVoice(button,recognition,!gotResult?'No voice text detected. Please try Speak again.':'');
+   if(target.id==='districtFilterKeyword'&&target.value.trim()&&typeof window.applyDistrictListingFilters==='function'){
+    window.applyDistrictListingFilters();
+    if(typeof window.collapseDistrictFilters==='function')window.collapseDistrictFilters();
+   }
+  };
+
+  try{recognition.start();}
+  catch(e){finishVoice(button,recognition,'Could not start microphone. Allow microphone permission in Chrome and try again.');}
  };
 })();
 </script>
@@ -7278,6 +7375,44 @@ body{overflow-y:auto!important;touch-action:pan-y!important;-webkit-overflow-scr
 @media(min-width:700px){.district-area-group .district-area-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:520px){.district-area-group>summary{min-height:50px;padding:11px 12px}.district-area-group[open]>.district-area-grid{padding:9px}.district-area-group .district-area-link{padding:11px 9px;font-size:13px}}
 </style>
+
+
+<script id="24adz-post-form-text-cleaner">
+/* Post Ad only: allow English A-Z, a-z, numbers, spaces and ordinary punctuation.
+   Tamil letters, emoji and decorative symbols are removed only inside the Post Ad form. */
+(function(){
+  const form=document.getElementById('postForm');
+  if(!form)return;
+  const allowed=/[^A-Za-z0-9\s.,!?;:'"()\/-]/g;
+  function clean(value){return String(value??'').replace(allowed,'').replace(/[ \t]{2,}/g,' ');}
+  function isTextField(el){
+    if(!el||!form.contains(el))return false;
+    if(el.matches('textarea'))return true;
+    if(!el.matches('input'))return false;
+    return ['text','search'].includes((el.type||'text').toLowerCase()) || el.hasAttribute('data-admin-field');
+  }
+  function sanitize(el){
+    if(!isTextField(el))return;
+    const before=el.value,after=clean(before);
+    if(before!==after){
+      const start=el.selectionStart,end=el.selectionEnd;
+      el.value=after;
+      try{const pos=Math.min(after.length,start??after.length);el.setSelectionRange(pos,Math.min(after.length,end??pos));}catch(e){}
+    }
+  }
+  form.addEventListener('input',event=>sanitize(event.target),true);
+  form.addEventListener('change',event=>sanitize(event.target),true);
+  form.addEventListener('submit',()=>{
+    form.querySelectorAll('input,textarea').forEach(sanitize);
+  },true);
+  const observer=new MutationObserver(()=>{
+    form.querySelectorAll('input[data-admin-field],textarea[data-admin-field]').forEach(el=>{
+      if(!el.dataset.postTextCleanerBound){el.dataset.postTextCleanerBound='1';sanitize(el);}
+    });
+  });
+  observer.observe(form,{childList:true,subtree:true});
+})();
+</script>
 
 </body></html>
 
