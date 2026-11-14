@@ -6296,7 +6296,7 @@ body{overflow-y:auto!important;touch-action:pan-y!important;-webkit-overflow-scr
 
   const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!Speech){
-   if(typeof window.toast==='function')window.toast('Voice typing needs Google Chrome. Open 24adz.com in Chrome and try again.');
+   if(typeof window.toast==='function')window.toast('Voice typing is not supported by this browser. Please open 24adz.com in the latest Google Chrome.');
    return;
   }
 
@@ -6329,6 +6329,15 @@ body{overflow-y:auto!important;touch-action:pan-y!important;-webkit-overflow-scr
   recognition.continuous=false;
   recognition.maxAlternatives=1;
 
+  /* Give the browser a short window to start its speech service. */
+  if(activeTimer)clearTimeout(activeTimer);
+  activeTimer=setTimeout(function(){
+   if(activeRecognition===recognition){
+    try{recognition.abort();}catch(e){}
+    finishVoice(button,recognition,'Speech service did not start. Check internet connection and Chrome microphone permission, then try again.');
+   }
+  },8000);
+
   recognition.onstart=function(){
    if(activeRecognition!==recognition)return;
    if(activeTimer)clearTimeout(activeTimer);
@@ -6350,7 +6359,7 @@ body{overflow-y:auto!important;touch-action:pan-y!important;-webkit-overflow-scr
        This blocks Tamil-script output, emoji and decorative symbols. */
     const value=rawValue
       .replace(/[^A-Za-z0-9 .,!?'"()\\-]/g,' ')
-      .replace(/\\s+/g,' ')
+      .replace(/\s+/g,' ')
       .trim();
     if(result.isFinal){if(value)finalText+=(finalText?' ':'')+value;}
     else if(value)interim+=(interim?' ':'')+value;
