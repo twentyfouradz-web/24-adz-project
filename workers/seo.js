@@ -12,7 +12,7 @@ const seoResponse = (body, status = 200, noindex = false, method = "GET") => new
     ...(noindex ? { "X-Robots-Tag": "noindex, follow" } : {})
   }}
 );
-const seoPage = ({ title, description, canonical, heading, intro, ads, crumbs, noindex }) => {
+const seoPage = ({ title, description, canonical, heading, intro, ads = [], crumbs = [], relatedLinks = [], noindex = false }) => {
   const crumbHtml = crumbs.map((c) => `<span class="sep">›</span><a href="${seoEscape(c.url)}">${seoEscape(c.label)}</a>`).join("");
   const cards = ads.map((ad) => `<article class="ad-card">
     ${ad.image_url ? `<img src="${seoEscape(ad.image_url)}" alt="${seoEscape(ad.title)}" loading="lazy">` : ""}
@@ -49,6 +49,7 @@ h1{font-size:30px;line-height:1.2;margin:10px 0}.intro{color:#555;margin:8px 0 2
 .ad-card h2{font-size:18px;margin:0 0 5px}.ad-card p{margin:4px 0;color:#555;font-size:14px}
 .ad-card .price{color:#c45b09;font-weight:700;font-size:16px}.ad-card .place{font-weight:600}
 .empty{background:#fff;border-radius:12px;padding:22px;color:#555}
+.related-links{margin:28px 0;padding:18px;background:#fff;border:1px solid #e5e5e5;border-radius:12px}.related-links h2{font-size:19px;margin:0 0 10px}.related-links ul{display:flex;flex-wrap:wrap;gap:9px 18px;padding-left:20px;margin:0}.related-links a{color:#a94d08;text-decoration:underline}
 footer{max-width:1100px;margin:35px auto;padding:16px;color:#777;font-size:13px}
 @media(max-width:520px){h1{font-size:25px}.ad-card img{width:90px;height:90px}}
 </style></head><body><header class="site-head"><a href="https://www.24adz.com/">24Adz.com</a></header>
@@ -56,6 +57,7 @@ footer{max-width:1100px;margin:35px auto;padding:16px;color:#777;font-size:13px}
 <h1>${seoEscape(heading)}</h1><p class="intro">${seoEscape(intro)}</p>
 ${ads.length ? `<section class="ad-grid" aria-label="Published advertisements">${cards}</section>` :
 `<section class="empty"><h2>No published ads yet</h2><p>There are currently no approved advertisements for this selection. Please check again later.</p></section>`}
+${relatedLinks.length ? `<section class="related-links"><h2>Explore more on 24Adz</h2><ul>${relatedLinks.map(x => `<li><a href="${seoEscape(x.url)}">${seoEscape(x.label)}</a></li>`).join("")}</ul></section>` : ""}
 </main><footer>© ${new Date().getFullYear()} 24Adz.com · Tamil Nadu Classifieds</footer></body></html>`;
 };
 
@@ -71,23 +73,26 @@ const sitemapResponse = (xml, method = "GET") => new Response(method === "HEAD" 
 async function buildSitemap(env) {
   const base = "https://www.24adz.com";
   const urls = new Map();
+  const today = new Date().toISOString().slice(0, 10);
   const add = (path, lastmod) => {
-    const clean = path.replace(/\/+/g, "/").replace(/\/?$/, "/");
-    urls.set(clean, lastmod || new Date().toISOString().slice(0, 10));
+    const clean = `/${String(path || "").split("/").filter(Boolean).join("/")}${path === "/" ? "" : "/"}`;
+    urls.set(clean, String(lastmod || today).slice(0, 10));
   };
   add("/");
-  const [catResult, districtResult, adsResult] = await Promise.all([
+  add("/tamil-nadu/");
+  const [catResult, districtResult, areaResult, adsResult] = await Promise.all([
     env.DB.prepare("SELECT id,name,slug,parent_id FROM categories WHERE active=1 ORDER BY sort_order,id").all(),
     env.DB.prepare("SELECT id,name FROM districts ORDER BY name").all(),
+    env.DB.prepare("SELECT id,name,district_id FROM areas ORDER BY name").all(),
     env.DB.prepare("SELECT id,category,district,area,details_json,created_at FROM ads WHERE status='approved' AND (expires_at IS NULL OR datetime(expires_at)>datetime('now')) ORDER BY created_at DESC LIMIT 20000").all()
   ]);
-  const cats = catResult.results || [], districts = districtResult.results || [], ads = adsResult.results || [];
+  const cats = catResult.results || [], districts = districtResult.results || [], areas = areaResult.results || [], ads = adsResult.results || [];
   const mains = cats.filter(c => c.parent_id === null);
   const subs = cats.filter(c => c.parent_id !== null);
-  const mainByName = new Map(mains.map(c => [String(c.name).toLowerCase(), c]));
-  const subByKey = new Map(subs.map(c => [`${c.parent_id}:${String(c.name).toLowerCase()}`, c]));
-  const districtByName = new Map(districts.map(d => [String(d.name).toLowerCase(), d]));
-  // Only add listing landing pages that have at least one currently published ad.
+  const mainByName = new Map(mains.map(c => [String(c.name).trim().toLowerCase(), c]));
+  const subByKey = new Map(subs.map(c => [`${c.parent_id}:${String(c.name).trim().toLowerCase()}`, c]));
+  const districtByName = new Map(districts.map(d => [String(d.name).trim().toLowerCase(), d]));
+  const areaByDistrictAndName = new Map(areas.map(a => [`${a.district_id}:${String(a.name).trim().toLowerCase()}`, a]));
   for (const ad of ads) {
     const main = mainByName.get(String(ad.category || "").trim().toLowerCase());
     if (!main) continue;
@@ -104,17 +109,23 @@ async function buildSitemap(env) {
     add(`/tamil-nadu/${dSlug}/${mainSlug}/`, ad.created_at);
     if (sub) add(`/tamil-nadu/${dSlug}/${mainSlug}/${seoSlug(sub.slug || sub.name)}/`, ad.created_at);
     if (ad.area) {
-      const aSlug = seoSlug(ad.area);
+      const area = areaByDistrictAndName.get(`${district.id}:${String(ad.area).trim().toLowerCase()}`);
+      if (!area) continue;
+      const aSlug = seoSlug(area.name);
       add(`/tamil-nadu/${dSlug}/${aSlug}/`, ad.created_at);
       add(`/tamil-nadu/${dSlug}/${aSlug}/${mainSlug}/`, ad.created_at);
       if (sub) add(`/tamil-nadu/${dSlug}/${aSlug}/${mainSlug}/${seoSlug(sub.slug || sub.name)}/`, ad.created_at);
     }
   }
+  if (ads.length) add("/tamil-nadu/");
+  const xmlEscape = value => String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
   const body = [...urls.entries()].map(([path, lastmod]) =>
-    `<url><loc>${base}${path.split("/").map((part, i) => i ? encodeURIComponent(decodeURIComponent(part)) : "").join("/")}</loc><lastmod>${String(lastmod).slice(0,10)}</lastmod></url>`
+    `<url><loc>${xmlEscape(base + path)}</loc><lastmod>${lastmod}</lastmod></url>`
   ).join("");
   return `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${body}</urlset>`;
 }
+
+const makeLink = (label, url) => ({ label, url });
 
 export async function handleSeoRequest(req, env) {
   if (!["GET", "HEAD"].includes(req.method)) return null;
@@ -149,6 +160,17 @@ export async function handleSeoRequest(req, env) {
       if (!sub) return null;
       return { main: mains.find(x => Number(x.id) === Number(sub.parent_id)) || null, sub };
     };
+    const categoryLinksFor = (prefix = "") => mains.flatMap(main => {
+      const mainSlug = seoSlug(main.slug || main.name);
+      const mainUrl = `${prefix}/${mainSlug}/`.replace(/\/+/g, "/");
+      const children = subs.filter(sub => Number(sub.parent_id) === Number(main.id));
+      return [makeLink(main.name, mainUrl), ...children.map(sub => makeLink(`${main.name} - ${sub.name}`, `${prefix}/${mainSlug}/${seoSlug(sub.slug || sub.name)}/`.replace(/\/+/g, "/")))];
+    });
+    if (cleanPath === "/tamil-nadu") {
+      const links = [...categoryLinksFor(), ...districts.map(d => makeLink(`${d.name} Classified Ads`, `/tamil-nadu/${seoSlug(d.name)}/`))];
+      const html = seoPage({ title: "Tamil Nadu Classified Ads | 24Adz.com", description: "Browse classified advertisements across Tamil Nadu by category, district and local area on 24Adz.com.", canonical: "https://www.24adz.com/tamil-nadu/", heading: "Tamil Nadu Classified Ads", intro: "Explore categories and local classified listings across all Tamil Nadu districts.", ads: [], crumbs: [], relatedLinks: links, noindex: false });
+      return seoResponse(html, 200, false, req.method);
+    }
 
     let district = null, area = null, mainCategory = null, subcategory = null;
     let seoRoute = false;
@@ -234,9 +256,22 @@ export async function handleSeoRequest(req, env) {
       url: district ? `/tamil-nadu/${seoSlug(district.name)}/${area ? `${seoSlug(area.name)}/` : ""}${mainCategory.slug}/` : `/${mainCategory.slug}/` });
     if (subcategory) crumbs.push({ label: subcategory.name,
       url: district ? `/tamil-nadu/${seoSlug(district.name)}/${area ? `${seoSlug(area.name)}/` : ""}${mainCategory.slug}/${subcategory.slug}/` : `/${mainCategory.slug}/${subcategory.slug}/` });
+    let relatedLinks = [];
+    if (area && district) {
+      relatedLinks = categoryLinksFor(`/tamil-nadu/${seoSlug(district.name)}/${seoSlug(area.name)}`);
+    } else if (district) {
+      const areaRows = (await env.DB.prepare("SELECT id,name FROM areas WHERE district_id=? ORDER BY name").bind(district.id).all()).results || [];
+      relatedLinks = [
+        ...categoryLinksFor(`/tamil-nadu/${seoSlug(district.name)}`),
+        ...areaRows.map(a => makeLink(`${a.name} Classified Ads`, `/tamil-nadu/${seoSlug(district.name)}/${seoSlug(a.name)}/`))
+      ];
+    } else if (mainCategory) {
+      relatedLinks = districts.map(d => makeLink(`${mainCategory.name} in ${d.name}`, `/tamil-nadu/${seoSlug(d.name)}/${seoSlug(mainCategory.slug || mainCategory.name)}/`));
+      if (subcategory) relatedLinks = districts.map(d => makeLink(`${subcategory.name} in ${d.name}`, `/tamil-nadu/${seoSlug(d.name)}/${seoSlug(mainCategory.slug || mainCategory.name)}/${seoSlug(subcategory.slug || subcategory.name)}/`));
+    }
     const html = seoPage({ title, description, canonical, heading,
       intro: `Find approved ${subcategory?.name || mainCategory?.name || "classified"} advertisements${locationText ? ` in ${locationText}` : " across Tamil Nadu"}.`,
-      ads, crumbs, noindex: ads.length === 0 });
+      ads, crumbs, relatedLinks, noindex: ads.length === 0 });
     return seoResponse(html, 200, ads.length === 0, req.method);
   } catch (error) {
     console.error("24Adz SEO routing error:", error);
