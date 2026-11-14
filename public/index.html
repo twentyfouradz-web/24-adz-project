@@ -2446,6 +2446,17 @@ select option { color:#fff8ef; background:#15100c; }
     min-height:29px!important;padding:4px 5px!important;font-size:10px!important;
   }
 }
+.category-seo-content{margin:26px 0 42px;padding:0 2px}
+.category-seo-inner{border:1px solid rgba(255,151,31,.25);border-radius:16px;padding:20px;background:linear-gradient(145deg,rgba(31,22,14,.92),rgba(10,10,10,.98))}
+.category-seo-kicker{color:#ffad3b;font-size:10px;font-weight:900;letter-spacing:1.7px}
+.category-seo-inner h2{color:#fff2df;font-size:20px;margin:8px 0 10px}
+.category-seo-inner p{color:#c7bdb2;font-size:13px;line-height:1.7;margin:0}
+.category-seo-links{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+.category-seo-links span{border:1px solid rgba(255,158,48,.28);background:#17120d;color:#ffc477;border-radius:999px;padding:6px 10px;font-size:11px}
+.category-seo-link{border:1px solid rgba(255,158,48,.28);background:#17120d;color:#ffc477;border-radius:999px;padding:7px 11px;font-size:11px;font:inherit;cursor:pointer}.category-seo-link.active,.category-seo-link:focus-visible{background:#3a240f;border-color:#ffad3b;color:#fff1d9;outline:none}.category-seo-subcard{margin-top:12px}.category-seo-inner+.category-seo-inner{margin-top:12px}
+.district-area-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px}
+.district-area-link{min-width:0}
+@media(max-width:600px){.category-seo-inner{padding:16px}.category-seo-inner h2{font-size:18px}}
 </style>
 
 
@@ -2751,6 +2762,7 @@ select option { color:#fff8ef; background:#15100c; }
     <div class="ads" id="adsList"><div class="empty">No advertisements yet. Contact the Admin if you want to advertise here.</div></div>
     <div class="ads-pagination" id="adsPagination" aria-label="Advertisement pages"></div>
     <section class="district-area-directory" id="districtAreaDirectory" hidden aria-label="Published ads by local area"></section>
+    <section class="category-seo-content" id="categorySeoContent" hidden aria-label="Category information"></section>
   </section>
 
 
@@ -3589,7 +3601,57 @@ function selectSeoCategory(main,sub){
  const listings=document.getElementById("adsSection");
  if(listings)listings.scrollIntoView({behavior:"smooth",block:"start"});
 }
+function renderCategorySeoContent(){
+ const panel=document.getElementById("categorySeoContent");if(!panel)return;
+ const districtMode=document.body.classList.contains("search-results-mode");
+ const main=String((districtMode?document.getElementById("districtFilterCategory")?.value:"")||document.getElementById("searchCategory")?.value||document.getElementById("districtFilterCategory")?.value||"").trim();
+ const sub=String((districtMode?document.getElementById("districtFilterSubcategory")?.value:"")||document.getElementById("searchSubcategory")?.value||document.getElementById("districtFilterSubcategory")?.value||"").trim();
+ const district=String((districtMode?document.getElementById("districtFilterDistrict")?.value:"")||document.getElementById("searchDistrict")?.value||document.getElementById("districtFilterDistrict")?.value||"").trim();
+ const area=String((districtMode?document.getElementById("districtFilterArea")?.value:"")||document.getElementById("searchArea")?.value||"").trim();
+ const place=area?(district?`${area}, ${district}`:area):(district||"Tamil Nadu");
+ const allMains=Object.keys(categories);
+ const selectedMains=main&&categories[main]?[main]:allMains;
+ const makeBody=(category,subcategory)=>{
+   const base=CATEGORY_SEO_COPY[category]?.body||`Explore ${category.toLowerCase()} listings across Tamil Nadu. Compare available options, review listing details and contact advertisers directly to confirm information, availability and terms.`;
+   if(!subcategory)return base.replace(/across Tamil Nadu/g,`in ${place}`);
+   const c=category.toLowerCase(), item=subcategory.toLowerCase();
+   let detail;
+   if(c.includes("car")||c.includes("vehicle")||c==="bikes")detail=`Browse ${item} listings in ${place}. Compare vehicle models, condition, prices and location details, then contact the advertiser to confirm availability and inspect the vehicle and documents before purchase or rental.`;
+   else if(c==="mobiles")detail=`Find ${item} listings in ${place}. Compare phone brands, model, storage, condition and asking price. Check the device and IMEI in person and confirm all details with the seller before payment.`;
+   else if(c==="jobs")detail=`Explore ${item} opportunities in ${place}. Review role responsibilities, employer details, work location and salary information, then contact the advertiser directly. Do not pay recruitment or interview fees.`;
+   else if(c==="real estate")detail=`Browse ${item} in ${place}. Compare property location, size, rent or sale price and facilities. Visit the property and verify ownership documents and agreement terms before paying an advance.`;
+   else if(c==="hotel rooms")detail=`Discover ${item} in ${place}. Check room facilities, location, rates and availability directly with the property before confirming your stay.`;
+   else if(c==="fashion & beauty")detail=`Explore ${item} in ${place}. Review product or service details, compare available options and pricing, and contact the advertiser to confirm the information before booking or buying.`;
+   else detail=`Explore ${item} listings in ${place}. Review the description, service details and location, and contact the advertiser directly to confirm availability, terms and pricing.`;
+   return detail;
+ };
+ const makeTags=(category,activeSub)=>{
+   const subs=categories[category]||[];
+   return `<button type="button" class="category-seo-link${!activeSub?' active':''}" onclick="selectSeoCategory('${encodeURIComponent(category)}','')">All ${escapeHtml(category)}</button>`+subs.map(label=>`<button type="button" class="category-seo-link${label===activeSub?' active':''}" onclick="selectSeoCategory('${encodeURIComponent(category)}','${encodeURIComponent(label)}')">${escapeHtml(label)}</button>`).join("");
+ };
+ const cards=[];
+ selectedMains.forEach(category=>{
+   const copy=CATEGORY_SEO_COPY[category]||{title:`${category} in Tamil Nadu`,body:`Explore ${category.toLowerCase()} listings across Tamil Nadu. Compare available options, review details and contact advertisers directly to confirm availability and terms.`};
+   const isSelected=category===main;
+   const chosenSub=isSelected&&sub&&sub!==main?sub:"";
+   const suffix=area?` in ${area}${district?`, ${district}`:""}`:district?` in ${district}`:" in Tamil Nadu";
+   const heading=chosenSub?`${chosenSub}${suffix}`:`${copy.title.replace(/ in Tamil Nadu| across Tamil Nadu/gi,"")}${suffix}`;
+   const description=makeBody(category,chosenSub);
+   const kicker=`24ADZ.COM · ${place.toUpperCase()} CLASSIFIEDS`;
+   cards.push(`<article class="category-seo-inner"><span class="category-seo-kicker">${escapeHtml(kicker)}</span><h2>${escapeHtml(heading)}</h2><p>${escapeHtml(description)}</p><div class="category-seo-links">${makeTags(category,chosenSub)}</div></article>`);
+   if(!chosenSub){
+     (categories[category]||[]).forEach(child=>{
+       const childTitle=`${child}${suffix}`;
+       cards.push(`<article class="category-seo-inner category-seo-subcard"><span class="category-seo-kicker">24ADZ.COM · ${escapeHtml(category.toUpperCase())}</span><h2>${escapeHtml(childTitle)}</h2><p>${escapeHtml(makeBody(category,child))}</p><div class="category-seo-links">${makeTags(category,child)}</div></article>`);
+     });
+   }
+ });
+ panel.hidden=false;
+ panel.innerHTML=cards.join("");
+}
+
 function renderAds(items=ads,page=1){
+  renderCategorySeoContent();
   if(adsScrollObserver){adsScrollObserver.disconnect();adsScrollObserver=null;}
   // Homepage and district/area result views show every published, active listing.
   // Active VIP promotions lead; standard/free listings follow them.
