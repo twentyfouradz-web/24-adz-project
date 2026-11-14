@@ -6300,17 +6300,8 @@ body{overflow-y:auto!important;touch-action:pan-y!important;-webkit-overflow-scr
    return;
   }
 
-  /* SpeechRecognition accepts one language per session. Let the user choose Tamil or Indian English without changing the page layout. */
-  let savedVoiceLanguage='TA';
-  try{savedVoiceLanguage=localStorage.getItem('24adz_voice_language')||'TA';}catch(e){}
-  const languageChoice=window.prompt('Voice language / குரல் மொழி தேர்வு செய்யவும்:\nTA = தமிழ்\nEN = English',savedVoiceLanguage);
-  if(languageChoice===null)return;
-  const normalizedChoice=String(languageChoice).trim().toUpperCase();
-  let voiceLanguage;
-  if(['TA','TAMIL','தமிழ்','TA-IN'].includes(normalizedChoice))voiceLanguage='ta-IN';
-  else if(['EN','ENGLISH','ஆங்கிலம்','EN-IN'].includes(normalizedChoice))voiceLanguage='en-IN';
-  else{if(typeof window.toast==='function')window.toast('TA அல்லது EN மட்டும் உள்ளிடவும். / Enter TA or EN.');return;}
-  try{localStorage.setItem('24adz_voice_language',voiceLanguage==='ta-IN'?'TA':'EN');}catch(e){}
+  /* English-only voice typing: no language popup or language selector. */
+  const voiceLanguage='en-IN';
 
   if(activeRecognition){
    const previous=activeRecognition, previousButton=activeButton;
@@ -6354,7 +6345,13 @@ body{overflow-y:auto!important;touch-action:pan-y!important;-webkit-overflow-scr
    let interim='';
    for(let i=event.resultIndex;i<event.results.length;i++){
     const result=event.results[i];
-    const value=(result[0]&&result[0].transcript||'').trim();
+    const rawValue=(result[0]&&result[0].transcript||'').trim();
+    /* Keep only English letters, numbers, spaces and basic punctuation.
+       This blocks Tamil-script output, emoji and decorative symbols. */
+    const value=rawValue
+      .replace(/[^A-Za-z0-9 .,!?'"()\\-]/g,' ')
+      .replace(/\\s+/g,' ')
+      .trim();
     if(result.isFinal){if(value)finalText+=(finalText?' ':'')+value;}
     else if(value)interim+=(interim?' ':'')+value;
    }
@@ -6375,7 +6372,7 @@ body{overflow-y:auto!important;touch-action:pan-y!important;-webkit-overflow-scr
   };
 
   recognition.onend=function(){
-   finishVoice(button,recognition,!gotResult?'No voice text detected. Please try Speak again.':'');
+   finishVoice(button,recognition,!gotResult?'No English voice text detected. Please speak in English and try again.':'');
    if(target.id==='districtFilterKeyword'&&target.value.trim()&&typeof window.applyDistrictListingFilters==='function'){
     window.applyDistrictListingFilters();
     if(typeof window.collapseDistrictFilters==='function')window.collapseDistrictFilters();
