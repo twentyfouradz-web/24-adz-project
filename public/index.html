@@ -4,15 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#080808">
-<meta name="description" content="Find and post classified ads across Tamil Nadu on 24Adz.com. Browse houses for rent and sale, cars, bikes, mobiles, jobs, hotel rooms and local services by district.">
-<meta name="robots" content="index,follow,max-image-preview:large">
-<link rel="canonical" href="https://24adz.com/">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="24Adz.com">
-<meta property="og:title" content="24Adz.com | Tamil Nadu Classifieds">
-<meta property="og:description" content="Browse and post local classified ads across Tamil Nadu by category and district.">
-<meta property="og:url" content="https://24adz.com/">
-<meta name="twitter:card" content="summary">
 <title>24Adz.com | Tamil Nadu Classifieds</title>
 <style>
 :root{--bg:#080808;--panel:#111;--panel2:#171717;--line:#292929;--orange:#ff8a00;--red:#f04416;--muted:#a5a5a5;--white:#f6f6f6}
@@ -2462,7 +2453,7 @@ select option { color:#fff8ef; background:#15100c; }
 .category-seo-inner p{color:#c7bdb2;font-size:13px;line-height:1.7;margin:0}
 .category-seo-links{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
 .category-seo-links span{border:1px solid rgba(255,158,48,.28);background:#17120d;color:#ffc477;border-radius:999px;padding:6px 10px;font-size:11px}
-.category-seo-link{display:inline-block;text-decoration:none;border:1px solid rgba(255,158,48,.28);background:#17120d;color:#ffc477;border-radius:999px;padding:7px 11px;font-size:11px;font:inherit;cursor:pointer}.category-seo-link.active,.category-seo-link:focus-visible{background:#3a240f;border-color:#ffad3b;color:#fff1d9;outline:none}.category-seo-subcard{margin-top:12px}.category-seo-inner+.category-seo-inner{margin-top:12px}
+.category-seo-link{border:1px solid rgba(255,158,48,.28);background:#17120d;color:#ffc477;border-radius:999px;padding:7px 11px;font-size:11px;font:inherit;cursor:pointer}.category-seo-link.active,.category-seo-link:focus-visible{background:#3a240f;border-color:#ffad3b;color:#fff1d9;outline:none}.category-seo-subcard{margin-top:12px}.category-seo-inner+.category-seo-inner{margin-top:12px}
 .district-area-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px}
 .district-area-link{min-width:0}
 @media(max-width:600px){.category-seo-inner{padding:16px}.category-seo-inner h2{font-size:18px}}
@@ -2784,12 +2775,6 @@ select option { color:#fff8ef; background:#15100c; }
     <div class="district-list" id="districtList" aria-label="Tamil Nadu districts"></div>
   </section>
 
-
-<section id="seoLandingDirectory" class="wrap" aria-label="Browse classified ads by category and district" style="padding-top:10px;padding-bottom:35px">
-  <h2 class="section-title">Browse Ads by <span>Category &amp; District</span></h2>
-  <p class="muted" style="line-height:1.65">Explore category, subcategory and district pages on 24Adz.com. Listing availability depends on currently published advertisements.</p>
-  <div id="seoLandingLinks"></div>
-</section>
 </main>
 <nav class="mobile-bottom-nav" aria-label="Main navigation">
   <button type="button" class="bottom-nav-item active" onclick="goHomeTop()"><span class="bottom-nav-icon">⌂</span><span>Home</span></button>
@@ -3002,12 +2987,9 @@ function fillAreas(districtSelect,areaSelect){
   const district=districtSelect.value;
   const previous=areaSelect.value;
   areaSelect.innerHTML='<option value="">'+(areaSelect.id==="districtFilterArea"?"All Areas":"Select Area")+'</option>';
-  const districtKey=district
-    ? Object.keys(districtAreas).find(key=>String(key).trim().replace(/\\s+/g," ").toLocaleLowerCase("en-IN")===String(district).trim().replace(/\\s+/g," ").toLocaleLowerCase("en-IN"))
-    : "";
-  const localAreas=districtKey && Array.isArray(districtAreas[districtKey])
-    ? districtAreas[districtKey]
-    : [...new Set(Object.values(districtAreas).flat().filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  const localAreas=district && districtAreas[district]
+    ? districtAreas[district]
+    : [...new Set(Object.values(districtAreas).flat())].sort((a,b)=>a.localeCompare(b));
   const list=district
     ? [district,...localAreas.filter(name=>String(name).trim().toLocaleLowerCase("en-IN")!==String(district).trim().toLocaleLowerCase("en-IN"))]
     : localAreas;
@@ -3645,8 +3627,7 @@ function renderCategorySeoContent(){
  };
  const makeTags=(category,activeSub)=>{
    const subs=categories[category]||[];
-   const makeHref=(sub)=>`https://24adz.com/?seo_category=${encodeURIComponent(category)}${sub?'&seo_subcategory='+encodeURIComponent(sub):''}`;
-   return `<a class="category-seo-link${!activeSub?' active':''}" href="${makeHref('')}">All ${escapeHtml(category)}</a>`+subs.map(label=>`<a class="category-seo-link${label===activeSub?' active':''}" href="${makeHref(label)}">${escapeHtml(label)}</a>`).join("");
+   return `<button type="button" class="category-seo-link${!activeSub?' active':''}" onclick="selectSeoCategory('${encodeURIComponent(category)}','')">All ${escapeHtml(category)}</button>`+subs.map(label=>`<button type="button" class="category-seo-link${label===activeSub?' active':''}" onclick="selectSeoCategory('${encodeURIComponent(category)}','${encodeURIComponent(label)}')">${escapeHtml(label)}</button>`).join("");
  };
  const cards=[];
  selectedMains.forEach(category=>{
@@ -4531,10 +4512,8 @@ function classifyMyAd(a){
  return "inactive";
 }
 function renderMyAdsTab(tab){
- // /api/client/ads is an authenticated, client-scoped endpoint. Trust its
- // response instead of requiring owner_client_id, which may be omitted by
- // some API response versions and caused published ads to disappear in My Ads.
- const all=Array.isArray(window.__24adzOwnAds)?window.__24adzOwnAds.slice():[];
+ const clientId=String(window.__24adzCurrentClientId||"");
+ const all=(window.__24adzOwnAds||[]).filter(a=>String(a.owner_client_id||"")===clientId);
  const tabs=["all","active","expiring","expired","inactive"];
  const counts=Object.fromEntries(tabs.map(k=>[k,k==="all"?all.length:all.filter(a=>classifyMyAd(a)===k).length]));
  const shown=tab==="all"?all:all.filter(a=>classifyMyAd(a)===tab);
@@ -4576,9 +4555,7 @@ async function openClientDashboard(){
   if(!a24Token()){openModal("loginModal");return}
   const [me,own,msgs,coinHistory]=await Promise.all([a24Call("/api/client/me"),a24Call("/api/client/ads"),a24Call("/api/client/messages"),a24Call("/api/client/coin-transactions")]);
   const c=me.client,w=me.wallet,limits=me.freeAds,transactions=coinHistory.transactions||[];
-  // This endpoint already returns only the authenticated client's ads.
-  // Do not filter again by owner_client_id: older API payloads may omit it.
-  const ads=Array.isArray(own.ads)?own.ads:[];
+  const ads=(own.ads||[]).filter(a=>String(a.owner_client_id||"")===String(c.id));
   const messages=msgs.messages||[];window.__24adzCurrentClientId=c.id;window.__24adzOwnAds=ads;
   const threads={};
   messages.forEach(m=>{
@@ -7440,149 +7417,6 @@ body{overflow-y:auto!important;touch-action:pan-y!important;-webkit-overflow-scr
     });
   });
   observer.observe(form,{childList:true,subtree:true});
-})();
-</script>
-
-
-<script id="24adz-seo-landing-pages">
-(function(){
-  "use strict";
-  const SITE = "https://24adz.com/";
-  const params = new URLSearchParams(window.location.search);
-  const q = {
-    category: (params.get("seo_category") || "").trim(),
-    subcategory: (params.get("seo_subcategory") || "").trim(),
-    district: (params.get("seo_district") || "").trim()
-  };
-  const norm = v => String(v || "").trim().toLocaleLowerCase("en-IN");
-  const enc = v => encodeURIComponent(String(v || ""));
-  const urlFor = (category, subcategory, district) => {
-    const p = new URLSearchParams();
-    if(category) p.set("seo_category", category);
-    if(subcategory) p.set("seo_subcategory", subcategory);
-    if(district) p.set("seo_district", district);
-    return SITE + (p.toString() ? "?" + p.toString() : "");
-  };
-  const safe = v => String(v || "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-  const findName = (list, value) => list.find(x => norm(x) === norm(value)) || "";
-  const categoriesReady = () => typeof categories === "object" && categories && typeof districtAreas === "object";
-  function setMeta(name, content){
-    let el = document.querySelector('meta[name="'+name+'"]');
-    if(!el){el=document.createElement("meta");el.setAttribute("name",name);document.head.appendChild(el);}
-    el.setAttribute("content",content);
-  }
-  function setProperty(property, content){
-    let el = document.querySelector('meta[property="'+property+'"]');
-    if(!el){el=document.createElement("meta");el.setAttribute("property",property);document.head.appendChild(el);}
-    el.setAttribute("content",content);
-  }
-  function setCanonical(url){
-    let el=document.querySelector('link[rel="canonical"]');
-    if(!el){el=document.createElement("link");el.rel="canonical";document.head.appendChild(el);}
-    el.href=url;
-  }
-  function setSchema(category, subcategory, district, title, description, canonical){
-    const old=document.getElementById("24adz-seo-jsonld");
-    if(old)old.remove();
-    const data={
-      "@context":"https://schema.org",
-      "@type":"CollectionPage",
-      "name":title,
-      "description":description,
-      "url":canonical,
-      "isPartOf":{"@type":"WebSite","name":"24Adz.com","url":SITE},
-      "about":{"@type":"Thing","name":[category,subcategory,district].filter(Boolean).join(" - ") || "Tamil Nadu classified advertisements"}
-    };
-    const script=document.createElement("script");
-    script.type="application/ld+json";
-    script.id="24adz-seo-jsonld";
-    script.textContent=JSON.stringify(data);
-    document.head.appendChild(script);
-  }
-  function updateSeoMeta(){
-    if(!categoriesReady()) return;
-    const cat=findName(Object.keys(categories),q.category);
-    const sub=cat ? findName(categories[cat],q.subcategory) : "";
-    const dist=findName(Object.keys(districtAreas),q.district);
-    if(!cat && !dist) return;
-    const place=dist ? dist+", Tamil Nadu" : "Tamil Nadu";
-    const subject=sub || cat || "Classified Ads";
-    const title=(sub ? sub+" " : "")+(cat ? cat+" " : "")+"Ads in "+place+" | 24Adz.com";
-    let description;
-    if(norm(cat)==="real estate" && norm(sub).includes("rent"))
-      description="Browse houses and property rentals in "+place+". View published rental listings, compare locations and contact advertisers on 24Adz.com.";
-    else
-      description="Browse "+subject.toLowerCase()+" classified ads in "+place+". Explore available listings, compare details and contact advertisers directly on 24Adz.com.";
-    const canonical=urlFor(cat,sub,dist);
-    document.title=title;
-    setMeta("description",description);
-    setMeta("robots","index,follow,max-image-preview:large");
-    setCanonical(canonical);
-    setProperty("og:title",title);
-    setProperty("og:description",description);
-    setProperty("og:url",canonical);
-    setSchema(cat,sub,dist,title,description,canonical);
-  }
-  function buildDirectory(){
-    if(!categoriesReady()) return;
-    const root=document.getElementById("seoLandingLinks");
-    if(!root || root.dataset.ready==="1") return;
-    const districtNames=Object.keys(districtAreas).sort((a,b)=>a.localeCompare(b));
-    const categoryNames=Object.keys(categories).sort((a,b)=>a.localeCompare(b));
-    const parts=[];
-    parts.push('<div class="category-seo-links" style="display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 22px">');
-    categoryNames.forEach(cat=>{
-      parts.push('<a class="category-seo-link" href="'+urlFor(cat,"","")+'">'+safe(cat)+' in Tamil Nadu</a>');
-    });
-    parts.push('</div>');
-    districtNames.forEach(district=>{
-      parts.push('<details style="margin:10px 0;padding:12px;border:1px solid #343434;border-radius:12px;background:#111">');
-      parts.push('<summary style="cursor:pointer;color:#ffad38;font-weight:700;padding:5px">'+safe(district)+' District Ads</summary>');
-      parts.push('<div class="category-seo-links" style="display:flex;flex-wrap:wrap;gap:7px;padding-top:12px">');
-      categoryNames.forEach(cat=>{
-        parts.push('<a class="category-seo-link" href="'+urlFor(cat,"",district)+'">'+safe(cat)+' in '+safe(district)+'</a>');
-        (categories[cat]||[]).forEach(sub=>{
-          parts.push('<a class="category-seo-link" href="'+urlFor(cat,sub,district)+'">'+safe(sub)+' in '+safe(district)+'</a>');
-        });
-      });
-      parts.push('</div></details>');
-    });
-    root.innerHTML=parts.join("");
-    root.dataset.ready="1";
-  }
-  function applyLandingRoute(){
-    if(!categoriesReady()) return;
-    const cat=findName(Object.keys(categories),q.category);
-    const sub=cat ? findName(categories[cat],q.subcategory) : "";
-    const dist=findName(Object.keys(districtAreas),q.district);
-    if(!cat && !dist) return;
-    updateSeoMeta();
-    const filterPanel=document.getElementById("districtResultsFilters");
-    if(filterPanel) filterPanel.hidden=false;
-    document.body.classList.add("search-results-mode");
-    const catSelect=document.getElementById("districtFilterCategory");
-    const subSelect=document.getElementById("districtFilterSubcategory");
-    const distSelect=document.getElementById("districtFilterDistrict");
-    if(catSelect && cat) catSelect.value=cat;
-    if(typeof updateDistrictFilterSubcategories==="function") updateDistrictFilterSubcategories();
-    if(subSelect) subSelect.value=sub;
-    if(distSelect){ if(typeof fillDistricts==="function")fillDistricts(distSelect); distSelect.value=dist; }
-    if(typeof updateDistrictFilterAreas==="function")updateDistrictFilterAreas();
-    const areaSelect=document.getElementById("districtFilterArea");
-    if(areaSelect)areaSelect.value="";
-    const heading=document.getElementById("adsHeading");
-    if(heading)heading.innerHTML=(sub ? safe(sub)+" · " : "")+(cat ? safe(cat)+" · " : "")+(dist ? safe(dist) : "Tamil Nadu")+" <span>Listings</span>";
-    if(typeof applyDistrictListingFilters==="function")applyDistrictListingFilters();
-    if(typeof renderCategorySeoContent==="function")renderCategorySeoContent();
-  }
-  function init(){
-    if(!categoriesReady()) return;
-    buildDirectory();
-    updateSeoMeta();
-    applyLandingRoute();
-  }
-  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init,{once:true});
-  else init();
 })();
 </script>
 
