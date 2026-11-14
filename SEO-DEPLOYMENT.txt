@@ -1,0 +1,56 @@
+24Adz.com SEO update — deployment notes
+
+WHAT THIS UPDATE DOES
+- Reads active categories and their subcategories from the live D1 categories table.
+- Reads all districts and area records from the live D1 districts and areas tables.
+- Serves SEO landing pages for /tamil-nadu/, each district, each district area,
+  every active main category, and each active subcategory.
+- Serves category + district and category + area combinations through the same
+  route handler. Approved, unexpired ads are shown when present.
+- Adds breadcrumbs, canonical URLs, meta descriptions, Open Graph/Twitter tags,
+  CollectionPage/ItemList and BreadcrumbList JSON-LD, and useful internal links.
+- Generates a live sitemap at /sitemap.xml from D1. The checked-in public
+  sitemap is a fallback directory sitemap built from the supplied migrations.
+- Keeps robots.txt allowing public pages and disallowing /admin and /api/.
+
+FILES UPDATED
+- workers/seo.js
+- functions/lib/seo.js
+- functions/[[path]].js
+- public/sitemap.xml
+- public/robots.txt
+- SEO-DEPLOYMENT.txt
+
+FILES INTENTIONALLY NOT CHANGED
+- public/index.html
+- public/admin.html
+- workers/index.js
+- wrangler.toml
+- migrations/*
+
+DEPLOYMENT
+1. Upload/commit the updated files to the same paths in the connected GitHub repo.
+2. The supplied wrangler.toml already declares D1 binding DB. Keep that existing
+   binding and database resource unchanged.
+3. Deploy the Worker from the repository root using: npx wrangler deploy
+4. Do not run database migrations for this SEO update; it is read-only.
+5. If the public website is instead deployed as a separate Cloudflare Pages
+   project, configure a D1 binding named DB for that Pages project as well.
+   Without that binding, Pages will fall back to static assets and cannot render
+   the database-driven SEO pages.
+
+POST-DEPLOYMENT CHECKS
+- https://www.24adz.com/sitemap.xml returns XML with URLs from the live D1 data.
+- https://www.24adz.com/robots.txt references the sitemap.
+- /tamil-nadu/ returns a Tamil Nadu directory page.
+- /tamil-nadu/tiruppur/ returns a district page.
+- /tamil-nadu/tiruppur/avinashi/ returns an area page (if Avinashi exists in D1).
+- /cars/ and /cars/<active-subcategory-slug>/ return category pages when those
+  categories are active in D1.
+- Test one real published ad in a category/district/area combination.
+
+IMPORTANT
+The code and fixture tests confirm routing and sitemap generation against the
+project's supplied migrations. They do not prove production D1 contents,
+Cloudflare deployment, Search Console verification, or Google's decision to
+crawl/index any URL. Google indexing is not guaranteed by sitemap submission.
