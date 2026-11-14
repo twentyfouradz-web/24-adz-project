@@ -277,7 +277,9 @@ export async function handleSeoRequest(req, env) {
 
     if (mainCategory) {
       const base = district ? `/tamil-nadu/${slug(district.name)}/${area ? `${slug(area.name)}/` : ""}` : "/";
-      
+      if (district) crumbs.push({ label: mainCategory.name, url: `${base}${slug(mainCategory.slug || mainCategory.name)}/` });
+      sections.push({ title: `More ${mainCategory.name} subcategories`, items: subs.filter((s) => Number(s.parent_id) === Number(mainCategory.id)).map((s) => ({ label: s.name, url: `${base}${slug(mainCategory.slug || mainCategory.name)}/${slug(s.slug || s.name)}/` })) });
+    }
     if (district) {
       const areaRows = areasByDistrict.get(String(district.id)) || [];
       sections.push({ title: `Areas in ${district.name}`, items: areaRows.map((a) => ({ label: a.name, url: `/tamil-nadu/${slug(district.name)}/${slug(a.name)}/` })) });
