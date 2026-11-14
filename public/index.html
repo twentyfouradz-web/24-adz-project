@@ -2676,7 +2676,7 @@ select option { color:#fff8ef; background:#15100c; }
     <div id="searchFields" class="search-fields" hidden>
       <input id="keyword" class="field" placeholder="Search listings or business name">
       <div class="search-grid">
-        <select id="searchCategory" class="field"><option value="">Select Main Category</option><option>Cars</option><option>Bikes</option><option>Mobiles</option><option>Jobs</option><option>Real Estate</option><option>Hotel Rooms</option><option>Fashion &amp; Beauty</option><option>Personals</option></select><select id="searchSubcategory" class="field" disabled><option value="">Select Subcategory</option></select>
+        <select id="searchCategory" class="field"><option value="">Select Main Category</option><option>Cars</option><option>Bikes</option><option>Mobiles</option><option>Jobs</option><option>Real Estate</option><option>Hotel Rooms</option><option>Fashion &amp; Beauty</option><option>Personals</option><option>Vehicles &amp; Rentals</option><option>Cars Rentals</option></select><select id="searchSubcategory" class="field" disabled><option value="">Select Subcategory</option></select>
         <select id="searchDistrict" class="field" disabled><option value="">Select District</option></select>
       </div>
       <select id="searchArea" class="field" disabled><option value="">Select Area</option></select>
@@ -2704,6 +2704,8 @@ select option { color:#fff8ef; background:#15100c; }
       <div class="category" onclick="toggleMainCategory('Hotel Rooms',this)"><span class="ico">🏨</span><strong>Hotel Rooms</strong></div>
       <div class="category" onclick="toggleMainCategory('Fashion &amp; Beauty',this)"><span class="ico">💄</span><strong>Fashion &amp; Beauty</strong></div>
       <button type="button" class="category personals-category" id="personalsCategory" aria-expanded="false" aria-controls="personalsSubcategories" onclick="toggleMainCategory('Personals',this)"><span class="ico">❤️</span><strong>Personals</strong></button>
+      <button type="button" class="category" onclick="toggleMainCategory('Vehicles & Rentals',this)"><span class="ico">🚐</span><strong>Vehicles &amp; Rentals</strong></button>
+      <button type="button" class="category" onclick="toggleMainCategory('Cars Rentals',this)"><span class="ico">🚘</span><strong>Cars Rentals</strong></button>
     </div>
     <div class="personals-subcategory-panel" id="personalsSubcategories" hidden>
       <div class="subcategory-screen-heading"><button type="button" class="subcategory-back" onclick="closeCategorySubcategories()">← Main Categories</button><h2 class="personals-subcategory-title"><span id="activeSubcategoryHeading">Categories</span></h2></div>
@@ -2922,7 +2924,9 @@ const districtAreas = {
 };
 const districts = Object.keys(districtAreas);
 const categories = {
-  "Cars":["New Cars","Used Cars","Car Rentals","Car Services"],
+  "Cars":["New Cars","Used Cars","Car Services"],
+  "Vehicles & Rentals":["Passenger Auto","Goods Auto","Passenger Van","Goods Van","12 Seater","14 Seater","17 Seater","20 Seater","Local Travels","Outstation Travels","Airport Pickup & Drop","Bike Rental","Auto Rental","Van Rental","Tempo Traveller Rental","Self Drive Rental","With Driver Rental","Daily Rental","Monthly Rental"],
+  "Cars Rentals":["Self Drive Car Rental","With Driver Car Rental","Daily Car Rental","Weekly Car Rental","Monthly Car Rental","Outstation Car Rental","Airport Pickup & Drop"],
   "Bikes":["New Bikes","Used Bikes","Bike Services"],
   "Real Estate":["Residential Properties","Commercial Spaces","Houses for Sale","Houses for Rent","Apartments & Flats","Land & Plots","PG & Hostels"],
   "Hotel Rooms":["Budget Hotel Rooms","Luxury Hotel Rooms","AC Rooms","Non-AC Rooms","Family Rooms","Lodges","Service Apartments"],
@@ -4759,7 +4763,9 @@ a24InitAuth().catch(e=>{console.warn("24Adz Supabase Auth:",e.message);toast(e.m
 <script id="24adz-category-form-controller">
 (function(){
  const categoryMap={
-  Cars:["New Cars","Used Cars","Car Rentals","Car Services"],
+  Cars:["New Cars","Used Cars","Car Services"],
+  "Vehicles & Rentals":["Passenger Auto","Goods Auto","Passenger Van","Goods Van","12 Seater","14 Seater","17 Seater","20 Seater","Local Travels","Outstation Travels","Airport Pickup & Drop","Bike Rental","Auto Rental","Van Rental","Tempo Traveller Rental","Self Drive Rental","With Driver Rental","Daily Rental","Monthly Rental"],
+  "Cars Rentals":["Self Drive Car Rental","With Driver Car Rental","Daily Car Rental","Weekly Car Rental","Monthly Car Rental","Outstation Car Rental","Airport Pickup & Drop"],
   Bikes:["New Bikes","Used Bikes","Bike Services"],
   Mobiles:["New Mobiles","Used Mobiles","Mobile Accessories","Mobile Services"],
   Jobs:["Full-time Jobs","Part-time Jobs","Work from Home","Temporary Jobs"],
@@ -4784,7 +4790,17 @@ a24InitAuth().catch(e=>{console.warn("24Adz Supabase Auth:",e.message);toast(e.m
    const cat=$('postCategory')?.value,sub=$('postSubcategory')?.value||"",box=$('categorySpecificFields');
    if(!box)return;
    let h="";
-   if(cat==="Cars"||cat==="Bikes"){
+   if(cat==="Vehicles & Rentals"||cat==="Cars Rentals"){
+     h+=field("Vehicle Type","vehicle_type","select",cat==="Cars Rentals"?["Car"]:["Passenger Auto","Goods Auto","Passenger Van","Goods Van","Tempo Traveller","Bike","Auto","Van","Other"]);
+     h+=field("Vehicle Brand","brand");
+     h+=field("Vehicle Model / Name","model");
+     h+=field("Vehicle Details","vehicle_details");
+     h+=field("Rental Price (₹)","rental_price","number");
+     h+=field("Rental Price Unit","rental_price_unit","select",["Per Day","Per Month"]);
+     h+=field("Driver Option","driver_option","select",["With Driver","Self Drive"]);
+     h+=field("Rental Duration","rental_duration","select",["Daily","Monthly"]);
+     h+=field("Availability","availability","select",["Available Now","Advance Booking"]);
+   }else if(cat==="Cars"||cat==="Bikes"){
      h+=field("Brand","brand","select",cat==="Cars"?["Maruti Suzuki","Hyundai","Tata","Mahindra","Toyota","Honda","Kia","Renault","Volkswagen","Skoda","Other"]:["Hero","Honda","TVS","Bajaj","Royal Enfield","Yamaha","Suzuki","KTM","Ola Electric","Ather","Other"]);
      h+=field("Model","model");
      h+=field("Model Year","model_year","number");
@@ -4793,7 +4809,6 @@ a24InitAuth().catch(e=>{console.warn("24Adz Supabase Auth:",e.message);toast(e.m
      if(cat==="Cars")h+=field("Transmission","transmission","select",["Manual","Automatic"]);
      else h+=field("Engine CC","engine_cc","number");
      h+=field("Kilometres Driven","kilometres","number");
-     if(sub==="Car Rentals")h+=field("Rental Period","rental_period","select",["Per Hour","Per Day","Per Week","Per Month"]);
    }else if(cat==="Mobiles"){
      h+=field("Brand","brand","select",["Apple","Samsung","OnePlus","Xiaomi","Redmi","Realme","Vivo","Oppo","Motorola","Nothing","Other"]);
      h+=field("Model","model");
@@ -4864,7 +4879,9 @@ a24InitAuth().catch(e=>{console.warn("24Adz Supabase Auth:",e.message);toast(e.m
 <script id="24adz-all-main-category-subcategory-fix">
 (function(){
   const defaults = {
-    "Cars":["Cars","New Cars","Used Cars","Car Rentals","Car Services"],
+    "Cars":["Cars","New Cars","Used Cars","Car Services"],
+    "Vehicles & Rentals":["Vehicles & Rentals","Passenger Auto","Goods Auto","Passenger Van","Goods Van","12 Seater","14 Seater","17 Seater","20 Seater","Local Travels","Outstation Travels","Airport Pickup & Drop","Bike Rental","Auto Rental","Van Rental","Tempo Traveller Rental","Self Drive Rental","With Driver Rental","Daily Rental","Monthly Rental"],
+    "Cars Rentals":["Cars Rentals","Self Drive Car Rental","With Driver Car Rental","Daily Car Rental","Weekly Car Rental","Monthly Car Rental","Outstation Car Rental","Airport Pickup & Drop"],
     "Bikes":["Bikes","New Bikes","Used Bikes","Bike Services"],
     "Mobiles":["Mobiles","New Mobiles","Used Mobiles","Mobile Accessories","Mobile Services"],
     "Jobs":["Jobs","Full-time Jobs","Part-time Jobs","Work from Home","Temporary Jobs"],
@@ -4874,7 +4891,8 @@ a24InitAuth().catch(e=>{console.warn("24Adz Supabase Auth:",e.message);toast(e.m
     "Personals":["Personals","Massage & Spa","Full Body Massage","Head Massage","Foot Massage","Spa & Wellness","Beauty & Wellness","Other Services"]
   };
   const icons = {
-    "Cars":"🚗","New Cars":"🚘","Used Cars":"🚙","Car Rentals":"🚕","Car Services":"🛠️",
+    "Cars":"🚗","New Cars":"🚘","Used Cars":"🚙","Car Services":"🛠️",
+    "Vehicles & Rentals":"🚐","Cars Rentals":"🚘","Passenger Auto":"🛺","Goods Auto":"🚚","Passenger Van":"🚐","Goods Van":"🚚","12 Seater":"🚐","14 Seater":"🚐","17 Seater":"🚐","20 Seater":"🚌","Local Travels":"📍","Outstation Travels":"🛣️","Airport Pickup & Drop":"✈️","Bike Rental":"🏍️","Auto Rental":"🛺","Van Rental":"🚐","Tempo Traveller Rental":"🚍","Self Drive Rental":"🔑","With Driver Rental":"🧑‍✈️","Daily Rental":"📅","Monthly Rental":"🗓️","Self Drive Car Rental":"🔑","With Driver Car Rental":"🧑‍✈️","Daily Car Rental":"📅","Weekly Car Rental":"🗓️","Monthly Car Rental":"📆","Outstation Car Rental":"🛣️",
     "Bikes":"🏍️","New Bikes":"🏍️","Used Bikes":"🛵","Bike Services":"🔧",
     "Mobiles":"📱","New Mobiles":"📱","Used Mobiles":"📲","Mobile Accessories":"🎧","Mobile Services":"🛠️",
     "Jobs":"💼","Full-time Jobs":"💼","Part-time Jobs":"🕒","Work from Home":"🏡","Temporary Jobs":"📋",
