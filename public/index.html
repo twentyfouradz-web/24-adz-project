@@ -3189,7 +3189,9 @@ function showCategoryListingResults(mainCategory,subcategory=""){
   const filterPanel=document.getElementById("districtResultsFilters");
   const filterHandle=document.getElementById("districtFilterDragHandle");
   if(filterPanel&&filterHandle){filterPanel.classList.add("is-collapsed");filterHandle.setAttribute("aria-expanded","false");}
-  // Keep the visitor at the current scroll position; listings are explored manually.
+  // Category selection must open at the first matching advertisement.
+  const listings=document.getElementById("adsSection");
+  if(listings)listings.scrollIntoView({behavior:"smooth",block:"start"});
 }
 function chooseCategory(cat,el){
   closePersonalsCategories();
@@ -3596,7 +3598,8 @@ function selectSeoCategory(main,sub){
  const keyword=document.getElementById("keyword");if(keyword)keyword.value="";
  if(typeof showCategoryListingResults==="function")showCategoryListingResults(main,sub||"");
  else if(typeof searchAds==="function")searchAds();
- const panel=document.getElementById("categorySeoContent");if(panel)panel.scrollIntoView({behavior:"smooth",block:"start"});
+ const listings=document.getElementById("adsSection");
+ if(listings)listings.scrollIntoView({behavior:"smooth",block:"start"});
 }
 function renderCategorySeoContent(){
  const panel=document.getElementById("categorySeoContent");if(!panel)return;
